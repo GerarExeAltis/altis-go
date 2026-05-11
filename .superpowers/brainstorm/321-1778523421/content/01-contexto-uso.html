@@ -1,0 +1,41 @@
+<h2>Onde o jogo Roleta vai acontecer fisicamente?</h2>
+<p class="subtitle">Essa decisão muda o sentido do QR Code, do "Standby", da autenticação do jogador e da estratégia anti-fraude. Escolha a que melhor descreve o cenário real de uso.</p>
+
+<div class="options">
+  <div class="option" data-choice="kiosk" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>Kiosk / Totem em evento ou loja física</h3>
+      <p><b>Uma tela grande</b> (TV/totem) mostra a roleta em modo <i>Standby</i>. Quando alguém se aproxima, o admin (ou um botão) inicia o ciclo: o totem mostra um QR Code dinâmico → cliente escaneia com o celular → preenche dados no celular → roleta no totem gira → resultado aparece no totem → cliente vai retirar o prêmio com o admin.</p>
+      <div class="mockup" style="margin-top:12px">
+        <div class="mockup-header">Cenário A — Dois dispositivos</div>
+        <div class="mockup-body" style="display:flex;gap:16px">
+          <div class="placeholder" style="flex:2;min-height:120px;display:flex;align-items:center;justify-content:center"><b>TOTEM</b><br>Roleta 3D / Standby / QR / Resultado</div>
+          <div class="placeholder" style="flex:1;min-height:120px;display:flex;align-items:center;justify-content:center"><b>CELULAR DO CLIENTE</b><br>Escaneia QR → preenche dados → confirma</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="personal" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>Dispositivo pessoal do jogador (sem totem)</h3>
+      <p>Cada jogador acessa a URL <b>direto no próprio celular</b> (provavelmente via QR Code estático impresso em material promocional, banner, embalagem etc.). Cadastra-se, joga a roleta no próprio aparelho, vê o resultado, e depois retira/recebe o prêmio.</p>
+      <div class="mockup" style="margin-top:12px">
+        <div class="mockup-header">Cenário B — Um dispositivo</div>
+        <div class="mockup-body" style="display:flex;gap:16px">
+          <div class="placeholder" style="flex:1;min-height:120px;display:flex;align-items:center;justify-content:center"><b>CELULAR DO JOGADOR</b><br>Login → Roleta → Resultado → Comprovante de prêmio</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="hybrid" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>Híbrido — totem + celular, mas a roleta gira no celular</h3>
+      <p>Totem só serve como "porta de entrada" mostrando o QR. Cliente escaneia, e <b>todo o fluxo (cadastro + roleta + resultado)</b> acontece no celular dele. O totem só volta a mostrar Standby. Vantagem: roleta 3D otimizada para tela pequena, menos custo de hardware. Desvantagem: experiência menos "espetáculo".</p>
+    </div>
+  </div>
+</div>
