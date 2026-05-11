@@ -26,6 +26,10 @@ build/
 !.vscode/settings.json
 .cursor/
 
+# Claude Code — settings locais (permissões/usuário) NÃO vão pro repo
+.claude/settings.local.json
+.claude/*.local.json
+
 # OS
 .DS_Store
 Thumbs.db
