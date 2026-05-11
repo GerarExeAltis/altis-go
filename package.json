@@ -1,0 +1,22 @@
+{
+  "name": "altis-bet",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Altis Bet — plataforma de jogos com premiação",
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=10.0.0"
+  },
+  "scripts": {
+    "db:start": "supabase start",
+    "db:stop": "supabase stop",
+    "db:reset": "supabase db reset",
+    "db:status": "supabase status",
+    "test:db": "supabase test db",
+    "lint": "echo 'lint will be added in Plano 2'",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.0"
+  }
+}
