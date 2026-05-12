@@ -14,7 +14,7 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
     }
   }, [loading, session, router]);
 
-  if (loading) return <Loading mensagem="Conferindo sua sessao..." />;
-  if (!session) return <Loading mensagem="Redirecionando..." />;
+  if (loading) return <Loading ariaLabel="Conferindo sua sessao" />;
+  if (!session) return <Loading ariaLabel="Redirecionando" />;
   return <>{children}</>;
 }

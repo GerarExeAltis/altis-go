@@ -32,7 +32,7 @@ export function DashboardTab() {
     return <p className="text-muted-foreground">Nenhum evento ativo no momento.</p>;
   }
   if (loading || !data) {
-    return <Loading fullscreen={false} mensagem="Carregando metricas..." />;
+    return <Loading fullscreen={false} ariaLabel="Carregando metricas" />;
   }
 
   return (
