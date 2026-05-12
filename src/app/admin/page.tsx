@@ -47,10 +47,7 @@ function AdminGate() {
     return (
       <>
         <Header rightSlot={<AdminButton />} />
-        <ErrorPage
-          variant={403}
-          descricao='Esta area exige modo admin ativo. Clique em "Admin" no cabecalho e informe a senha.'
-        />
+        <ErrorPage variant={403} />
       </>
     );
   }
