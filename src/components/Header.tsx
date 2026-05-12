@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { LogoAltis } from './LogoAltis';
 import { ThemeToggle } from './theme/ThemeToggle';
+import { UserMenu } from './auth/UserMenu';
 
 export function Header({ rightSlot }: { rightSlot?: React.ReactNode }) {
   return (
@@ -12,6 +13,7 @@ export function Header({ rightSlot }: { rightSlot?: React.ReactNode }) {
       <nav className="flex items-center gap-2">
         {rightSlot}
         <ThemeToggle />
+        <UserMenu />
       </nav>
     </header>
   );

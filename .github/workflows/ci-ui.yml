@@ -1,0 +1,34 @@
+name: CI — UI
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'src/**'
+      - 'tests/components/**'
+      - 'public/**'
+      - 'tailwind.config.ts'
+      - 'next.config.mjs'
+      - 'package.json'
+      - '.github/workflows/ci-ui.yml'
+  pull_request:
+    paths:
+      - 'src/**'
+      - 'tests/components/**'
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20, cache: npm }
+      - run: npm ci --legacy-peer-deps
+      - run: npm run typecheck
+      - name: Build estático
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.test
+        run: npm run build
+      - run: npm run test:ui

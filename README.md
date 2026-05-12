@@ -50,8 +50,11 @@ npm run test:db
 | `npm run functions:serve` | Hot-reload das Edge Functions Deno em :54321 |
 | `npm run test:functions` | Roda 29 testes Vitest contra as Edge Functions (precisa `functions:serve` rodando) |
 | `npm run test:cli` | Roda 17 testes Vitest da CLI |
-| `npm run test` | tudo (db + functions + cli — 129 testes total) |
+| `npm run test:ui` | Roda 14 testes Vitest de componentes React |
+| `npm run test` | tudo (db + functions + cli + ui — 143 testes total) |
 | `npm run cli -- <comando>` | Roda a CLI em dev (via tsx) |
+| `npm run dev` | Next.js dev server em http://localhost:3000 |
+| `npm run build` | Build estático em `out/` |
 | `npm run typecheck` | TypeScript check |
 
 ## CLI
@@ -135,6 +138,7 @@ Se um dia adotarmos GraphQL ativamente, revisitamos via comment directives ou mo
 | 1 — Foundation DB | ✅ completo | Schema + RLS + sortear + pg_cron + Storage + seed |
 | 2 — Edge Functions | ✅ completo | 7 Edge Functions Deno + shared utils + 29 Vitest tests |
 | 3 — CLI | ✅ completo | 6 comandos (bootstrap, migrate, senha admin, import, backup) + 17 tests |
-| 4 — UI Login + Totem | 🔜 próximo | Next.js + Tailwind + shadcn/ui + R3F |
+| 4 — UI Foundation | ✅ completo | Next.js 15 + Tailwind + shadcn/ui + Auth + Login + Welcome + Modal Admin (14 tests) |
+| 5 — UI Totem | 🔜 próximo | Roleta 3D R3F + state machine + QR Code |
 | 5 — UI Jogador + Admin | ⏳ | `/jogar` + painel admin completo |
 | 6 — E2E + Deploy | ⏳ | Playwright + GitHub Pages + Sentry + UptimeRobot |
