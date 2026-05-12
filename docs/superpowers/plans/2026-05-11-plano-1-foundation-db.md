@@ -396,31 +396,15 @@ git commit -m "chore: initialize supabase local stack"
 Conteúdo:
 
 ```sql
--- 00_setup.sql — Carregado antes de todos os testes pgTAP.
--- Garante que a extensão pgTAP está disponível e define helpers comuns.
-
-BEGIN;
+-- 00_setup.sql — pgTAP setup global do projeto Altis Bet.
+-- Carregado antes dos arquivos de teste numerados (01_, 02_, etc).
+-- Cada arquivo de teste roda dentro do próprio BEGIN/ROLLBACK; este arquivo
+-- apenas garante que a extensão pgTAP está disponível no banco.
 
 CREATE EXTENSION IF NOT EXISTS pgtap;
-
--- Helper: cria um usuário fake no auth.users para testes que exigem JWT/auth.uid
--- Retorna o UUID criado.
-CREATE OR REPLACE FUNCTION test_helpers.criar_usuario_fake(p_email TEXT DEFAULT 'fake@test.local')
-RETURNS UUID
-LANGUAGE plpgsql AS $$
-DECLARE
-  v_id UUID := gen_random_uuid();
-BEGIN
-  INSERT INTO auth.users (id, email, created_at, updated_at, instance_id, aud, role)
-    VALUES (v_id, p_email, NOW(), NOW(),
-            '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated');
-  RETURN v_id;
-END $$;
-
-ROLLBACK;  -- 00_setup roda dentro de tx; pgTAP gerencia setup global
 ```
 
-Nota: o helper acima precisa do schema `test_helpers` — vou criar via migration na próxima task. Por ora o arquivo é apenas marcador.
+Nota: helpers de teste (ex: criação de `auth.users` fake) são feitos inline em cada arquivo de teste via blocos `DO $$ ... $$`, não em funções compartilhadas, porque `supabase test db` envolve cada teste num `BEGIN/ROLLBACK` — funções criadas em 00_setup não persistiriam.
 
 - [ ] **Step 4.2: Verificar que pgTAP está disponível**
 
