@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { ThemeProvider } from '@/components/theme/ThemeProvider';
 import { AuthProvider } from '@/contexts/AuthContext';
+import { AdminProvider } from '@/contexts/AdminContext';
 import '@/sentry.client.config';
 import './globals.css';
 
@@ -14,7 +15,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="pt-BR" suppressHydrationWarning>
       <body className="min-h-screen antialiased">
         <ThemeProvider>
-          <AuthProvider>{children}</AuthProvider>
+          <AuthProvider>
+            <AdminProvider>{children}</AdminProvider>
+          </AuthProvider>
         </ThemeProvider>
       </body>
     </html>
