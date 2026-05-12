@@ -42,15 +42,28 @@ export async function criarPremioTest(
 export async function criarSessaoTest(
   eventoId: string,
   operadorId: string,
-  status: string = 'aguardando_celular'
+  status: string = 'aguardando_celular',
+  premioParaFinalizada?: string
 ): Promise<string> {
   const id = randomUUID();
+  const precisaDados = ['pronta_para_girar', 'girando', 'finalizada'].includes(status);
+  const dadosExtras = precisaDados
+    ? {
+        jogador_nome: 'Teste Fixture',
+        jogador_telefone: '54988887' + String(Math.floor(Math.random() * 900) + 100),
+        jogador_email: 'fixture@test.local',
+        ...(status === 'finalizada' && premioParaFinalizada
+            ? { premio_sorteado_id: premioParaFinalizada }
+            : {}),
+      }
+    : {};
   const { error } = await sb.from('sessoes_jogo').insert({
     id,
     evento_id: eventoId,
     jogo: 'roleta',
     status,
     liberada_por: operadorId,
+    ...dadosExtras,
   });
   if (error) throw new Error(`criarSessaoTest: ${error.message}`);
   return id;
