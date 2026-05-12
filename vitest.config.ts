@@ -7,7 +7,7 @@ export default defineConfig({
     setupFiles: ['./tests/edge-functions/helpers/setup.ts'],
     testTimeout: 15_000,
     hookTimeout: 30_000,
-    include: ['tests/edge-functions/**/*.test.ts'],
+    include: ['tests/edge-functions/**/*.test.ts', 'cli/tests/**/*.test.ts'],
     pool: 'forks',
     poolOptions: {
       forks: { singleFork: true },
