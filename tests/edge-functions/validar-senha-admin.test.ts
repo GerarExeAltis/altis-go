@@ -1,13 +1,18 @@
 import { describe, it, expect, beforeAll } from 'vitest';
 import { callFn } from './helpers/functions';
 import { operadorJwt } from './helpers/jwt';
+import { service } from './helpers/supabase';
 
 const OPERADOR_ID = '00000000-0000-0000-0000-000000000001';
 const SENHA_OK    = 'admin123';
 const SENHA_RUIM  = 'errada123';
 
 let opJwt: string;
-beforeAll(async () => { opJwt = await operadorJwt(OPERADOR_ID); });
+beforeAll(async () => {
+  opJwt = await operadorJwt(OPERADOR_ID);
+  // Limpa auditoria de admin_login* para zerar rate limit entre execuções
+  await service().from('auditoria').delete().like('acao', 'admin_login%');
+});
 
 describe('validar-senha-admin', () => {
   it('senha correta retorna JWT-Admin com claim admin_elevado', async () => {
