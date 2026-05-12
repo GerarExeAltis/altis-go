@@ -44,24 +44,24 @@ SELECT ok(
 -- ━━━━━━━━━━━━━━━━━━━━━━━━ POLICIES EXISTEM ━━━━━━━━━━━━━━━━━━━━━
 
 SELECT policies_are('public', 'perfis_operadores',
-  ARRAY['operador_ve_proprio','admin_ve_todos_operadores'],
-  'perfis_operadores tem policies certas');
+  ARRAY['le_operadores','admin_insert_operadores','admin_update_operadores','admin_delete_operadores'],
+  'perfis_operadores tem 4 policies (le + admin INS/UPD/DEL)');
 
 SELECT policies_are('public', 'admin_credenciais',
   ARRAY['admin_atualiza_senha'],
   'admin_credenciais tem policy de UPDATE');
 
 SELECT policies_are('public', 'lojas',
-  ARRAY['operador_le_lojas','admin_cud_lojas'],
-  'lojas tem 2 policies');
+  ARRAY['le_lojas','admin_insert_lojas','admin_update_lojas','admin_delete_lojas'],
+  'lojas tem 4 policies');
 
 SELECT policies_are('public', 'eventos',
-  ARRAY['operador_le_eventos','admin_cud_eventos'],
-  'eventos tem 2 policies');
+  ARRAY['le_eventos','admin_insert_eventos','admin_update_eventos','admin_delete_eventos'],
+  'eventos tem 4 policies');
 
 SELECT policies_are('public', 'premios',
-  ARRAY['operador_le_premios','admin_cud_premios'],
-  'premios tem 2 policies');
+  ARRAY['le_premios','admin_insert_premios','admin_update_premios','admin_delete_premios'],
+  'premios tem 4 policies');
 
 SELECT policies_are('public', 'sessoes_jogo',
   ARRAY['operador_le_sessoes','operador_atualiza_propria_sessao'],
@@ -72,8 +72,8 @@ SELECT policies_are('public', 'ganhadores',
   'ganhadores tem 2 policies');
 
 SELECT policies_are('public', 'fingerprints_bloqueados',
-  ARRAY['admin_gerencia_fingerprints'],
-  'fingerprints_bloqueados tem 1 policy admin');
+  ARRAY['admin_le_fingerprints','admin_insert_fingerprints','admin_update_fingerprints','admin_delete_fingerprints'],
+  'fingerprints_bloqueados tem 4 policies admin');
 
 SELECT policies_are('public', 'auditoria',
   ARRAY['admin_le_auditoria'],
