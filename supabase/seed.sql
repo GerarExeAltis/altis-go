@@ -7,8 +7,15 @@
 -- O Plano 3 (CLI) substitui isso por bootstrap interativo.
 -- Para dev local: hash placeholder; Plano 2 (Edge Fn validar-senha-admin)
 -- recebera um hash real gerado pela CLI.
+-- IMPORTANTE: GoTrue moderno rejeita NULL nos campos *_token e email_change;
+-- precisa string vazia ''. Sem isso, login retorna
+-- "Database error querying schema" via Scan error.
 INSERT INTO auth.users (id, email, encrypted_password, created_at, updated_at,
-                        instance_id, aud, role, email_confirmed_at)
+                        instance_id, aud, role, email_confirmed_at,
+                        confirmation_token, recovery_token,
+                        email_change_token_new, email_change_token_current,
+                        email_change, reauthentication_token,
+                        phone_change, phone_change_token)
 VALUES (
   '00000000-0000-0000-0000-000000000001',
   'dev@altis.local',
@@ -16,7 +23,8 @@ VALUES (
   NOW(), NOW(),
   '00000000-0000-0000-0000-000000000000',
   'authenticated', 'authenticated',
-  NOW()
+  NOW(),
+  '', '', '', '', '', '', '', ''
 ) ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO public.perfis_operadores (id, nome_completo)
