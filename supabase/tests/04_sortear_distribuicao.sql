@@ -16,7 +16,7 @@ BEGIN
             '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated');
   INSERT INTO public.eventos (id, nome, data_inicio, data_fim, status, criado_por)
     VALUES ('11111111-1111-1111-1111-111111111111',
-            'Evento Test', CURRENT_DATE, CURRENT_DATE+1, 'ativo', v_user);
+            'Evento Test', CURRENT_DATE, CURRENT_DATE+1, 'rascunho', v_user);
 END $$;
 
 INSERT INTO public.premios (id, evento_id, nome, peso_base, estoque_inicial, estoque_atual,

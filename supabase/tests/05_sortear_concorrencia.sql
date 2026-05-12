@@ -12,7 +12,7 @@ BEGIN
 
   INSERT INTO public.eventos (id, nome, data_inicio, data_fim, status, criado_por)
     VALUES ('eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee',
-            'Evento Conc', CURRENT_DATE, CURRENT_DATE+1, 'ativo', v_user);
+            'Evento Conc', CURRENT_DATE, CURRENT_DATE+1, 'rascunho', v_user);
 
   INSERT INTO public.premios (evento_id, nome, peso_base, estoque_inicial,
                               estoque_atual, ordem_roleta, e_premio_real)

@@ -11,7 +11,7 @@ BEGIN
 
   INSERT INTO public.eventos (id, nome, data_inicio, data_fim, status, criado_por)
     VALUES ('ffffffff-ffff-ffff-ffff-ffffffffffff',
-            'Evento SM', CURRENT_DATE, CURRENT_DATE+1, 'ativo', v_user);
+            'Evento SM', CURRENT_DATE, CURRENT_DATE+1, 'rascunho', v_user);
 END $$;
 
 -- Caso 1: CHECK dados_quando_pronta bloqueia
