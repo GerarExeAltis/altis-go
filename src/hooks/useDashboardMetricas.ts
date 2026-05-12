@@ -40,11 +40,14 @@ export function useDashboardMetricas(eventoId: string | null): {
         .select('id, entregue, premios!inner(e_premio_real)')
         .eq('evento_id', eventoId);
 
-      const arr = (ganhadoresPremios ?? []) as Array<{
+      const arr = (ganhadoresPremios ?? []) as unknown as Array<{
         entregue: boolean;
-        premios: { e_premio_real: boolean };
+        premios: { e_premio_real: boolean } | { e_premio_real: boolean }[];
       }>;
-      const reais = arr.filter((g) => g.premios?.e_premio_real);
+      const reais = arr.filter((g) => {
+        const p = Array.isArray(g.premios) ? g.premios[0] : g.premios;
+        return p?.e_premio_real;
+      });
       const ganhadoresReais = reais.length;
       const naoFoi = arr.length - ganhadoresReais;
       const entregues = reais.filter((g) => g.entregue).length;
