@@ -235,7 +235,7 @@ CREATE OR REPLACE FUNCTION private.definir_senha_admin(p_senha TEXT)
 RETURNS VOID
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = public, pg_temp
+SET search_path = public, extensions, pg_temp
 AS $$
 DECLARE
   v_hash TEXT;
@@ -245,7 +245,7 @@ BEGIN
       USING ERRCODE = 'P0001';
   END IF;
 
-  v_hash := crypt(p_senha, gen_salt('bf', 12));
+  v_hash := extensions.crypt(p_senha, extensions.gen_salt('bf', 12));
 
   INSERT INTO public.admin_credenciais (id, senha_hash)
        VALUES (1, v_hash)
@@ -262,12 +262,12 @@ CREATE OR REPLACE FUNCTION private.verificar_senha_admin(p_senha TEXT)
 RETURNS BOOLEAN
 LANGUAGE sql
 SECURITY DEFINER
-SET search_path = public, pg_temp
+SET search_path = public, extensions, pg_temp
 AS $$
   SELECT EXISTS (
     SELECT 1 FROM public.admin_credenciais
      WHERE id = 1
-       AND senha_hash = crypt(p_senha, senha_hash)
+       AND senha_hash = extensions.crypt(p_senha, senha_hash)
   );
 $$;
 

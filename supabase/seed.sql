@@ -23,10 +23,9 @@ INSERT INTO public.perfis_operadores (id, nome_completo)
 VALUES ('00000000-0000-0000-0000-000000000001', 'Dev Local')
 ON CONFLICT (id) DO NOTHING;
 
--- Hash placeholder de senha admin (sera substituido pelo Plano 3 CLI)
-INSERT INTO public.admin_credenciais (id, senha_hash)
-VALUES (1, '$2a$12$8eFb1JLZBJxR7VqMHC4y9OZsLb2yVqVO7TpvLNQXDOJ4cVCpJZb3y')
-ON CONFLICT (id) DO NOTHING;
+-- Define senha admin de DEV via helper PL/pgSQL (bcrypt cost 12).
+-- Plano 3 (CLI) sobrescreve com senha real no bootstrap interativo.
+SELECT private.definir_senha_admin('admin123');
 
 -- ━━━━━━━━━━━━━━━━━━━━━━ LOJAS EXEMPLO ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
