@@ -36,7 +36,9 @@ INSERT INTO public.perfis_operadores (id, nome_completo)
 VALUES ('00000000-0000-0000-0000-000000000001', 'Dev Local')
 ON CONFLICT (id) DO NOTHING;
 
--- Define senha admin de DEV via helper PL/pgSQL (bcrypt cost 12).
+-- Define senha admin de DEV via helper PL/pgSQL.
+-- A funcao recebe a senha em PLAINTEXT e faz crypt + gen_salt('bf', 12) internamente.
+-- NAO passar hash pre-computado aqui (causa hash-do-hash, impossivel de validar).
 -- Plano 3 (CLI) sobrescreve com senha real no bootstrap interativo.
 SELECT private.definir_senha_admin('admin123');
 
