@@ -10,7 +10,6 @@ import { getSupabaseBrowserClient } from '@/lib/supabase/browser';
 import type { PremioDb } from '@/lib/totem/types';
 import { AttractMode } from '@/components/totem/AttractMode';
 import { QrCodeScreen } from '@/components/totem/QrCodeScreen';
-import { AguardandoDados } from '@/components/totem/AguardandoDados';
 import { BannerGanhador } from '@/components/totem/BannerGanhador';
 import { RoletaCanvas } from '@/components/totem/roleta/RoletaCanvas';
 import { usarAnimacaoRoleta } from '@/components/totem/roleta/usarAnimacaoRoleta';
@@ -100,14 +99,24 @@ function TotemFlow() {
       });
   }, [state.tipo, state]);
 
+  // Cliente (pessoa em frente ao totem) inicia a roleta tocando no botao
+  // GIRAR — sem auto-disparo. O botao aparece embaixo da roleta no estado
+  // 'pronta_para_girar'. iniciarAnimacao muda status para 'girando' no banco,
+  // useSessaoRealtime atualiza state e o useEffect abaixo dispara iniciar().
   const iniciouRef = React.useRef<string | null>(null);
-  React.useEffect(() => {
+  const [iniciando, setIniciando] = React.useState(false);
+  const dispararRoleta = React.useCallback(async () => {
     if (state.tipo !== 'pronta_para_girar') return;
     if (iniciouRef.current === state.sessaoId) return;
     iniciouRef.current = state.sessaoId;
-    iniciarAnimacao(accessToken, state.sessaoId).catch((e) =>
-      dispatch({ tipo: 'ERRO_REDE', mensagem: e.message })
-    );
+    setIniciando(true);
+    try {
+      await iniciarAnimacao(accessToken, state.sessaoId);
+    } catch (e) {
+      iniciouRef.current = null;
+      setIniciando(false);
+      dispatch({ tipo: 'ERRO_REDE', mensagem: (e as Error).message });
+    }
   }, [state, accessToken]);
 
   const premioVencedorId =
@@ -169,18 +178,30 @@ function TotemFlow() {
     );
   }
 
-  if (state.tipo === 'pronta_para_girar') {
-    return <AguardandoDados nome={jogadorNome} />;
-  }
-
-  if (state.tipo === 'girando') {
+  if (state.tipo === 'pronta_para_girar' || state.tipo === 'girando') {
+    const aguardandoToque = state.tipo === 'pronta_para_girar';
     return (
-      <div className="grid min-h-screen grid-rows-[auto_1fr] bg-background">
-        <h2 className="p-8 text-center text-4xl font-bold tracking-tight">
+      <div className="grid min-h-screen grid-rows-[auto_1fr_auto] bg-background">
+        <h2 className="p-6 text-center text-4xl font-bold tracking-tight">
           {jogadorNome ? `Boa sorte, ${jogadorNome}!` : 'Boa sorte!'}
         </h2>
         <div className="h-full w-full">
           <RoletaCanvas premios={premios} rodaRef={rodaRef} />
+        </div>
+        <div className="flex items-center justify-center p-6">
+          {aguardandoToque ? (
+            <button
+              type="button"
+              onClick={dispararRoleta}
+              disabled={iniciando}
+              className="inline-flex h-20 items-center justify-center gap-3 rounded-2xl bg-primary px-16 text-3xl font-bold text-primary-foreground shadow-2xl shadow-primary/40 ring-2 ring-primary/40 transition-all hover:scale-105 active:scale-100 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:scale-100"
+              aria-label="Girar a roleta"
+            >
+              {iniciando ? 'GIRANDO...' : 'GIRAR'}
+            </button>
+          ) : (
+            <p className="animate-pulse text-2xl font-semibold text-primary">Girando...</p>
+          )}
         </div>
       </div>
     );

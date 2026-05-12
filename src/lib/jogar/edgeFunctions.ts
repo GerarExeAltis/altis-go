@@ -39,3 +39,16 @@ export async function submeterDados(
   }
   return body as SubmeterDadosResp;
 }
+
+/** Jogador no celular dispara a animacao da roleta no totem. */
+export async function iniciarAnimacaoJogador(s: string, t: string): Promise<void> {
+  const res = await fetch(`${env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/iniciar-animacao`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ s, t }),
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(`${body.codigo ?? 'ERR'}|${body.erro ?? 'iniciar-animacao falhou'}`);
+  }
+}
