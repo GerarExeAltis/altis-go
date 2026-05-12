@@ -49,8 +49,38 @@ npm run test:db
 | `npm run test:db` | Roda 83 testes pgTAP em `supabase/tests/` |
 | `npm run functions:serve` | Hot-reload das Edge Functions Deno em :54321 |
 | `npm run test:functions` | Roda 29 testes Vitest contra as Edge Functions (precisa `functions:serve` rodando) |
-| `npm run test` | db tests + function tests sequencial (112 testes total) |
+| `npm run test:cli` | Roda 17 testes Vitest da CLI |
+| `npm run test` | tudo (db + functions + cli — 129 testes total) |
+| `npm run cli -- <comando>` | Roda a CLI em dev (via tsx) |
 | `npm run typecheck` | TypeScript check |
+
+## CLI
+
+```bash
+# Setup interativo (1ª vez)
+npm run cli -- bootstrap
+
+# Não-interativo (CI):
+npm run cli -- bootstrap --non-interactive \
+  --supabase-url https://xxx.supabase.co \
+  --supabase-service-role-key eyJ... \
+  --senha-admin MinhaSenhaForte123
+
+# Aplicar migrations pendentes
+npm run cli -- migrate up
+
+# Listar migrations aplicadas
+npm run cli -- migrate status
+
+# Trocar senha admin (prompt interativo)
+npm run cli -- definir-senha-admin
+
+# Importar prêmios de CSV para o evento ativo
+npm run cli -- import-premios premios.csv
+
+# Backup JSON (telefones mascarados)
+npm run cli -- backup --saida ./backups
+```
 
 ## Rodando os testes de Edge Functions
 
@@ -104,7 +134,7 @@ Se um dia adotarmos GraphQL ativamente, revisitamos via comment directives ou mo
 |---|---|---|
 | 1 — Foundation DB | ✅ completo | Schema + RLS + sortear + pg_cron + Storage + seed |
 | 2 — Edge Functions | ✅ completo | 7 Edge Functions Deno + shared utils + 29 Vitest tests |
-| 3 — CLI | ⏳ | bootstrap, migrate, definir-senha-admin, import-premios, backup |
-| 4 — UI Login + Totem | ⏳ | Next.js + Tailwind + shadcn + R3F |
+| 3 — CLI | ✅ completo | 6 comandos (bootstrap, migrate, senha admin, import, backup) + 17 tests |
+| 4 — UI Login + Totem | 🔜 próximo | Next.js + Tailwind + shadcn/ui + R3F |
 | 5 — UI Jogador + Admin | ⏳ | `/jogar` + painel admin completo |
 | 6 — E2E + Deploy | ⏳ | Playwright + GitHub Pages + Sentry + UptimeRobot |

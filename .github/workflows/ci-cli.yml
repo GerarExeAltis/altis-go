@@ -1,0 +1,39 @@
+name: CI — CLI
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'cli/**'
+      - 'package.json'
+      - '.github/workflows/ci-cli.yml'
+  pull_request:
+    paths:
+      - 'cli/**'
+
+jobs:
+  vitest-cli:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20, cache: npm }
+      - run: npm ci
+
+      - uses: supabase/setup-cli@v1
+        with: { version: latest }
+
+      - run: supabase start
+      - run: supabase db reset
+
+      - name: Generate .env.test from supabase status
+        run: |
+          supabase status -o env > .env.test
+          echo "SESSAO_JWT_SECRET=test-sessao-secret-with-at-least-32-characters-aaa" >> .env.test
+          echo "FUNCTIONS_URL=http://127.0.0.1:54321/functions/v1" >> .env.test
+
+      - run: npm run test:cli
+
+      - if: always()
+        run: supabase stop --no-backup
