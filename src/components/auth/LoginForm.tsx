@@ -60,7 +60,7 @@ export function LoginForm() {
           <button
             type="button"
             onClick={() => setMostrarSenha((v) => !v)}
-            aria-label={mostrarSenha ? 'Ocultar senha' : 'Mostrar senha'}
+            aria-label={mostrarSenha ? 'Ocultar caracteres' : 'Exibir caracteres'}
             className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
             tabIndex={-1}
           >
