@@ -1,19 +1,83 @@
 # Altis Bet
 
-Plataforma de jogos com premiação para eventos Altis Sistemas.
-
-**Status:** Em desenvolvimento — Plano 1 (Foundation DB) em execução.
+Plataforma de jogos com premiação para eventos Altis Sistemas — Roleta de Prêmios (MVP).
 
 **Spec:** [`docs/superpowers/specs/2026-05-11-altis-bet-roleta-mvp-design.md`](docs/superpowers/specs/2026-05-11-altis-bet-roleta-mvp-design.md)
 
-**Planos:** [`docs/superpowers/plans/`](docs/superpowers/plans/)
+**Status atual:** Plano 1 (Foundation DB) ✅ completo. Próximo: Plano 2 (Edge Functions).
+
+---
 
 ## Pré-requisitos
 
-- Node.js 20.x
-- Docker Desktop
-- Supabase CLI
+- **Node.js 20.x** — recomendado via `nvm` (com `.nvmrc`)
+- **Docker Desktop** rodando
+- **Supabase CLI** ≥ 2.0
+  - Windows: `scoop bucket add supabase https://github.com/supabase/scoop-bucket.git && scoop install supabase`
+  - macOS: `brew install supabase/tap/supabase`
 
-## Quickstart
+## Quickstart local
 
-(será preenchido após o Plano 1)
+```bash
+# 1. Clonar e instalar
+git clone <repo>
+cd altis-bet
+nvm use            # opcional, usa Node 20
+npm install
+
+# 2. Subir Supabase local (1ª vez baixa imagens Docker, ~5-15min)
+npm run db:start
+
+# 3. Resetar DB e aplicar migrations + seed
+npm run db:reset
+
+# 4. Rodar testes pgTAP
+npm run test:db
+
+# 5. Abrir Supabase Studio no browser
+# http://127.0.0.1:54323
+```
+
+## Comandos úteis
+
+| Comando | O que faz |
+|---|---|
+| `npm run db:start` | Sobe stack Supabase local (Postgres, Auth, Realtime, Studio, Storage) |
+| `npm run db:stop` | Derruba stack |
+| `npm run db:reset` | Reset completo + aplica migrations + roda seed |
+| `npm run db:status` | Mostra URLs e chaves do stack local |
+| `npm run test:db` | Roda todos os testes pgTAP em `supabase/tests/` |
+| `npm run typecheck` | TypeScript check (placeholder no Plano 1) |
+
+## Estrutura
+
+```
+altis-bet/
+├─ supabase/
+│  ├─ migrations/    # SQL versionado, aplicado em ordem (6 migrations)
+│  ├─ seed.sql       # dados iniciais (dev)
+│  └─ tests/         # pgTAP tests (83 asserts em 9 arquivos)
+├─ src/              # placeholder; código real virá nos planos seguintes
+├─ docs/superpowers/
+│  ├─ specs/         # specs aprovados
+│  └─ plans/         # planos de implementação
+└─ README.md         # este arquivo
+```
+
+## Credenciais de desenvolvimento (apenas local)
+
+- **Operador**: `dev@altis.local` / `senha123`
+- **Senha modo admin**: `admin123`
+
+⚠ Hashes placeholder no seed. Em produção, senhas reais serão definidas pela CLI no bootstrap (Plano 3).
+
+## Próximos planos
+
+| Plano | Status | Conteúdo |
+|---|---|---|
+| 1 — Foundation DB | ✅ completo | Schema + RLS + sortear + pg_cron + Storage + seed |
+| 2 — Edge Functions | 🔜 próximo | 7 Edge Functions (Deno) + testes |
+| 3 — CLI | ⏳ | bootstrap, migrate, definir-senha-admin, import-premios, backup |
+| 4 — UI Login + Totem | ⏳ | Next.js + Tailwind + shadcn + R3F |
+| 5 — UI Jogador + Admin | ⏳ | `/jogar` + painel admin completo |
+| 6 — E2E + Deploy | ⏳ | Playwright + GitHub Pages + Sentry + UptimeRobot |
