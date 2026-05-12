@@ -18,9 +18,11 @@ function getSessaoSecret(): Uint8Array {
 }
 
 function getSupabaseJwtSecret(): Uint8Array {
-  const s = Deno.env.get('SUPABASE_JWT_SECRET');
+  // Local: Supabase CLI auto-injeta SUPABASE_INTERNAL_JWT_SECRET no edge runtime.
+  // Prod: setamos JWT_AUTH_SECRET nas secrets do projeto.
+  const s = Deno.env.get('SUPABASE_INTERNAL_JWT_SECRET') ?? Deno.env.get('JWT_AUTH_SECRET');
   if (!s || s.length < 32) {
-    throw new Error('SUPABASE_JWT_SECRET ausente ou < 32 chars');
+    throw new Error('JWT secret ausente ou < 32 chars (SUPABASE_INTERNAL_JWT_SECRET / JWT_AUTH_SECRET)');
   }
   return secretAsKey(s);
 }
