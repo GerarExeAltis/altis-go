@@ -4,11 +4,41 @@ Plataforma de jogos com premiação para eventos Altis Sistemas — Roleta de Pr
 
 **Spec:** [`docs/superpowers/specs/2026-05-11-altis-bet-roleta-mvp-design.md`](docs/superpowers/specs/2026-05-11-altis-bet-roleta-mvp-design.md)
 
-**Status atual:** MVP completo — versão `v1.0.0` (Planos 1-8 ✅, ~194 testes verdes).
+**Status atual:** MVP completo — versão `v1.0.0` (Planos 1-8 ✅, ~194 testes verdes). Devcontainer disponível (Plano 9).
 
 ---
 
-## Pré-requisitos
+## Devcontainer (recomendado)
+
+A forma mais simples de rodar o projeto — funciona idêntico em Windows, macOS e Linux:
+
+### Pré-requisitos
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) rodando (WSL2 backend no Windows)
+- [VS Code](https://code.visualstudio.com/) com a extensão [Dev Containers](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers)
+
+### Primeira execução
+1. Clonar o repo
+2. Abrir a pasta no VS Code
+3. Aparece banner "Folder contains a Dev Container Configuration file" → clicar **"Reopen in Container"**.
+   - Alternativa: `Ctrl+Shift+P` → **Dev Containers: Reopen in Container**
+4. Aguardar **3-5 min** na 1ª vez (baixa imagem Node + Docker-in-Docker + imagens Supabase + Chromium)
+5. O `postStart` sobe o Supabase automaticamente — observe o terminal integrado
+6. Quando o terminal mostrar "✓ Stack pronto!", rode `npm run dev` e abra `http://localhost:3000` no browser do host
+
+### Reinicializações posteriores
+- VS Code abre o container → `postStart` faz `supabase start` (5-10s)
+- Dados do Postgres persistem entre reinícios via volume Docker `altisbet-docker-data`
+- `npm run db:reset` zera e re-aplica migrations + seed
+
+### Quando NÃO usar o devcontainer
+- Você já tem Node 20 + Supabase CLI + Docker funcionando perfeitamente no host
+- Em produção/CI (workflows usam runner Ubuntu direto, vide `.github/workflows/`)
+
+---
+
+## Pré-requisitos (instalação manual no host)
+
+> Pule esta seção se for usar o **Devcontainer** acima.
 
 - **Node.js 20.x** — recomendado via `nvm` (com `.nvmrc`)
 - **Docker Desktop** rodando
