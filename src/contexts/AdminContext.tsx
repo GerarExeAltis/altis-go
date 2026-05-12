@@ -45,27 +45,30 @@ function writeStored(s: StoredAdmin | null): void {
 }
 
 export function AdminProvider({ children }: { children: React.ReactNode }) {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const uid = user?.id ?? null;
 
   const [adminJwt, setJwt] = React.useState<string | null>(null);
   const [expiraEm, setExp] = React.useState<number | null>(null);
   const [agora, setAgora] = React.useState<number>(() => Math.floor(Date.now() / 1000));
 
-  // Hidrata do sessionStorage quando o user logado muda (inclusive carregamento inicial).
+  // Espera o useAuth terminar para nao apagar o storage durante o carregamento
+  // inicial (refresh F5). Quando uid muda de A->null (logout) ou A->B (troca de
+  // user), limpa. Quando vem do nada para um uid valido (primeiro load), tenta
+  // hidratar do sessionStorage.
   React.useEffect(() => {
+    if (authLoading) return;
+
     const stored = readStored(uid);
     if (stored) {
       setJwt(stored.jwt);
       setExp(stored.exp);
     } else {
-      // Sem registro valido pra este user (ou nao tem user): zera tudo
-      // e remove storage. Cobre o caso "deslogou e logou de novo".
       setJwt(null);
       setExp(null);
       writeStored(null);
     }
-  }, [uid]);
+  }, [uid, authLoading]);
 
   React.useEffect(() => {
     if (!expiraEm) return;
