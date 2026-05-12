@@ -20,7 +20,9 @@ echo "▶ Instalando dependencias npm..."
 npm ci --legacy-peer-deps
 
 echo ""
-echo "▶ Instalando Chromium do Playwright..."
+echo "▶ Instalando Chromium do Playwright (com deps do sistema)..."
+# --with-deps requer sudo; a imagem typescript-node ja tem sudo configurado pro user 'node'.
+sudo npx playwright install-deps chromium || npx playwright install-deps chromium || true
 npx playwright install chromium
 
 if [ ! -f .env.local ]; then

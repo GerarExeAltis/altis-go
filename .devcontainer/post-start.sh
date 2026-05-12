@@ -8,22 +8,19 @@ echo "  Altis Bet — post-start"
 echo "═══════════════════════════════════════════════════════════════"
 
 echo ""
-echo "▶ Aguardando Docker daemon (DinD)..."
-for i in {1..30}; do
-  if docker info >/dev/null 2>&1; then
-    echo "✓ Docker pronto."
-    break
-  fi
-  sleep 1
-done
-
+echo "▶ Verificando Docker (socket do host)..."
 if ! docker info >/dev/null 2>&1; then
-  echo "✗ Docker daemon nao respondeu. Abortando supabase start."
+  echo "✗ Docker daemon nao acessivel."
+  echo "  Verifique se Docker Desktop esta rodando no Windows host."
   exit 1
 fi
+echo "✓ Docker pronto (usando socket do host Windows)."
 
+# Aviso: como usamos docker-outside-of-docker, os containers Supabase rodam
+# direto no Docker Desktop do host. Se voce ja tinha 'supabase start' rodando
+# fora do devcontainer, vai detectar e reutilizar.
 echo ""
-echo "▶ Subindo Supabase local..."
+echo "▶ Subindo Supabase local (containers vivem no Docker Desktop do host)..."
 supabase start || {
   echo "⚠ Supabase ja estava rodando ou houve erro — tentando status..."
   supabase status || true

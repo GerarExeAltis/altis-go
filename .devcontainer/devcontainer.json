@@ -6,17 +6,13 @@
   },
 
   "features": {
-    "ghcr.io/devcontainers/features/docker-in-docker:2": {
+    "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {
       "version": "latest",
       "moby": true,
       "dockerDashComposeVersion": "v2"
     },
     "ghcr.io/devcontainers/features/github-cli:1": {}
   },
-
-  "mounts": [
-    "source=altisbet-docker-data,target=/var/lib/docker,type=volume"
-  ],
 
   "forwardPorts": [3000, 54321, 54322, 54323, 54324],
   "portsAttributes": {

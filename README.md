@@ -8,43 +8,57 @@ Plataforma de jogos com premiação para eventos Altis Sistemas — Roleta de Pr
 
 ---
 
-## Devcontainer (recomendado)
+## Como executar — duas opções
 
-A forma mais simples de rodar o projeto — funciona idêntico em Windows, macOS e Linux:
+Você pode escolher livremente entre rodar **direto no host** (mais leve) ou usar o **Devcontainer** (mais isolado/portátil). Os dois caminhos co-existem.
 
-### Pré-requisitos
-- [Docker Desktop](https://www.docker.com/products/docker-desktop/) rodando (WSL2 backend no Windows)
-- [VS Code](https://code.visualstudio.com/) com a extensão [Dev Containers](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers)
+### Opção A — Host direto (Windows/macOS/Linux)
 
-### Primeira execução
-1. Clonar o repo
-2. Abrir a pasta no VS Code
-3. Aparece banner "Folder contains a Dev Container Configuration file" → clicar **"Reopen in Container"**.
-   - Alternativa: `Ctrl+Shift+P` → **Dev Containers: Reopen in Container**
-4. Aguardar **3-5 min** na 1ª vez (baixa imagem Node + Docker-in-Docker + imagens Supabase + Chromium)
-5. O `postStart` sobe o Supabase automaticamente — observe o terminal integrado
-6. Quando o terminal mostrar "✓ Stack pronto!", rode `npm run dev` e abra `http://localhost:3000` no browser do host
-
-### Reinicializações posteriores
-- VS Code abre o container → `postStart` faz `supabase start` (5-10s)
-- Dados do Postgres persistem entre reinícios via volume Docker `altisbet-docker-data`
-- `npm run db:reset` zera e re-aplica migrations + seed
-
-### Quando NÃO usar o devcontainer
-- Você já tem Node 20 + Supabase CLI + Docker funcionando perfeitamente no host
-- Em produção/CI (workflows usam runner Ubuntu direto, vide `.github/workflows/`)
-
----
-
-## Pré-requisitos (instalação manual no host)
-
-> Pule esta seção se for usar o **Devcontainer** acima.
-
-- **Node.js 20.x** — recomendado via `nvm` (com `.nvmrc`)
-- **Docker Desktop** rodando
-- **Supabase CLI** ≥ 2.0
+Pré-requisitos no host:
+- Node.js 20+ ([`.nvmrc`](.nvmrc) sugere 20)
+- Docker Desktop rodando (Supabase CLI o usa internamente)
+- Supabase CLI ≥ 2.0
   - Windows: `scoop bucket add supabase https://github.com/supabase/scoop-bucket.git && scoop install supabase`
   - macOS: `brew install supabase/tap/supabase`
+
+Setup uma vez:
+```bash
+npm install --legacy-peer-deps
+npx playwright install chromium     # apenas se for rodar E2E
+```
+
+Dia-a-dia:
+```bash
+supabase start          # sobe stack em ~10s
+npm run functions:serve # T1
+npm run dev             # T2 → http://localhost:3000
+# para parar:
+supabase stop
+```
+
+### Opção B — Devcontainer (VS Code)
+
+Útil quando quer reproduzir o ambiente em outra máquina sem instalar nada além de Docker e VS Code (mesma config no Windows/macOS/Linux).
+
+Pré-requisitos no host:
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) rodando
+- [VS Code](https://code.visualstudio.com/) + extensão [Dev Containers](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers)
+
+Primeira execução:
+1. Abrir o repo no VS Code
+2. `Ctrl+Shift+P` → **Dev Containers: Reopen in Container**
+3. Aguardar ~2-3 min (build + `npm ci` + `playwright install`)
+4. `postStart` sobe Supabase automaticamente — observar terminal
+5. `npm run dev` → `http://localhost:3000` no browser do host
+
+Reinicializações:
+- `postStart` faz `supabase start` (~5s)
+- Containers Supabase vivem no **Docker Desktop do host** (não no devcontainer) — isso significa imagem leve (~2GB) e persistência natural
+- `npm run db:reset` zera o banco
+
+> **Atenção — coexistência:** o devcontainer usa o **mesmo Docker Desktop** que a Opção A. Se você tiver `supabase start` rodando no Windows host, o devcontainer reaproveita. Não rode os dois separados ao mesmo tempo para o mesmo projeto (conflito de porta 54321).
+
+---
 
 ## Quickstart local
 

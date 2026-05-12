@@ -1,10 +1,12 @@
-FROM mcr.microsoft.com/devcontainers/typescript-node:1-20-bookworm
+FROM mcr.microsoft.com/devcontainers/typescript-node:1-22-bookworm
 
-# Pacotes basicos do sistema
+# Pacotes essenciais para o fluxo de desenvolvimento.
+# - curl: download do Supabase CLI
+# - jq: leitura de JSON em scripts
+# - postgresql-client: psql para debug do banco
+# Outras libs (chromium etc) sao instaladas pelo playwright --with-deps no postCreate.
 RUN apt-get update && apt-get install -y --no-install-recommends \
       curl \
-      wget \
-      unzip \
       jq \
       postgresql-client \
       ca-certificates \
@@ -17,15 +19,6 @@ RUN curl -fsSL "https://github.com/supabase/cli/releases/download/v${SUPABASE_VE
     | tar -xz -C /usr/local/bin supabase \
  && chmod +x /usr/local/bin/supabase \
  && supabase --version
-
-# Pre-instala deps de sistema do Chromium (Playwright). Os browsers em si
-# sao baixados no postCreate como user 'node'.
-RUN apt-get update && apt-get install -y --no-install-recommends \
-      libnss3 libnspr4 libatk1.0-0 libatk-bridge2.0-0 libcups2 \
-      libdrm2 libdbus-1-3 libxkbcommon0 libatspi2.0-0 libxcomposite1 \
-      libxdamage1 libxfixes3 libxrandr2 libgbm1 libpango-1.0-0 \
-      libcairo2 libasound2 libxshmfence1 fonts-liberation \
-    && rm -rf /var/lib/apt/lists/*
 
 USER node
 WORKDIR /workspaces/AltisBet
