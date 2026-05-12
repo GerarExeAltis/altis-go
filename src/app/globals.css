@@ -53,3 +53,24 @@
     font-feature-settings: 'rlig' 1, 'calt' 1;
   }
 }
+
+/* ── Loading Altis (componente <Loading />) ─────────────────────────── */
+@keyframes loading-spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes loading-pulse {
+  0%, 100% { transform: scale(0.92); opacity: 0.85; }
+  50%      { transform: scale(1.05); opacity: 1; }
+}
+
+@keyframes loading-dot {
+  0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
+  40%           { transform: scale(1);   opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [class*="animate-[loading-"] {
+    animation: none !important;
+  }
+}

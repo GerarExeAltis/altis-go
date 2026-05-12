@@ -5,6 +5,7 @@ import { useDashboardMetricas } from '@/hooks/useDashboardMetricas';
 import { MetricCard } from '@/components/admin/MetricCard';
 import { JogadasPorHoraChart } from '@/components/admin/JogadasPorHoraChart';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Loading } from '@/components/ui/Loading';
 import { Trophy, Heart, Package, Activity } from 'lucide-react';
 
 export function DashboardTab() {
@@ -31,7 +32,7 @@ export function DashboardTab() {
     return <p className="text-muted-foreground">Nenhum evento ativo no momento.</p>;
   }
   if (loading || !data) {
-    return <p className="text-muted-foreground">Carregando métricas...</p>;
+    return <Loading fullscreen={false} mensagem="Carregando metricas..." />;
   }
 
   return (

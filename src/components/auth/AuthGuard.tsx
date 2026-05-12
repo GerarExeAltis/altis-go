@@ -2,6 +2,7 @@
 import * as React from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
+import { Loading } from '@/components/ui/Loading';
 
 export function AuthGuard({ children }: { children: React.ReactNode }) {
   const { loading, session } = useAuth();
@@ -13,13 +14,7 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
     }
   }, [loading, session, router]);
 
-  if (loading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <p className="text-sm text-muted-foreground">Carregando...</p>
-      </div>
-    );
-  }
-  if (!session) return null;
+  if (loading) return <Loading mensagem="Conferindo sua sessao..." />;
+  if (!session) return <Loading mensagem="Redirecionando..." />;
   return <>{children}</>;
 }
