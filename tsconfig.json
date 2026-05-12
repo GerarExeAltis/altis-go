@@ -11,8 +11,9 @@
     "resolveJsonModule": true,
     "noEmit": true,
     "isolatedModules": true,
-    "allowSyntheticDefaultImports": true
+    "allowSyntheticDefaultImports": true,
+    "types": ["node"]
   },
-  "include": ["src/**/*.ts"],
-  "exclude": ["node_modules", "dist", "build", "out", ".next"]
+  "include": ["src/**/*.ts", "cli/**/*.ts", "tests/**/*.ts"],
+  "exclude": ["node_modules", "dist", "build", "out", ".next", "cli/dist"]
 }
