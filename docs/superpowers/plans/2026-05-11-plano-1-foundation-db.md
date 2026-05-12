@@ -1337,6 +1337,11 @@ LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path = public, pg_temp
 AS $func$
+#variable_conflict use_column
+-- IMPORTANTE: o diretivo acima diz ao PL/pgSQL para preferir colunas sobre
+-- variáveis OUT quando há conflito. RETURNS TABLE (..., e_premio_real BOOLEAN)
+-- cria uma variável OUT com o mesmo nome da coluna; sem este diretivo, queries
+-- como `SELECT e_premio_real FROM _sorteio_pool` falham com erro 42702.
 DECLARE
   v_evento_id      UUID;
   v_status         public.sessao_status;
