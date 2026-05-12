@@ -50,8 +50,8 @@ npm run test:db
 | `npm run functions:serve` | Hot-reload das Edge Functions Deno em :54321 |
 | `npm run test:functions` | Roda 29 testes Vitest contra as Edge Functions (precisa `functions:serve` rodando) |
 | `npm run test:cli` | Roda 18 testes Vitest da CLI (inclui totem-smoke SQL E2E) |
-| `npm run test:ui` | Roda 41 testes Vitest de componentes React (UI + Totem + Jogador) |
-| `npm run test` | tudo (db + functions + cli + ui — 171 testes total) |
+| `npm run test:ui` | Roda 54 testes Vitest de componentes React (UI + Totem + Jogador + Admin) |
+| `npm run test` | tudo (db + functions + cli + ui — 184 testes total) |
 | `npm run cli -- <comando>` | Roda a CLI em dev (via tsx) |
 | `npm run dev` | Next.js dev server em http://localhost:3000 |
 | `npm run build` | Build estático em `out/` |
@@ -141,5 +141,5 @@ Se um dia adotarmos GraphQL ativamente, revisitamos via comment directives ou mo
 | 4 — UI Foundation | ✅ completo | Next.js 15 + Tailwind + shadcn/ui + Auth + Login + Welcome + Modal Admin (14 tests) |
 | 5 — UI Totem | ✅ completo | R3F Roleta 3D + state machine + Realtime + GSAP + QR Code (16 tests) |
 | 6 — UI Jogador | ✅ completo | `/jogar` com form + fingerprint + Realtime resultado (11 tests) |
-| 7 — Painel Admin | 🔜 próximo | Dashboard + Eventos + Prêmios + Operadores + Ganhadores + Auditoria |
-| 8 — E2E + Deploy | ⏳ | Playwright + GitHub Pages + Sentry + UptimeRobot |
+| 7 — Painel Admin | ✅ completo | Dashboard + 7 abas (Eventos, Prêmios drag-and-drop + upload, Operadores, Ganhadores, Auditoria, Config) (13 tests) |
+| 8 — E2E + Deploy | 🔜 próximo | Playwright + GitHub Pages + Sentry + UptimeRobot |
