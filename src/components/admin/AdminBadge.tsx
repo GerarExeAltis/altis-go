@@ -1,6 +1,6 @@
 'use client';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { ShieldCheck, LogOut, LayoutDashboard } from 'lucide-react';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { useAdmin } from '@/contexts/AdminContext';
@@ -15,7 +15,13 @@ function format(s: number): string {
 export function AdminBadge() {
   const { segundosRestantes, desativar } = useAdmin();
   const pathname = usePathname();
+  const router = useRouter();
   const noPainel = pathname?.startsWith('/admin') ?? false;
+
+  const sair = () => {
+    desativar();
+    if (noPainel) router.push('/');
+  };
 
   return (
     <div className="flex items-center gap-2">
@@ -36,7 +42,7 @@ export function AdminBadge() {
           variant="ghost"
           size="icon"
           className="h-6 w-6"
-          onClick={desativar}
+          onClick={sair}
           aria-label="Sair do modo admin"
         >
           <LogOut className="h-3 w-3" />

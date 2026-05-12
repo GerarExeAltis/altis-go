@@ -1,5 +1,6 @@
 'use client';
 import * as React from 'react';
+import { useRouter } from 'next/navigation';
 import { useAdmin } from '@/contexts/AdminContext';
 import { env } from '@/lib/env';
 import { Button } from '@/components/ui/button';
@@ -18,6 +19,7 @@ export function AdminModal({
   accessToken: string;
 }) {
   const { ativar } = useAdmin();
+  const router = useRouter();
   const [senha, setSenha] = React.useState('');
   const [mostrarSenha, setMostrarSenha] = React.useState(false);
   const [erro, setErro] = React.useState<string | null>(null);
@@ -45,6 +47,7 @@ export function AdminModal({
       ativar(token, exp);
       setSenha('');
       onOpenChange(false);
+      router.push('/admin');
     } catch {
       setErro('Falha de rede. Tente novamente.');
     } finally {
