@@ -22,8 +22,8 @@ export function AdminBadge() {
   };
 
   return (
-    <div className="flex items-center gap-1 rounded-md border border-primary/40 bg-primary/10 px-2 py-1 text-xs font-medium">
-      <ShieldCheck className="h-4 w-4 text-primary" />
+    <div className="flex items-center gap-1 rounded-md bg-primary/15 px-2 py-1 text-xs font-medium text-primary ring-1 ring-primary/30">
+      <ShieldCheck className="h-4 w-4" />
       <span>Admin {format(segundosRestantes)}</span>
       <Button
         variant="ghost"

@@ -58,8 +58,10 @@ export function AuditoriaTab() {
               <TableCell className="font-mono text-xs">{r.ip ?? '—'}</TableCell>
               <TableCell className="text-xs">
                 <details>
-                  <summary className="cursor-pointer">ver</summary>
-                  <pre className="mt-1 max-w-md overflow-auto rounded bg-muted p-2">
+                  <summary className="cursor-pointer text-muted-foreground hover:text-foreground">
+                    ver
+                  </summary>
+                  <pre className="mt-1 max-w-md overflow-auto rounded-md border border-border/60 bg-muted/40 p-2 font-mono text-[11px]">
                     {JSON.stringify(r.detalhes, null, 2)}
                   </pre>
                 </details>

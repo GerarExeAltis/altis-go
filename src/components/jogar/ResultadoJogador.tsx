@@ -1,5 +1,7 @@
 'use client';
-import { Trophy, Heart } from 'lucide-react';
+import { Trophy, Heart, Share2 } from 'lucide-react';
+import { buttonVariants } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
 interface Props {
   premioNome: string;
@@ -32,8 +34,9 @@ export function ResultadoJogador({ premioNome, ePremioReal, nome }: Props) {
           href={linkWhatsapp}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex h-11 items-center justify-center rounded-md border border-input bg-background px-8 text-sm font-medium hover:bg-accent"
+          className={cn(buttonVariants({ variant: 'outline', size: 'lg' }), 'gap-2')}
         >
+          <Share2 className="h-4 w-4" />
           Compartilhar no WhatsApp
         </a>
       </div>
