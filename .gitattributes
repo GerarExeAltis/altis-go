@@ -1,0 +1,9 @@
+# Garante LF em scripts shell (Windows CRLF quebra shebang em Linux)
+*.sh text eol=lf
+.devcontainer/* text eol=lf
+
+# Binários
+*.png binary
+*.jpg binary
+*.ico binary
+*.pdf binary
