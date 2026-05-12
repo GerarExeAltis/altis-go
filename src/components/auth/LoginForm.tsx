@@ -8,6 +8,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Eye, EyeOff } from 'lucide-react';
 
 const schema = z.object({
   email: z.string().min(1, 'E-mail obrigatório').email('E-mail inválido'),
@@ -19,6 +20,8 @@ export function LoginForm() {
   const { signIn } = useAuth();
   const router = useRouter();
   const [erro, setErro] = React.useState<string | null>(null);
+
+  const [mostrarSenha, setMostrarSenha] = React.useState(false);
 
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -46,7 +49,24 @@ export function LoginForm() {
 
       <div className="space-y-2">
         <Label htmlFor="senha">Senha</Label>
-        <Input id="senha" type="password" autoComplete="current-password" {...register('senha')} />
+        <div className="relative">
+          <Input
+            id="senha"
+            type={mostrarSenha ? 'text' : 'password'}
+            autoComplete="current-password"
+            className="pr-10"
+            {...register('senha')}
+          />
+          <button
+            type="button"
+            onClick={() => setMostrarSenha((v) => !v)}
+            aria-label={mostrarSenha ? 'Ocultar senha' : 'Mostrar senha'}
+            className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+            tabIndex={-1}
+          >
+            {mostrarSenha ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+          </button>
+        </div>
         {errors.senha && <p className="text-sm text-destructive">{errors.senha.message}</p>}
       </div>
 

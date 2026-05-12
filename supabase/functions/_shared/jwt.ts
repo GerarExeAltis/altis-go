@@ -1,4 +1,4 @@
-import { SignJWT, jwtVerify, joseErrors } from './deps.ts';
+import { SignJWT, jwtVerify, createRemoteJWKSet, joseErrors } from './deps.ts';
 import type { JwtSessaoPayload, JogoTipo } from './types.ts';
 import { errUnauthorized } from './errors.ts';
 
@@ -98,15 +98,41 @@ export async function signAdminToken(operadorId: string): Promise<{
   return { token, expiraEm: new Date(exp * 1000), jti };
 }
 
-/** Lê o JWT do header Authorization e devolve o sub (operador.id). null se inválido. */
+// JWKS endpoint do Supabase Auth — usado para verificar JWTs ES256 (signing
+// keys assimetricas, default em supabase-cli >= 2.x). Mantemos cache na URL
+// interna do edge runtime (mais rapida que 127.0.0.1 dentro do container).
+function getAuthJwksUrl(): URL {
+  const base = Deno.env.get('SUPABASE_URL')
+    ?? Deno.env.get('SUPABASE_INTERNAL_API_URL')
+    ?? 'http://kong:8000';
+  return new URL('/auth/v1/.well-known/jwks.json', base);
+}
+const remoteJwks = createRemoteJWKSet(getAuthJwksUrl(), {
+  cooldownDuration: 30_000,
+  timeoutDuration: 5_000,
+});
+
+/** Lê o JWT do header Authorization e devolve o sub (operador.id). null se inválido.
+ *  Tenta ES256 via JWKS primeiro (Supabase moderno); cai para HS256 com secret
+ *  legacy se nao conseguir (compatibilidade com tokens admin elevados que
+ *  assinamos internamente).
+ */
 export async function getOperadorIdFromHeader(req: Request): Promise<string | null> {
   const auth = req.headers.get('Authorization');
   if (!auth?.startsWith('Bearer ')) return null;
   const token = auth.slice(7);
+
   try {
-    const { payload } = await jwtVerify(token, getSupabaseJwtSecret(), { algorithms: ['HS256'] });
+    const { payload } = await jwtVerify(token, remoteJwks, { algorithms: ['ES256', 'RS256'] });
     return (payload.sub as string | undefined) ?? null;
-  } catch {
-    return null;
+  } catch (esErr) {
+    // Fallback HS256 legacy (JWT-Admin elevado assinado por nos mesmos).
+    try {
+      const { payload } = await jwtVerify(token, getSupabaseJwtSecret(), { algorithms: ['HS256'] });
+      return (payload.sub as string | undefined) ?? null;
+    } catch {
+      console.warn('[jwt] verificacao falhou (ES256 e HS256):', (esErr as Error).message);
+      return null;
+    }
   }
 }

@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
 } from '@/components/ui/dialog';
-import { Shield } from 'lucide-react';
+import { Shield, Eye, EyeOff } from 'lucide-react';
 
 export function AdminModal({
   open, onOpenChange, accessToken,
@@ -19,6 +19,7 @@ export function AdminModal({
 }) {
   const { ativar } = useAdmin();
   const [senha, setSenha] = React.useState('');
+  const [mostrarSenha, setMostrarSenha] = React.useState(false);
   const [erro, setErro] = React.useState<string | null>(null);
   const [enviando, setEnviando] = React.useState(false);
 
@@ -66,14 +67,26 @@ export function AdminModal({
         <form onSubmit={submit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="senha-admin">Senha</Label>
-            <Input
-              id="senha-admin"
-              type="password"
-              autoFocus
-              value={senha}
-              onChange={(e) => setSenha(e.target.value)}
-              disabled={enviando}
-            />
+            <div className="relative">
+              <Input
+                id="senha-admin"
+                type={mostrarSenha ? 'text' : 'password'}
+                autoFocus
+                value={senha}
+                onChange={(e) => setSenha(e.target.value)}
+                disabled={enviando}
+                className="pr-10"
+              />
+              <button
+                type="button"
+                onClick={() => setMostrarSenha((v) => !v)}
+                aria-label={mostrarSenha ? 'Ocultar senha' : 'Mostrar senha'}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                tabIndex={-1}
+              >
+                {mostrarSenha ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            </div>
           </div>
 
           {erro && <p className="text-sm text-destructive" role="alert">{erro}</p>}
