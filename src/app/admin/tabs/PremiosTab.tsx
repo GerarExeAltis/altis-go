@@ -34,7 +34,7 @@ function ItemSortavel({ premio, onEditar, onExcluir }: ItemProps) {
     <div
       ref={setNodeRef}
       style={{ transform: CSS.Transform.toString(transform), transition }}
-      className={`flex items-center gap-3 rounded-md border bg-card p-3 ${isDragging ? 'opacity-50' : ''}`}
+      className={`flex items-center gap-3 rounded-md border border-border/60 bg-card p-3 ${isDragging ? 'opacity-50' : ''}`}
     >
       <button
         type="button"

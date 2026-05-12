@@ -6,7 +6,7 @@ export function CatalogoPremios({ premios }: { premios: PremioPublico[] }) {
   if (reais.length === 0) return null;
 
   return (
-    <details className="rounded-lg border bg-card p-3 text-sm">
+    <details className="rounded-lg border border-border/60 bg-card p-3 text-sm">
       <summary className="cursor-pointer font-medium">
         Ver prêmios disponíveis ({reais.length})
       </summary>
