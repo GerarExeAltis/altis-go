@@ -1,0 +1,44 @@
+name: CI — Database
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'supabase/**'
+      - '.github/workflows/ci-db.yml'
+  pull_request:
+    paths:
+      - 'supabase/**'
+      - '.github/workflows/ci-db.yml'
+
+jobs:
+  pgtap:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install npm deps
+        run: npm ci
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Start Supabase local
+        run: supabase start
+
+      - name: Run pgTAP tests
+        run: supabase test db
+
+      - name: Cleanup
+        if: always()
+        run: supabase stop --no-backup
