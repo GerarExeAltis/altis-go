@@ -4,7 +4,7 @@ Plataforma de jogos com premiação para eventos Altis Sistemas — Roleta de Pr
 
 **Spec:** [`docs/superpowers/specs/2026-05-11-altis-bet-roleta-mvp-design.md`](docs/superpowers/specs/2026-05-11-altis-bet-roleta-mvp-design.md)
 
-**Status atual:** Plano 1 (Foundation DB) ✅ completo. Próximo: Plano 2 (Edge Functions).
+**Status atual:** MVP completo — versão `v1.0.0` (Planos 1-8 ✅, ~194 testes verdes).
 
 ---
 
@@ -51,7 +51,8 @@ npm run test:db
 | `npm run test:functions` | Roda 29 testes Vitest contra as Edge Functions (precisa `functions:serve` rodando) |
 | `npm run test:cli` | Roda 18 testes Vitest da CLI (inclui totem-smoke SQL E2E) |
 | `npm run test:ui` | Roda 54 testes Vitest de componentes React (UI + Totem + Jogador + Admin) |
-| `npm run test` | tudo (db + functions + cli + ui — 184 testes total) |
+| `npm run test:e2e` | Roda ~10 testes Playwright dual-context (precisa stack local rodando) |
+| `npm run test` | tudo (db + functions + cli + ui — 184 testes; E2E é separado) |
 | `npm run cli -- <comando>` | Roda a CLI em dev (via tsx) |
 | `npm run dev` | Next.js dev server em http://localhost:3000 |
 | `npm run build` | Build estático em `out/` |
@@ -142,4 +143,10 @@ Se um dia adotarmos GraphQL ativamente, revisitamos via comment directives ou mo
 | 5 — UI Totem | ✅ completo | R3F Roleta 3D + state machine + Realtime + GSAP + QR Code (16 tests) |
 | 6 — UI Jogador | ✅ completo | `/jogar` com form + fingerprint + Realtime resultado (11 tests) |
 | 7 — Painel Admin | ✅ completo | Dashboard + 7 abas (Eventos, Prêmios drag-and-drop + upload, Operadores, Ganhadores, Auditoria, Config) (13 tests) |
-| 8 — E2E + Deploy | 🔜 próximo | Playwright + GitHub Pages + Sentry + UptimeRobot |
+| 8 — E2E + Deploy | ✅ completo | Playwright dual-context + axe-core + GH Pages CI/CD + Sentry opt-in (~10 E2E) |
+
+**MVP completo — versão `v1.0.0`**
+
+Documentação de produção:
+- [`docs/DEPLOY.md`](docs/DEPLOY.md) — setup completo de deploy
+- [`docs/OPERACAO.md`](docs/OPERACAO.md) — UptimeRobot, Sentry, backups, runbook

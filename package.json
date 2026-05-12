@@ -20,6 +20,9 @@
     "test:cli": "vitest run cli/tests",
     "test:ui": "vitest run tests/components",
     "test:ui:watch": "vitest tests/components",
+    "test:e2e": "playwright test --project=desktop-chromium",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:headed": "playwright test --headed",
     "test": "npm run test:db && npm run test:functions && npm run test:cli && npm run test:ui",
     "cli": "tsx cli/bin/altis-bet.ts",
     "dev": "next dev",
@@ -55,7 +58,10 @@
     "zod": "^3.23.0"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.11.3",
     "@inquirer/prompts": "^7.0.0",
+    "@playwright/test": "^1.60.0",
+    "@sentry/nextjs": "^10.53.0",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.5.0",
     "@testing-library/react": "^16.0.0",

@@ -56,3 +56,8 @@ pnpm-debug.log*
 
 # Brainstorming temporário (não vai pro repo)
 .superpowers/
+
+# Playwright
+/test-results/
+/playwright-report/
+/playwright/.cache/

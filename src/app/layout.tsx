@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { ThemeProvider } from '@/components/theme/ThemeProvider';
 import { AuthProvider } from '@/contexts/AuthContext';
+import '@/sentry.client.config';
 import './globals.css';
 
 export const metadata: Metadata = {

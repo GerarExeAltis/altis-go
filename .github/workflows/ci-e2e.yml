@@ -1,0 +1,85 @@
+name: CI — E2E (Playwright)
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'src/**'
+      - 'tests/e2e/**'
+      - 'playwright.config.ts'
+      - '.github/workflows/ci-e2e.yml'
+  pull_request:
+    paths:
+      - 'src/**'
+      - 'tests/e2e/**'
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20, cache: npm }
+
+      - name: Install deps
+        run: npm ci --legacy-peer-deps
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - uses: supabase/setup-cli@v1
+        with: { version: latest }
+
+      - name: Start Supabase
+        run: supabase start
+
+      - name: Apply migrations + seed
+        run: supabase db reset
+
+      - name: Capture Supabase env
+        id: sb
+        run: |
+          STATUS=$(supabase status -o env)
+          echo "$STATUS" >> $GITHUB_ENV
+          JWT_SECRET=$(echo "$STATUS" | grep '^JWT_SECRET=' | cut -d'"' -f2)
+          mkdir -p supabase
+          echo "JWT_AUTH_SECRET=$JWT_SECRET" > supabase/.env.local
+          echo "SESSAO_JWT_SECRET=test-sessao-secret-with-at-least-32-characters-aaa" >> supabase/.env.local
+          ANON=$(echo "$STATUS" | grep '^ANON_KEY=' | cut -d'"' -f2)
+          echo "NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321" > .env.local
+          echo "NEXT_PUBLIC_SUPABASE_ANON_KEY=$ANON" >> .env.local
+
+      - name: Start functions serve (background)
+        run: |
+          nohup supabase functions serve --no-verify-jwt \
+            --env-file supabase/.env.local > /tmp/functions.log 2>&1 &
+          for i in {1..60}; do
+            if grep -q "Serving functions" /tmp/functions.log 2>/dev/null; then break; fi
+            sleep 1
+          done
+          grep "Serving functions" /tmp/functions.log
+
+      - name: Start Next dev (background)
+        run: |
+          nohup npm run dev > /tmp/next.log 2>&1 &
+          for i in {1..90}; do
+            if curl -sf http://localhost:3000 > /dev/null 2>&1; then break; fi
+            sleep 1
+          done
+          curl -sf http://localhost:3000 > /dev/null
+
+      - name: Run Playwright
+        run: npm run test:e2e
+
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
+
+      - name: Cleanup
+        if: always()
+        run: supabase stop --no-backup || true

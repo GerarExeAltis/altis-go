@@ -30,6 +30,12 @@ function TotemFlow() {
   const [state, dispatch] = React.useReducer(totemReducer, ESTADO_INICIAL);
   const { reduzir } = usePreferredMotion();
 
+  React.useEffect(() => {
+    if (typeof window !== 'undefined') {
+      (window as unknown as { __ALTIS_TOTEM_STATE__?: typeof state }).__ALTIS_TOTEM_STATE__ = state;
+    }
+  }, [state]);
+
   const [premios, setPremios] = React.useState<PremioDb[]>([]);
   const [jogadorNome, setJogadorNome] = React.useState<string | null>(null);
 
