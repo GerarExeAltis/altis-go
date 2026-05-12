@@ -20,6 +20,11 @@ supabase/.env.local
 out/
 dist/
 build/
+next-env.d.ts
+tsconfig.tsbuildinfo
+
+# Smoke / sandbox outputs
+/tmp-backup/
 
 # IDE
 .idea/
