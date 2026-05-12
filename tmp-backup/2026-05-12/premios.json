@@ -1,0 +1,93 @@
+[
+  {
+    "id": "cccccccc-1111-1111-1111-cccccccccccc",
+    "evento_id": "bbbbbbbb-1111-1111-1111-bbbbbbbbbbbb",
+    "nome": "Vale R$10",
+    "descricao": "Vale-compra de R$10 em qualquer loja Altis",
+    "foto_path": null,
+    "cor_hex": "#4afad4",
+    "peso_base": 1,
+    "estoque_inicial": 100,
+    "estoque_atual": 100,
+    "ordem_roleta": 1,
+    "e_premio_real": true
+  },
+  {
+    "id": "cccccccc-2222-2222-2222-cccccccccccc",
+    "evento_id": "bbbbbbbb-1111-1111-1111-bbbbbbbbbbbb",
+    "nome": "Camiseta Altis",
+    "descricao": "Camiseta exclusiva Altis Sistemas",
+    "foto_path": null,
+    "cor_hex": "#f7b32b",
+    "peso_base": 2,
+    "estoque_inicial": 20,
+    "estoque_atual": 20,
+    "ordem_roleta": 2,
+    "e_premio_real": true
+  },
+  {
+    "id": "cccccccc-9999-9999-9999-cccccccccccc",
+    "evento_id": "bbbbbbbb-1111-1111-1111-bbbbbbbbbbbb",
+    "nome": "Nao foi dessa vez",
+    "descricao": "Obrigado por participar!",
+    "foto_path": null,
+    "cor_hex": "#555555",
+    "peso_base": 30,
+    "estoque_inicial": 0,
+    "estoque_atual": 0,
+    "ordem_roleta": 99,
+    "e_premio_real": false
+  },
+  {
+    "id": "3873511e-f824-40fe-99f9-fbc4b091750f",
+    "evento_id": "4c5d5002-95c7-4f01-9aee-b531a62f7924",
+    "nome": "Vale",
+    "descricao": null,
+    "foto_path": null,
+    "cor_hex": "#4afad4",
+    "peso_base": 1,
+    "estoque_inicial": 10,
+    "estoque_atual": 10,
+    "ordem_roleta": 1,
+    "e_premio_real": true
+  },
+  {
+    "id": "3b8eb26c-d349-4fcd-9f3a-d9a87890a99a",
+    "evento_id": "4c5d5002-95c7-4f01-9aee-b531a62f7924",
+    "nome": "Nao foi",
+    "descricao": null,
+    "foto_path": null,
+    "cor_hex": "#4afad4",
+    "peso_base": 30,
+    "estoque_inicial": 0,
+    "estoque_atual": 0,
+    "ordem_roleta": 2,
+    "e_premio_real": false
+  },
+  {
+    "id": "cccccccc-3333-3333-3333-cccccccccccc",
+    "evento_id": "bbbbbbbb-1111-1111-1111-bbbbbbbbbbbb",
+    "nome": "Smart TV 32\"",
+    "descricao": "TV LED 32 polegadas",
+    "foto_path": null,
+    "cor_hex": "#e74c3c",
+    "peso_base": 10,
+    "estoque_inicial": 1,
+    "estoque_atual": 0,
+    "ordem_roleta": 3,
+    "e_premio_real": true
+  },
+  {
+    "id": "a5bfd011-2647-40bc-8318-7e8e01d4be08",
+    "evento_id": "bbbbbbbb-1111-1111-1111-bbbbbbbbbbbb",
+    "nome": "CSV_NaoFoi",
+    "descricao": "nope",
+    "foto_path": null,
+    "cor_hex": "#555555",
+    "peso_base": 30,
+    "estoque_inicial": 0,
+    "estoque_atual": 0,
+    "ordem_roleta": 99,
+    "e_premio_real": false
+  }
+]

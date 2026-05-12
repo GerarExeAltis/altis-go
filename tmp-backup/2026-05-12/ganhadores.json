@@ -1,0 +1,32 @@
+[
+  {
+    "id": "75bd757b-1a65-4324-8f35-94b4be9c0374",
+    "sessao_id": "c3abe5c1-5b01-43d1-916a-f2cb89b85cc6",
+    "evento_id": "4c5d5002-95c7-4f01-9aee-b531a62f7924",
+    "premio_id": "3b8eb26c-d349-4fcd-9f3a-d9a87890a99a",
+    "jogador_nome": "Maria Teste",
+    "jogador_telefone": "(54)9****-7703",
+    "jogador_email": "maria@test.local",
+    "jogador_loja_id": null,
+    "ganho_em": "2026-05-12T14:05:00.588908+00:00",
+    "entregue": false,
+    "entregue_em": null,
+    "entregue_por": null,
+    "observacoes": null
+  },
+  {
+    "id": "c8aa676a-301d-4e0c-a0b7-12769d06f511",
+    "sessao_id": "21c1af23-e1bb-4020-abd1-eb0fba2bdbe9",
+    "evento_id": "4c5d5002-95c7-4f01-9aee-b531a62f7924",
+    "premio_id": "3b8eb26c-d349-4fcd-9f3a-d9a87890a99a",
+    "jogador_nome": "Maria Teste",
+    "jogador_telefone": "(54)9****-7701",
+    "jogador_email": "maria@test.local",
+    "jogador_loja_id": null,
+    "ganho_em": "2026-05-12T14:05:00.467152+00:00",
+    "entregue": false,
+    "entregue_em": null,
+    "entregue_por": null,
+    "observacoes": null
+  }
+]

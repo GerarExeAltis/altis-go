@@ -39,7 +39,7 @@ async function postMultipart(
 ): Promise<{ status: number; body: any }> {
   const fd = new FormData();
   fd.append('premio_id', premioId);
-  fd.append('arquivo', new Blob([file], { type: 'image/png' }), 'foto.png');
+  fd.append('arquivo', new Blob([new Uint8Array(file)], { type: 'image/png' }), 'foto.png');
   const res = await fetch(url, { method: 'POST', headers, body: fd });
   const body = await res.json().catch(() => ({}));
   return { status: res.status, body };

@@ -1,0 +1,169 @@
+[
+  {
+    "id": 1063,
+    "evento_id": null,
+    "acao": "admin_login_falhou",
+    "ator": "00000000-0000-0000-0000-000000000001",
+    "recurso_tipo": null,
+    "recurso_id": null,
+    "detalhes": {},
+    "ip": "172.19.0.1",
+    "user_agent": "node",
+    "criado_em": "2026-05-12T14:05:05.317792+00:00"
+  },
+  {
+    "id": 1062,
+    "evento_id": null,
+    "acao": "admin_login",
+    "ator": "00000000-0000-0000-0000-000000000001",
+    "recurso_tipo": null,
+    "recurso_id": null,
+    "detalhes": {
+      "jti": "b3fba9f707e16e2c6cd390659ceb39c9"
+    },
+    "ip": "172.19.0.1",
+    "user_agent": "node",
+    "criado_em": "2026-05-12T14:05:04.956806+00:00"
+  },
+  {
+    "id": 1061,
+    "evento_id": "bbbbbbbb-1111-1111-1111-bbbbbbbbbbbb",
+    "acao": "liberar_jogada",
+    "ator": "00000000-0000-0000-0000-000000000001",
+    "recurso_tipo": "sessoes_jogo",
+    "recurso_id": "ab031378-2b7f-4a46-b73b-63524a3e5de8",
+    "detalhes": {
+      "jogo": "roleta"
+    },
+    "ip": "172.19.0.1",
+    "user_agent": "node",
+    "criado_em": "2026-05-12T14:05:04.542739+00:00"
+  },
+  {
+    "id": 1060,
+    "evento_id": "bbbbbbbb-1111-1111-1111-bbbbbbbbbbbb",
+    "acao": "liberar_jogada",
+    "ator": "00000000-0000-0000-0000-000000000001",
+    "recurso_tipo": "sessoes_jogo",
+    "recurso_id": "787a1cfe-e9bc-45d6-89b9-37d990dafe1d",
+    "detalhes": {
+      "jogo": "roleta"
+    },
+    "ip": "172.19.0.1",
+    "user_agent": "node",
+    "criado_em": "2026-05-12T14:05:04.479988+00:00"
+  },
+  {
+    "id": 1059,
+    "evento_id": "bbbbbbbb-1111-1111-1111-bbbbbbbbbbbb",
+    "acao": "submeter_dados",
+    "ator": null,
+    "recurso_tipo": "sessoes_jogo",
+    "recurso_id": "c74eaa42-2995-4e88-8c9e-c89aa3ec5f2f",
+    "detalhes": {
+      "jogo": "roleta",
+      "fingerprint_prefix": "0e2e0e2e"
+    },
+    "ip": "172.19.0.1",
+    "user_agent": "node",
+    "criado_em": "2026-05-12T14:05:03.116213+00:00"
+  },
+  {
+    "id": 1058,
+    "evento_id": "bbbbbbbb-1111-1111-1111-bbbbbbbbbbbb",
+    "acao": "sortear",
+    "ator": null,
+    "recurso_tipo": "sessoes_jogo",
+    "recurso_id": "c74eaa42-2995-4e88-8c9e-c89aa3ec5f2f",
+    "detalhes": {
+      "sorteio": 149.942932023838,
+      "premio_id": "cccccccc-3333-3333-3333-cccccccccccc",
+      "total_peso": 180,
+      "e_premio_real": true,
+      "acumulado_final": 150
+    },
+    "ip": null,
+    "user_agent": null,
+    "criado_em": "2026-05-12T14:05:03.10357+00:00"
+  },
+  {
+    "id": 1057,
+    "evento_id": "bbbbbbbb-1111-1111-1111-bbbbbbbbbbbb",
+    "acao": "liberar_jogada",
+    "ator": "00000000-0000-0000-0000-000000000001",
+    "recurso_tipo": "sessoes_jogo",
+    "recurso_id": "c74eaa42-2995-4e88-8c9e-c89aa3ec5f2f",
+    "detalhes": {
+      "jogo": "roleta"
+    },
+    "ip": "172.19.0.1",
+    "user_agent": "node",
+    "criado_em": "2026-05-12T14:05:03.019709+00:00"
+  },
+  {
+    "id": 1056,
+    "evento_id": "4c5d5002-95c7-4f01-9aee-b531a62f7924",
+    "acao": "submeter_dados",
+    "ator": null,
+    "recurso_tipo": "sessoes_jogo",
+    "recurso_id": "c3abe5c1-5b01-43d1-916a-f2cb89b85cc6",
+    "detalhes": {
+      "jogo": "roleta",
+      "fingerprint_prefix": "efefefef"
+    },
+    "ip": "172.19.0.1",
+    "user_agent": "node",
+    "criado_em": "2026-05-12T14:05:00.599462+00:00"
+  },
+  {
+    "id": 1055,
+    "evento_id": "4c5d5002-95c7-4f01-9aee-b531a62f7924",
+    "acao": "sortear",
+    "ator": null,
+    "recurso_tipo": "sessoes_jogo",
+    "recurso_id": "c3abe5c1-5b01-43d1-916a-f2cb89b85cc6",
+    "detalhes": {
+      "sorteio": 25.800814155676,
+      "premio_id": "3b8eb26c-d349-4fcd-9f3a-d9a87890a99a",
+      "total_peso": 40,
+      "e_premio_real": false,
+      "acumulado_final": 40
+    },
+    "ip": null,
+    "user_agent": null,
+    "criado_em": "2026-05-12T14:05:00.588908+00:00"
+  },
+  {
+    "id": 1054,
+    "evento_id": "4c5d5002-95c7-4f01-9aee-b531a62f7924",
+    "acao": "submeter_dados",
+    "ator": null,
+    "recurso_tipo": "sessoes_jogo",
+    "recurso_id": "21c1af23-e1bb-4020-abd1-eb0fba2bdbe9",
+    "detalhes": {
+      "jogo": "roleta",
+      "fingerprint_prefix": "abababab"
+    },
+    "ip": "172.19.0.1",
+    "user_agent": "node",
+    "criado_em": "2026-05-12T14:05:00.485317+00:00"
+  },
+  {
+    "id": 1053,
+    "evento_id": "4c5d5002-95c7-4f01-9aee-b531a62f7924",
+    "acao": "sortear",
+    "ator": null,
+    "recurso_tipo": "sessoes_jogo",
+    "recurso_id": "21c1af23-e1bb-4020-abd1-eb0fba2bdbe9",
+    "detalhes": {
+      "sorteio": 32.9130622058963,
+      "premio_id": "3b8eb26c-d349-4fcd-9f3a-d9a87890a99a",
+      "total_peso": 40,
+      "e_premio_real": false,
+      "acumulado_final": 40
+    },
+    "ip": null,
+    "user_agent": null,
+    "criado_em": "2026-05-12T14:05:00.467152+00:00"
+  }
+]
