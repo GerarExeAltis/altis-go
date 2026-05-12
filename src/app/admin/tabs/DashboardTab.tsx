@@ -28,7 +28,7 @@ export function DashboardTab() {
   }, []);
 
   const { data, loading } = useDashboardMetricas(eventoId);
-  const mostrarLoading = useMinLoading(loading || !data, 4000);
+  const mostrarLoading = useMinLoading(loading || !data);
 
   if (!eventoId) {
     return <p className="text-muted-foreground">Nenhum evento ativo no momento.</p>;

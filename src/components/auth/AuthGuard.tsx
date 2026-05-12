@@ -8,7 +8,7 @@ import { useMinLoading } from '@/hooks/useMinLoading';
 export function AuthGuard({ children }: { children: React.ReactNode }) {
   const { loading, session } = useAuth();
   const router = useRouter();
-  const mostrarLoading = useMinLoading(loading, 4000);
+  const mostrarLoading = useMinLoading(loading);
 
   React.useEffect(() => {
     if (!loading && !session) {
