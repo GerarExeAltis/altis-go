@@ -397,11 +397,19 @@ Conteúdo:
 
 ```sql
 -- 00_setup.sql — pgTAP setup global do projeto Altis Bet.
--- Carregado antes dos arquivos de teste numerados (01_, 02_, etc).
 -- Cada arquivo de teste roda dentro do próprio BEGIN/ROLLBACK; este arquivo
--- apenas garante que a extensão pgTAP está disponível no banco.
+-- só garante que a extensão pgTAP está disponível e funciona.
+-- pgTAP exige ao menos 1 teste por arquivo, daí o assert trivial abaixo.
+
+BEGIN;
 
 CREATE EXTENSION IF NOT EXISTS pgtap;
+
+SELECT plan(1);
+SELECT ok(true, 'pgtap carregada com sucesso');
+SELECT * FROM finish();
+
+ROLLBACK;
 ```
 
 Nota: helpers de teste (ex: criação de `auth.users` fake) são feitos inline em cada arquivo de teste via blocos `DO $$ ... $$`, não em funções compartilhadas, porque `supabase test db` envolve cada teste num `BEGIN/ROLLBACK` — funções criadas em 00_setup não persistiriam.
@@ -489,10 +497,20 @@ SELECT has_index('public', 'sessoes_jogo', 'unq_jogada_tel_evento_jogo',
                  'índice único parcial telefone+evento+jogo em status finalizados');
 
 -- sessoes_jogo: dados obrigatórios quando pronta
-SELECT has_check('public', 'sessoes_jogo', 'dados_quando_pronta',
-                 'sessoes_jogo tem CHECK dados_quando_pronta');
-SELECT has_check('public', 'sessoes_jogo', 'premio_quando_finalizada',
-                 'sessoes_jogo tem CHECK premio_quando_finalizada');
+-- Nota: pgTAP has_check() não aceita nome de constraint como 3º arg;
+-- usamos query direta em pg_constraint.
+SELECT ok(
+  EXISTS (SELECT 1 FROM pg_constraint
+           WHERE conname = 'dados_quando_pronta'
+             AND conrelid = 'public.sessoes_jogo'::regclass),
+  'sessoes_jogo tem CHECK dados_quando_pronta'
+);
+SELECT ok(
+  EXISTS (SELECT 1 FROM pg_constraint
+           WHERE conname = 'premio_quando_finalizada'
+             AND conrelid = 'public.sessoes_jogo'::regclass),
+  'sessoes_jogo tem CHECK premio_quando_finalizada'
+);
 
 -- ganhadores: 1 ganhador por sessão (FK + UNIQUE)
 SELECT col_is_unique('public', 'ganhadores', 'sessao_id',
