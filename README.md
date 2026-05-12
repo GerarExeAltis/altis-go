@@ -64,6 +64,16 @@ altis-bet/
 └─ README.md         # este arquivo
 ```
 
+## Lints do Supabase aceitos
+
+O Database Linter do Supabase reporta 17 warnings residuais do tipo `pg_graphql_*_table_exposed` (tabelas visíveis no schema GraphQL para anon e authenticated). **Aceitos conscientemente** porque:
+
+- Não usamos GraphQL — fluxo é REST + Edge Functions (Seção 2 do spec).
+- RLS bloqueia leitura efetiva — o lint é sobre o nome da tabela aparecer no schema introspectable, não acesso a dados.
+- Revogar SELECT geral quebraria Supabase Realtime (subscription do celular do jogador) e as policies admin que dependem do GRANT.
+
+Se um dia adotarmos GraphQL ativamente, revisitamos via comment directives ou movendo tabelas sensíveis para schema `private`.
+
 ## Credenciais de desenvolvimento (apenas local)
 
 - **Operador**: `dev@altis.local` / `senha123`
