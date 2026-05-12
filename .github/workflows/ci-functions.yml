@@ -1,0 +1,68 @@
+name: CI — Edge Functions
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'supabase/functions/**'
+      - 'tests/edge-functions/**'
+      - 'package.json'
+      - '.github/workflows/ci-functions.yml'
+  pull_request:
+    paths:
+      - 'supabase/functions/**'
+      - 'tests/edge-functions/**'
+
+jobs:
+  vitest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - uses: supabase/setup-cli@v1
+        with: { version: latest }
+
+      - name: Start Supabase
+        run: supabase start
+
+      - name: Apply schema + seed
+        run: supabase db reset
+
+      - name: Create functions env-file
+        run: |
+          mkdir -p supabase
+          echo "JWT_AUTH_SECRET=$(supabase status -o env | grep JWT_SECRET= | cut -d'"' -f2)" > supabase/.env.local
+          echo "SESSAO_JWT_SECRET=test-sessao-secret-with-at-least-32-characters-aaa" >> supabase/.env.local
+
+      - name: Start functions (background)
+        run: |
+          supabase functions serve --no-verify-jwt --env-file supabase/.env.local \
+            > /tmp/functions.log 2>&1 &
+          for i in {1..30}; do
+            if grep -q "Serving functions" /tmp/functions.log 2>/dev/null; then break; fi
+            sleep 1
+          done
+          grep "Serving functions" /tmp/functions.log
+
+      - name: Generate .env.test from supabase status
+        run: |
+          supabase status -o env > .env.test
+          echo "SESSAO_JWT_SECRET=test-sessao-secret-with-at-least-32-characters-aaa" >> .env.test
+          echo "SUPABASE_JWT_SECRET=$(supabase status -o env | grep JWT_SECRET= | cut -d'"' -f2)" >> .env.test
+          echo "FUNCTIONS_URL=http://127.0.0.1:54321/functions/v1" >> .env.test
+
+      - name: Run Vitest
+        run: npm run test:functions
+
+      - name: Dump functions log on failure
+        if: failure()
+        run: cat /tmp/functions.log
+
+      - name: Cleanup
+        if: always()
+        run: supabase stop --no-backup

@@ -46,8 +46,25 @@ npm run test:db
 | `npm run db:stop` | Derruba stack |
 | `npm run db:reset` | Reset completo + aplica migrations + roda seed |
 | `npm run db:status` | Mostra URLs e chaves do stack local |
-| `npm run test:db` | Roda todos os testes pgTAP em `supabase/tests/` |
-| `npm run typecheck` | TypeScript check (placeholder no Plano 1) |
+| `npm run test:db` | Roda 83 testes pgTAP em `supabase/tests/` |
+| `npm run functions:serve` | Hot-reload das Edge Functions Deno em :54321 |
+| `npm run test:functions` | Roda 29 testes Vitest contra as Edge Functions (precisa `functions:serve` rodando) |
+| `npm run test` | db tests + function tests sequencial (112 testes total) |
+| `npm run typecheck` | TypeScript check |
+
+## Rodando os testes de Edge Functions
+
+Em **dois terminais separados**:
+
+```bash
+# Terminal 1 — sobe as functions com hot reload
+npm run functions:serve
+
+# Terminal 2 — roda os testes
+npm run test:functions
+```
+
+Se o terminal 1 não estiver rodando, os testes falham com `connect ECONNREFUSED`. Em CI a orquestração é automática via GitHub Actions.
 
 ## Estrutura
 
@@ -86,7 +103,7 @@ Se um dia adotarmos GraphQL ativamente, revisitamos via comment directives ou mo
 | Plano | Status | Conteúdo |
 |---|---|---|
 | 1 — Foundation DB | ✅ completo | Schema + RLS + sortear + pg_cron + Storage + seed |
-| 2 — Edge Functions | 🔜 próximo | 7 Edge Functions (Deno) + testes |
+| 2 — Edge Functions | ✅ completo | 7 Edge Functions Deno + shared utils + 29 Vitest tests |
 | 3 — CLI | ⏳ | bootstrap, migrate, definir-senha-admin, import-premios, backup |
 | 4 — UI Login + Totem | ⏳ | Next.js + Tailwind + shadcn + R3F |
 | 5 — UI Jogador + Admin | ⏳ | `/jogar` + painel admin completo |
