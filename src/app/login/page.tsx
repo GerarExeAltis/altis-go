@@ -1,5 +1,5 @@
+import Image from 'next/image';
 import { LoginForm } from '@/components/auth/LoginForm';
-import { LogoAltis } from '@/components/LogoAltis';
 import { ThemeToggle } from '@/components/theme/ThemeToggle';
 
 export default function LoginPage() {
@@ -10,8 +10,14 @@ export default function LoginPage() {
       </div>
       <div className="w-full max-w-sm space-y-6">
         <div className="flex flex-col items-center gap-3 text-center">
-          <LogoAltis size={56} />
-          <h1 className="text-2xl font-bold tracking-tight">Altis Bet</h1>
+          <Image
+            src="/altis-bet-logo.png"
+            alt="Altis Bet"
+            width={240}
+            height={80}
+            priority
+            className="h-auto w-auto max-w-[240px]"
+          />
           <p className="text-sm text-muted-foreground">Entre com sua conta de operador</p>
         </div>
         <LoginForm />

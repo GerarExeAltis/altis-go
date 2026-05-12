@@ -19,13 +19,18 @@ INSERT INTO auth.users (id, email, encrypted_password, created_at, updated_at,
 VALUES (
   '00000000-0000-0000-0000-000000000001',
   'dev@altis.local',
-  '$2a$10$qkLkmVcVl/dXdJ.K9hMnL.NJTwIPfxXVPVxKAzZ0qZ.qOTL.lk5j6',
+  extensions.crypt('senha123', extensions.gen_salt('bf', 10)),
   NOW(), NOW(),
   '00000000-0000-0000-0000-000000000000',
   'authenticated', 'authenticated',
   NOW(),
   '', '', '', '', '', '', '', ''
-) ON CONFLICT (id) DO NOTHING;
+) ON CONFLICT (id) DO UPDATE SET
+  encrypted_password = EXCLUDED.encrypted_password,
+  confirmation_token = '', recovery_token = '',
+  email_change_token_new = '', email_change_token_current = '',
+  email_change = '', reauthentication_token = '',
+  phone_change = '', phone_change_token = '';
 
 INSERT INTO public.perfis_operadores (id, nome_completo)
 VALUES ('00000000-0000-0000-0000-000000000001', 'Dev Local')
