@@ -13,6 +13,6 @@
     "isolatedModules": true,
     "allowSyntheticDefaultImports": true
   },
-  "include": [],
+  "include": ["src/**/*.ts"],
   "exclude": ["node_modules", "dist", "build", "out", ".next"]
 }

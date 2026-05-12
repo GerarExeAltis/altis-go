@@ -256,14 +256,29 @@ Conteúdo:
     "isolatedModules": true,
     "allowSyntheticDefaultImports": true
   },
-  "include": [],
+  "include": ["src/**/*.ts"],
   "exclude": ["node_modules", "dist", "build", "out", ".next"]
 }
 ```
 
-A array vazia em `include` é intencional — planos futuros vão adicionar paths.
+**Nota sobre TypeScript estrito:** o TS 5.9+ rejeita tanto `include: []` (TS18003) quanto `files: []` (TS18002) como configurações inválidas. Solução é apontar para uma pasta `src/` e criar um placeholder válido — vide Step 2.3.
 
-- [ ] **Step 2.3: Instalar dependências**
+- [ ] **Step 2.3: Criar placeholder `src/_placeholder.ts`**
+
+Necessário porque o `tsc` exige ao menos 1 arquivo no `include`. Será substituído por Edge Functions no Plano 2.
+
+```bash
+mkdir -p src
+```
+
+Criar `src/_placeholder.ts`:
+```typescript
+// Placeholder para satisfazer tsc no Plano 1.
+// Será substituído por Edge Functions e código real nos planos seguintes.
+export {};
+```
+
+- [ ] **Step 2.4: Instalar dependências**
 
 ```bash
 npm install
@@ -271,19 +286,19 @@ npm install
 
 Expected: cria `node_modules/` e `package-lock.json`.
 
-- [ ] **Step 2.4: Verificar typecheck passa (sem código)**
+- [ ] **Step 2.5: Verificar typecheck passa**
 
 ```bash
 npm run typecheck
 ```
 
-Expected: comando sai com código 0 (sem arquivos para checar).
+Expected: comando sai com código 0 (compila `src/_placeholder.ts` sem erros).
 
-- [ ] **Step 2.5: Commit**
+- [ ] **Step 2.6: Commit**
 
 ```bash
-git add package.json package-lock.json tsconfig.json
-git commit -m "chore: add package.json and tsconfig base"
+git add package.json package-lock.json tsconfig.json src/_placeholder.ts
+git commit -m "chore: add package.json, tsconfig base, src placeholder"
 ```
 
 ---
