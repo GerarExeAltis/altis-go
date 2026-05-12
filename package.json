@@ -1,6 +1,6 @@
 {
   "name": "altis-bet",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "description": "Altis Bet — plataforma de jogos com premiação",
   "engines": {
@@ -13,10 +13,19 @@
     "db:reset": "supabase db reset",
     "db:status": "supabase status",
     "test:db": "supabase test db",
-    "lint": "echo 'lint will be added in Plano 2'",
+    "functions:serve": "supabase functions serve --no-verify-jwt",
+    "test:functions": "vitest run tests/edge-functions",
+    "test:functions:watch": "vitest tests/edge-functions",
+    "test": "npm run test:db && npm run test:functions",
+    "lint": "echo 'lint will be added in Plano 4'",
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
-    "typescript": "^5.4.0"
+    "typescript": "^5.4.0",
+    "vitest": "^1.6.0",
+    "@vitest/ui": "^1.6.0",
+    "@supabase/supabase-js": "^2.45.0",
+    "jose": "^5.9.0",
+    "dotenv": "^16.4.0"
   }
 }
