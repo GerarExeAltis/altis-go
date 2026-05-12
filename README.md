@@ -115,6 +115,17 @@ altis-bet/
 └─ README.md         # este arquivo
 ```
 
+## Vulnerabilities npm aceitas
+
+Após `npm audit`, restam **6 moderate** que **não afetam produção** (todas em devDependencies de teste/build):
+
+| Pacote | Por quê aceita |
+|---|---|
+| `vitest`, `@vitest/ui`, `vite`, `vite-node`, `esbuild` | Fix exige `vitest 1→4` (major breaking), quebraria os 116 testes Vitest. Risco real é apenas o dev-server local aceitar requests cross-origin — não navegar para URLs externas durante `vitest`/`vite dev`. |
+| `next` (transitivo `postcss <8.5.10`) | Fix oferecido pelo audit é absurdo (downgrade para next 9.3.3). Será resolvido em patch futuro do next 15.x. Risco é XSS via stringify de CSS — não processamos CSS de terceiros, exposição zero. |
+
+A vulnerability **critical** (`happy-dom`) foi corrigida no bump para v20.
+
 ## Lints do Supabase aceitos
 
 O Database Linter do Supabase reporta 17 warnings residuais do tipo `pg_graphql_*_table_exposed` (tabelas visíveis no schema GraphQL para anon e authenticated). **Aceitos conscientemente** porque:
