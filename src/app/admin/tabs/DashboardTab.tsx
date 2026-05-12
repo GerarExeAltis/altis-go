@@ -2,6 +2,7 @@
 import * as React from 'react';
 import { getSupabaseBrowserClient } from '@/lib/supabase/browser';
 import { useDashboardMetricas } from '@/hooks/useDashboardMetricas';
+import { useMinLoading } from '@/hooks/useMinLoading';
 import { MetricCard } from '@/components/admin/MetricCard';
 import { JogadasPorHoraChart } from '@/components/admin/JogadasPorHoraChart';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
@@ -27,11 +28,12 @@ export function DashboardTab() {
   }, []);
 
   const { data, loading } = useDashboardMetricas(eventoId);
+  const mostrarLoading = useMinLoading(loading || !data, 4000);
 
   if (!eventoId) {
     return <p className="text-muted-foreground">Nenhum evento ativo no momento.</p>;
   }
-  if (loading || !data) {
+  if (mostrarLoading || !data) {
     return <Loading fullscreen={false} ariaLabel="Carregando metricas" />;
   }
 
