@@ -2,7 +2,6 @@
 import * as React from 'react';
 import * as THREE from 'three';
 import { Text } from '@react-three/drei';
-import { useTheme } from 'next-themes';
 import type { PremioDb } from '@/lib/totem/types';
 
 interface Props {
@@ -10,22 +9,20 @@ interface Props {
   raio?: number;
 }
 
-// Paleta Altis (segue tema).
-const COR_PRIMARY_LIGHT = '#009993';
-const COR_PRIMARY_DARK = '#4afad4';
+// Cor identidade Altis (FIXA — nao muda entre temas claro/escuro).
+// Tom claro (#4afad4) para ficar vibrante e atrativo, independente do
+// tema do operador.
+const COR_PRIMARY = '#4afad4';
+const COR_BRANCO = '#ffffff';
 
 // Tons dourados (cassino).
 const COR_OURO = '#f4c430';
 const COR_OURO_ESCURO = '#a8740a';
 const COR_DETALHE_ESCURO = '#1a1208';
-// Branco (alterna com a cor primary nas fatias).
-const COR_BRANCO = '#ffffff';
 
 export const Roda = React.forwardRef<THREE.Group, Props>(function Roda(
   { premios, raio = 2.5 }, ref
 ) {
-  const { resolvedTheme } = useTheme();
-  const corPrimary = resolvedTheme === 'dark' ? COR_PRIMARY_DARK : COR_PRIMARY_LIGHT;
 
   const total = premios.length || 1;
   const anguloPorFatia = (Math.PI * 2) / total;
@@ -42,7 +39,7 @@ export const Roda = React.forwardRef<THREE.Group, Props>(function Roda(
       {premios.map((p, i) => {
         const inicio = i * anguloPorFatia;
         const fim = inicio + anguloPorFatia;
-        const cor = i % 2 === 0 ? corPrimary : COR_BRANCO;
+        const cor = i % 2 === 0 ? COR_PRIMARY : COR_BRANCO;
         return (
           <Fatia
             key={p.id}
@@ -76,9 +73,12 @@ export const Roda = React.forwardRef<THREE.Group, Props>(function Roda(
         <meshStandardMaterial color={COR_OURO_ESCURO} metalness={0.7} roughness={0.4} />
       </mesh>
 
-      {/* Pinos dourados nas divisas (entre fatias) */}
+      {/* Pinos dourados nas divisas (linhas que separam cada fatia).
+          Posicionados em ang = i * anguloPorFatia (sem somar metade) —
+          exatamente onde fica o separador. O ponteiro bate em cada um
+          quando a roda gira. */}
       {premios.map((_, i) => {
-        const ang = i * anguloPorFatia + anguloPorFatia / 2;
+        const ang = i * anguloPorFatia;
         const x = Math.cos(ang) * (raio + 0.05);
         const y = Math.sin(ang) * (raio + 0.05);
         return (
@@ -119,8 +119,9 @@ function Fatia({
   // a base da letra fica perto da borda e o topo aponta pro miolo.
   const rotacaoTexto = anguloCentro + Math.PI;
 
-  // Cor do texto: contraste com fundo (escuro sobre branco, branco sobre primary).
-  const textColor = cor === COR_BRANCO ? '#1a1208' : '#ffffff';
+  // Cor do texto: sempre escuro (contrasta tanto com primary claro
+  // quanto com branco — ambas as fatias sao claras agora).
+  const textColor = '#1a1208';
   const fontSize = Math.max(0.14, Math.min(0.26, 1.5 / total));
 
   return (
@@ -144,8 +145,8 @@ function Fatia({
         textAlign="center"
         fontWeight={700}
         outlineWidth={fontSize * 0.04}
-        outlineColor={textColor === '#ffffff' ? '#000000' : '#ffffff'}
-        outlineOpacity={0.3}
+        outlineColor="#ffffff"
+        outlineOpacity={0.35}
       >
         {premio.nome}
       </Text>
