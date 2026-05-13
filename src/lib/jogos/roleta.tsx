@@ -6,7 +6,6 @@ import type { PremioDb as PremioTotem } from '@/lib/totem/types';
 import { RoletaCanvas } from '@/components/totem/roleta/RoletaCanvas';
 import { usarAnimacaoRoleta } from '@/components/totem/roleta/usarAnimacaoRoleta';
 import { usePreferredMotion } from '@/hooks/usePreferredMotion';
-import { Badge } from '@/components/ui/badge';
 import { Play, RotateCcw } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -26,7 +25,6 @@ function PreviewRoleta({ premios }: PreviewJogoProps) {
   const { reduzir } = usePreferredMotion();
   const [premioVencedorId, setVencedor] = React.useState<string | null>(null);
   const [girando, setGirando] = React.useState(false);
-  const [resultado, setResultado] = React.useState<PremioDb | null>(null);
 
   const premiosTotem = React.useMemo<PremioTotem[]>(
     () => premios.map((p) => ({
@@ -43,9 +41,7 @@ function PreviewRoleta({ premios }: PreviewJogoProps) {
 
   const onConcluir = React.useCallback(() => {
     setGirando(false);
-    const p = premios.find((x) => x.id === premioVencedorId);
-    if (p) setResultado(p);
-  }, [premios, premioVencedorId]);
+  }, []);
 
   const { rodaRef, iniciar } = usarAnimacaoRoleta({
     premios: premiosTotem,
@@ -65,14 +61,12 @@ function PreviewRoleta({ premios }: PreviewJogoProps) {
       alert('Nenhum premio elegivel (sem peso/estoque)');
       return;
     }
-    setResultado(null);
     setVencedor(id);
     setGirando(true);
   };
 
   const reset = () => {
     setVencedor(null);
-    setResultado(null);
     setGirando(false);
   };
 
@@ -110,25 +104,13 @@ function PreviewRoleta({ premios }: PreviewJogoProps) {
         <button
           type="button"
           onClick={reset}
-          disabled={girando || (!resultado && !premioVencedorId)}
+          disabled={girando || !premioVencedorId}
           className="inline-flex h-12 items-center justify-center gap-2 rounded-lg border border-border/60 bg-background px-4 text-sm font-medium hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
         >
           <RotateCcw className="h-4 w-4" />
           Resetar
         </button>
       </div>
-
-      {resultado && !girando && (
-        <div className="flex flex-col items-center gap-2 rounded-md border border-border/60 bg-muted/30 p-4 text-center">
-          <p className="text-xs uppercase tracking-wider text-muted-foreground">
-            Resultado da simulacao
-          </p>
-          <div className="flex items-center gap-2">
-            <span className="text-lg font-bold">{resultado.nome}</span>
-            {!resultado.e_premio_real && <Badge variant="secondary">Slot vazio</Badge>}
-          </div>
-        </div>
-      )}
     </div>
   );
 }
