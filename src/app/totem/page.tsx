@@ -155,7 +155,34 @@ function TotemFlow() {
       ? `${baseUrl}/jogar?s=${state.sessaoId}&t=${state.token}`
       : '';
 
-  const premioSorteado = premios.find((p) => p.id === premioVencedorId);
+  // Busca o nome do premio sorteado DIRETO DO BANCO (fonte da verdade)
+  // quando entramos em 'finalizada'. Antes usavamos premios.find(...) no
+  // array carregado uma vez no mount, mas se o admin renomear premios
+  // enquanto o totem esta aberto, o totem mostrava o nome antigo —
+  // divergindo do que o celular ve via obter-sessao (que busca a cada QR).
+  const [premioSorteado, setPremioSorteado] = React.useState<
+    { nome: string; e_premio_real: boolean } | null
+  >(null);
+
+  React.useEffect(() => {
+    if (state.tipo !== 'finalizada' || !state.premioId) {
+      setPremioSorteado(null);
+      return;
+    }
+    const sb = getSupabaseBrowserClient();
+    const pid = state.premioId;
+    let alive = true;
+    sb.from('premios')
+      .select('nome, e_premio_real')
+      .eq('id', pid)
+      .single()
+      .then(({ data }) => {
+        if (alive && data) {
+          setPremioSorteado(data as { nome: string; e_premio_real: boolean });
+        }
+      });
+    return () => { alive = false; };
+  }, [state]);
 
   if (state.tipo === 'erro') {
     return <ErroOverlay mensagem={state.mensagem} />;

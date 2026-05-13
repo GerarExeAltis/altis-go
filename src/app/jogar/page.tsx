@@ -5,6 +5,7 @@ import { obterSessao, submeterDados } from '@/lib/jogar/edgeFunctions';
 import type { ObterSessaoResp } from '@/lib/jogar/types';
 import { useFingerprint } from '@/hooks/useFingerprint';
 import { useSessaoRealtime } from '@/hooks/useSessaoRealtime';
+import { getSupabaseBrowserClient } from '@/lib/supabase/browser';
 import { FormJogador, type DadosForm } from '@/components/jogar/FormJogador';
 import { CatalogoPremios } from '@/components/jogar/CatalogoPremios';
 import { AguardandoTotem } from '@/components/jogar/AguardandoTotem';
@@ -91,6 +92,34 @@ function Jogar() {
   const sessaoIdAtiva = fase === 'aguardando' && sessao ? sessao.sessao.id : null;
   const { payload } = useSessaoRealtime(sessaoIdAtiva);
 
+  // Busca o premio sorteado direto do banco no momento de mostrar o
+  // resultado — fonte da verdade unica, evita divergencia entre o nome
+  // mostrado no totem e no celular caso o admin tenha renomeado o premio
+  // depois que obter-sessao retornou.
+  const [premioSorteado, setPremioSorteado] = React.useState<
+    { nome: string; e_premio_real: boolean } | null
+  >(null);
+
+  React.useEffect(() => {
+    if (fase !== 'finalizado' || !payload?.premio_sorteado_id) {
+      setPremioSorteado(null);
+      return;
+    }
+    const sb = getSupabaseBrowserClient();
+    const pid = payload.premio_sorteado_id;
+    let alive = true;
+    sb.from('premios')
+      .select('nome, e_premio_real')
+      .eq('id', pid)
+      .single()
+      .then(({ data }) => {
+        if (alive && data) {
+          setPremioSorteado(data as { nome: string; e_premio_real: boolean });
+        }
+      });
+    return () => { alive = false; };
+  }, [fase, payload]);
+
   React.useEffect(() => {
     if (!payload) return;
     if (payload.status === 'finalizada') {
@@ -149,12 +178,11 @@ function Jogar() {
     return <AguardandoTotem nome={nome} />;
   }
   if (fase === 'finalizado' && payload?.premio_sorteado_id) {
-    const premio = sessao.premios.find((p) => p.id === payload.premio_sorteado_id);
-    if (premio) {
+    if (premioSorteado) {
       return (
         <ResultadoJogador
-          premioNome={premio.nome}
-          ePremioReal={premio.e_premio_real}
+          premioNome={premioSorteado.nome}
+          ePremioReal={premioSorteado.e_premio_real}
           nome={nome}
         />
       );
