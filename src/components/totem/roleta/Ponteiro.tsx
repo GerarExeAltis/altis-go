@@ -4,8 +4,9 @@ import * as THREE from 'three';
 import { useFrame } from '@react-three/fiber';
 import gsap from 'gsap';
 
-const COR_OURO = '#f4c430';
-const COR_OURO_ESCURO = '#a8740a';
+// "Metal Altis" no lugar do dourado classico do ponteiro.
+const COR_OURO = '#009993';
+const COR_OURO_ESCURO = '#006661';
 const COR_VERMELHO = '#c0392b';
 
 interface Props {

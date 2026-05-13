@@ -10,31 +10,33 @@ interface Props {
   raio?: number;
 }
 
-// Paleta vibrante alternando com branco (estilo wheel of fortune clássico).
-// 6 cores quentes/frias rotacionando + branco como pausa entre elas.
+// Paleta exclusivamente Altis — alterna 3 tons da identidade do sistema.
+// Tudo derivado do primary (#4afad4) + branco, sem cores aleatorias.
+const COR_PRIMARY_CLARO = '#4afad4';   // primary tom claro (identidade)
+const COR_PRIMARY_ESCURO = '#009993';  // primary tom escuro (contraste forte)
+const COR_BRANCO = '#ffffff';
+
+// Sequencia de 6 tons em ciclo — sempre Altis:
+//   claro -> branco -> escuro -> branco -> claro -> branco ...
 const PALETA = [
-  '#4afad4', // primary Altis (verde-agua)
-  '#ffffff', // branco
-  '#e74c3c', // vermelho cassino
-  '#ffffff',
-  '#ffb700', // dourado-laranja
-  '#ffffff',
-  '#9b59b6', // roxo
-  '#ffffff',
-  '#3498db', // azul
-  '#ffffff',
-  '#2ecc71', // verde esmeralda
-  '#ffffff',
+  COR_PRIMARY_CLARO,
+  COR_BRANCO,
+  COR_PRIMARY_ESCURO,
+  COR_BRANCO,
+  COR_PRIMARY_CLARO,
+  COR_BRANCO,
 ];
 
 function corFatia(i: number): string {
   return PALETA[i % PALETA.length];
 }
 
-const COR_OURO = '#f4c430';
-const COR_OURO_ESCURO = '#a8740a';
-const COR_DETALHE_ESCURO = '#1a1208';
-const COR_BRANCO = '#ffffff';
+// "Metal Altis" no lugar do dourado classico — aro/pinos/lampadas em
+// tons primary (verde-agua escuro) com metalness alta. Coerente com a
+// identidade visual do sistema.
+const COR_OURO = '#009993';
+const COR_OURO_ESCURO = '#006661';
+const COR_DETALHE_ESCURO = '#0a1d1c';
 
 export const Roda = React.forwardRef<THREE.Group, Props>(function Roda(
   { premios, raio = 2.5 }, ref
@@ -46,10 +48,10 @@ export const Roda = React.forwardRef<THREE.Group, Props>(function Roda(
 
   return (
     <group ref={ref}>
-      {/* Drop-shadow: disco escuro deslocado abaixo da roleta (profundidade) */}
-      <mesh position={[0.04, -0.06, -0.05]}>
-        <circleGeometry args={[raio * 1.06, 64]} />
-        <meshBasicMaterial color="#000000" transparent opacity={0.25} />
+      {/* Glow sutil ao redor da roleta (no fundo escuro fica visivel) */}
+      <mesh position={[0, 0, -0.06]}>
+        <circleGeometry args={[raio * 1.18, 64]} />
+        <meshBasicMaterial color={COR_PRIMARY_CLARO} transparent opacity={0.08} />
       </mesh>
 
       {/* Fundo: disco escuro como base (contraste interno) */}
@@ -157,10 +159,10 @@ function Lampadas({ total, raio }: { total: number; raio: number }) {
           >
             <sphereGeometry args={[0.07, 12, 12]} />
             <meshStandardMaterial
-              color={COR_OURO}
-              emissive="#ffd24a"
-              emissiveIntensity={0.5}
-              metalness={0.3}
+              color="#ffffff"
+              emissive={COR_PRIMARY_CLARO}
+              emissiveIntensity={0.6}
+              metalness={0.2}
               roughness={0.4}
             />
           </mesh>
@@ -196,10 +198,10 @@ function Fatia({
   const textY = Math.sin(anguloCentro) * distTexto;
   const rotacaoTexto = anguloCentro + Math.PI;
 
-  // Cor do texto: claro sobre cores escuras/saturadas, escuro sobre branco.
-  const ehBranco = cor === COR_BRANCO;
-  const textColor = ehBranco ? '#1a1208' : '#ffffff';
-  const outlineColor = ehBranco ? '#ffffff' : '#000000';
+  // Cor do texto: escuro Altis sobre claro/branco, branco sobre primary escuro.
+  const ehPrimaryEscuro = cor === COR_PRIMARY_ESCURO;
+  const textColor = ehPrimaryEscuro ? '#ffffff' : '#003834';
+  const outlineColor = ehPrimaryEscuro ? '#003834' : '#ffffff';
 
   const fontSize = Math.max(0.14, Math.min(0.26, 1.5 / total));
 

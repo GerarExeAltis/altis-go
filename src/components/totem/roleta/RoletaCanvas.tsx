@@ -49,10 +49,15 @@ export function RoletaCanvas({ premios, rodaRef, zoom = 110 }: Props) {
         gl={{ antialias: true }}
         resize={{ scroll: false, debounce: { scroll: 0, resize: 50 } }}
       >
-        <ambientLight intensity={0.6} />
-        <directionalLight position={[3, 4, 5]} intensity={0.9} />
+        {/* Fundo escuro fixo da cena — destaca a roleta independente do
+            tema do operador. Tom proximo ao --background dark com leve
+            tinta da paleta Altis. */}
+        {/* <color attach="background" args={['#06201d']} /> */}
+
+        <ambientLight intensity={0.55} />
+        <directionalLight position={[3, 4, 5]} intensity={0.85} />
         <directionalLight position={[-3, -2, 4]} intensity={0.35} />
-        <pointLight position={[0, 0, 3]} intensity={0.5} color="#ffe7a0" />
+        <pointLight position={[0, 0, 3]} intensity={0.6} color="#4afad4" />
 
         <Roda ref={rodaRef} premios={premios} />
         <EixoCentro />

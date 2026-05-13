@@ -3,20 +3,23 @@ import * as React from 'react';
 import * as THREE from 'three';
 import { useFrame } from '@react-three/fiber';
 
-const COR_OURO = '#f4c430';
-const COR_OURO_ESCURO = '#a8740a';
-const COR_DETALHE_ESCURO = '#1a1208';
+// "Metal Altis" — substitui o dourado por tons da paleta primary.
+const COR_OURO = '#009993';
+const COR_OURO_ESCURO = '#006661';
+const COR_PRIMARY = '#4afad4';
+const COR_PRIMARY_ESCURO = '#009993';
+const COR_DETALHE_ESCURO = '#0a1d1c';
 
 /**
- * Eixo central decorativo: disco dourado em camadas + joia central +
- * 4 estrelinhas douradas girando ao redor (dinamica continua).
+ * Eixo central decorativo: disco dourado + joia primary (Altis) com
+ * brilho rotativo sutil. Sem estrelinhas amarelas (poluiam visualmente
+ * com a paleta).
  */
 export function EixoCentro() {
-  const estrelasRef = React.useRef<THREE.Group>(null);
-  // Estrelas giram lentamente (ambiente, mesmo com roleta parada).
+  const brilhoRef = React.useRef<THREE.Mesh>(null);
   useFrame((_, delta) => {
-    if (estrelasRef.current) {
-      estrelasRef.current.rotation.z += delta * 0.6;
+    if (brilhoRef.current) {
+      brilhoRef.current.rotation.z += delta * 0.8;
     }
   });
 
@@ -25,7 +28,7 @@ export function EixoCentro() {
       {/* Anel externo do eixo (dourado escuro, sombra) */}
       <mesh position={[0, 0, 0]}>
         <circleGeometry args={[0.55, 48]} />
-        <meshStandardMaterial color={COR_OURO_ESCURO} metalness={0.8} roughness={0.3} />
+        <meshStandardMaterial color={COR_OURO_ESCURO} metalness={0.85} roughness={0.3} />
       </mesh>
 
       {/* Disco principal dourado */}
@@ -34,50 +37,37 @@ export function EixoCentro() {
         <meshStandardMaterial color={COR_OURO} metalness={0.9} roughness={0.2} />
       </mesh>
 
-      {/* 4 estrelinhas/brilhos girando ao redor do eixo */}
-      <group ref={estrelasRef} position={[0, 0, 0.08]}>
-        {[0, 1, 2, 3].map((i) => {
-          const ang = (i * Math.PI) / 2;
-          const x = Math.cos(ang) * 0.36;
-          const y = Math.sin(ang) * 0.36;
-          return (
-            <mesh key={`star-${i}`} position={[x, y, 0]}>
-              <circleGeometry args={[0.05, 12]} />
-              <meshStandardMaterial
-                color="#fff8d6"
-                emissive="#ffd24a"
-                emissiveIntensity={1.2}
-              />
-            </mesh>
-          );
-        })}
-      </group>
-
       {/* Anel interno decorativo */}
       <mesh position={[0, 0, 0.1]}>
         <ringGeometry args={[0.28, 0.34, 48]} />
         <meshStandardMaterial color={COR_OURO_ESCURO} metalness={0.7} roughness={0.35} />
       </mesh>
 
-      {/* Joia central (esfera vermelha brilhante) */}
+      {/* Brilho rotativo atras da joia (anel com glow) */}
+      <mesh ref={brilhoRef} position={[0, 0, 0.14]}>
+        <ringGeometry args={[0.22, 0.27, 4, 1]} />
+        <meshBasicMaterial color={COR_PRIMARY} transparent opacity={0.55} />
+      </mesh>
+
+      {/* Joia central — primary Altis com emissivo */}
       <mesh position={[0, 0, 0.18]}>
         <sphereGeometry args={[0.2, 24, 24]} />
         <meshStandardMaterial
-          color="#c0392b"
-          metalness={0.6}
-          roughness={0.15}
-          emissive="#5c1a13"
-          emissiveIntensity={0.4}
+          color={COR_PRIMARY}
+          metalness={0.45}
+          roughness={0.18}
+          emissive={COR_PRIMARY_ESCURO}
+          emissiveIntensity={0.55}
         />
       </mesh>
 
-      {/* Brilho central (highlight) */}
+      {/* Highlight branco no canto superior esquerdo da joia */}
       <mesh position={[-0.06, 0.06, 0.32]}>
         <circleGeometry args={[0.06, 16]} />
-        <meshBasicMaterial color="#ffd6c2" transparent opacity={0.75} />
+        <meshBasicMaterial color="#ffffff" transparent opacity={0.7} />
       </mesh>
 
-      {/* Aro fino preto entre joia e disco para definicao */}
+      {/* Aro fino escuro entre joia e disco para definicao */}
       <mesh position={[0, 0, 0.16]}>
         <ringGeometry args={[0.2, 0.22, 32]} />
         <meshStandardMaterial color={COR_DETALHE_ESCURO} />
