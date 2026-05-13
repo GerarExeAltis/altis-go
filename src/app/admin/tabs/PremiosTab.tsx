@@ -19,7 +19,6 @@ import {
 import { PremioForm, type PremioFormPayload } from '@/components/admin/PremioForm';
 import { uploadFotoPremio } from '@/lib/admin/uploadFoto';
 import { Plus, Edit, GripVertical, Trash2, Minus } from 'lucide-react';
-import { cn } from '@/lib/utils';
 
 interface ItemProps {
   premio: PremioDb;
@@ -29,108 +28,82 @@ interface ItemProps {
   onAjustarEstoque: (delta: number) => void;
 }
 
-function classeBarraEstoque(pct: number): string {
-  if (pct <= 20) return 'bg-destructive';
-  if (pct <= 50) return 'bg-amber-500';
-  return 'bg-emerald-500';
-}
-
 function ItemSortavel({
   premio, ganhadoresCount, onEditar, onExcluir, onAjustarEstoque,
 }: ItemProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({ id: premio.id });
 
-  const pct = premio.estoque_inicial > 0
-    ? Math.round((premio.estoque_atual / premio.estoque_inicial) * 100)
-    : 0;
-  // 'sorteados' = ganhadores reais entregues/registrados. Antes era calculado
-  // como estoque_inicial - estoque_atual, mas isso fica errado quando o
-  // estoque_inicial e editado depois de ja ter ganhadores. Agora vem da
-  // tabela ganhadores (fonte da verdade).
+  // 'sorteados' = ganhadores reais (fonte: tabela ganhadores).
   const sorteados = ganhadoresCount;
-  const sembarra = premio.estoque_inicial === 0;
+  const semEstoque = premio.estoque_inicial === 0;
 
   return (
     <div
       ref={setNodeRef}
       style={{ transform: CSS.Transform.toString(transform), transition }}
-      className={`flex flex-col gap-2 rounded-md border border-border/60 bg-card p-3 ${isDragging ? 'opacity-50' : ''}`}
+      className={`flex items-center gap-3 rounded-md border border-border/60 bg-card p-3 ${isDragging ? 'opacity-50' : ''}`}
     >
-      <div className="flex items-center gap-3">
-        <button
-          type="button"
-          {...attributes}
-          {...listeners}
-          className="cursor-grab text-muted-foreground"
-          aria-label="Arrastar para reordenar"
-        >
-          <GripVertical className="h-4 w-4" />
-        </button>
-        <span
-          className="h-8 w-8 rounded ring-1 ring-border/60"
-          style={{ backgroundColor: premio.cor_hex ?? '#cccccc' }}
-          aria-hidden
-        />
-        <div className="flex-1">
-          <div className="flex items-center gap-2 font-medium">
-            {premio.nome}
-            {!premio.e_premio_real && <Badge variant="secondary">Slot vazio</Badge>}
-          </div>
-          <div className="text-xs text-muted-foreground">
-            peso {premio.peso_base} · sorteados {sorteados}/{premio.estoque_inicial}
-          </div>
+      <button
+        type="button"
+        {...attributes}
+        {...listeners}
+        className="cursor-grab text-muted-foreground"
+        aria-label="Arrastar para reordenar"
+      >
+        <GripVertical className="h-4 w-4" />
+      </button>
+      <span
+        className="h-8 w-8 rounded ring-1 ring-border/60"
+        style={{ backgroundColor: premio.cor_hex ?? '#cccccc' }}
+        aria-hidden
+      />
+      <div className="flex-1">
+        <div className="flex items-center gap-2 font-medium">
+          {premio.nome}
+          {!premio.e_premio_real && <Badge variant="secondary">Slot vazio</Badge>}
         </div>
-
-        {premio.e_premio_real && !sembarra && (
-          <div className="flex items-center gap-1">
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={() => onAjustarEstoque(-1)}
-              disabled={premio.estoque_atual === 0}
-              aria-label="Diminuir estoque"
-              title="Diminuir estoque"
-              className="h-7 w-7 p-0"
-            >
-              <Minus className="h-3.5 w-3.5" />
-            </Button>
-            <span className="min-w-[3.5rem] text-center font-mono text-sm font-semibold tabular-nums">
-              {premio.estoque_atual}/{premio.estoque_inicial}
-            </span>
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={() => onAjustarEstoque(+1)}
-              disabled={premio.estoque_atual >= premio.estoque_inicial}
-              aria-label="Aumentar estoque"
-              title="Aumentar estoque"
-              className="h-7 w-7 p-0"
-            >
-              <Plus className="h-3.5 w-3.5" />
-            </Button>
-          </div>
-        )}
-
-        <Button size="sm" variant="ghost" onClick={onEditar} aria-label="Editar">
-          <Edit className="h-4 w-4" />
-        </Button>
-        <Button size="sm" variant="ghost" onClick={onExcluir} aria-label="Excluir">
-          <Trash2 className="h-4 w-4 text-destructive" />
-        </Button>
+        <div className="text-xs text-muted-foreground">
+          peso {premio.peso_base} · sorteados {sorteados}/{premio.estoque_inicial}
+        </div>
       </div>
 
-      {premio.e_premio_real && !sembarra && (
-        <div className="ml-7 flex items-center gap-2">
-          <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-muted">
-            <div
-              className={cn('h-full rounded-full transition-all', classeBarraEstoque(pct))}
-              style={{ width: `${pct}%` }}
-            />
-          </div>
-          <span className="w-10 text-right text-xs tabular-nums text-muted-foreground">{pct}%</span>
+      {premio.e_premio_real && !semEstoque && (
+        <div className="flex items-center gap-1">
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => onAjustarEstoque(-1)}
+            disabled={premio.estoque_atual === 0}
+            aria-label="Diminuir estoque"
+            title="Diminuir estoque"
+            className="h-7 w-7 p-0"
+          >
+            <Minus className="h-3.5 w-3.5" />
+          </Button>
+          <span className="min-w-[3.5rem] text-center font-mono text-sm font-semibold tabular-nums">
+            {premio.estoque_atual}/{premio.estoque_inicial}
+          </span>
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => onAjustarEstoque(+1)}
+            disabled={premio.estoque_atual >= premio.estoque_inicial}
+            aria-label="Aumentar estoque"
+            title="Aumentar estoque"
+            className="h-7 w-7 p-0"
+          >
+            <Plus className="h-3.5 w-3.5" />
+          </Button>
         </div>
       )}
+
+      <Button size="sm" variant="ghost" onClick={onEditar} aria-label="Editar">
+        <Edit className="h-4 w-4" />
+      </Button>
+      <Button size="sm" variant="ghost" onClick={onExcluir} aria-label="Excluir">
+        <Trash2 className="h-4 w-4 text-destructive" />
+      </Button>
     </div>
   );
 }
