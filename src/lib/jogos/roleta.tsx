@@ -86,7 +86,10 @@ function PreviewRoleta({ premios }: PreviewJogoProps) {
 
   return (
     <div className="space-y-4">
-      <div className="aspect-square w-full overflow-hidden rounded-lg border border-border/60 bg-background">
+      <div
+        className="relative w-full overflow-hidden rounded-lg border border-border/60 bg-background"
+        style={{ height: 'min(60vh, 480px)' }}
+      >
         <RoletaCanvas premios={premiosTotem} rodaRef={rodaRef} />
       </div>
 
