@@ -161,7 +161,7 @@ function TotemFlow() {
   // enquanto o totem esta aberto, o totem mostrava o nome antigo —
   // divergindo do que o celular ve via obter-sessao (que busca a cada QR).
   const [premioSorteado, setPremioSorteado] = React.useState<
-    { nome: string; e_premio_real: boolean } | null
+    { nome: string; e_premio_real: boolean; foto_path: string | null } | null
   >(null);
 
   React.useEffect(() => {
@@ -173,12 +173,12 @@ function TotemFlow() {
     const pid = state.premioId;
     let alive = true;
     sb.from('premios')
-      .select('nome, e_premio_real')
+      .select('nome, e_premio_real, foto_path')
       .eq('id', pid)
       .single()
       .then(({ data }) => {
         if (alive && data) {
-          setPremioSorteado(data as { nome: string; e_premio_real: boolean });
+          setPremioSorteado(data as { nome: string; e_premio_real: boolean; foto_path: string | null });
         }
       });
     return () => { alive = false; };
@@ -239,6 +239,7 @@ function TotemFlow() {
       <BannerGanhador
         premioNome={premioSorteado.nome}
         ePremioReal={premioSorteado.e_premio_real}
+        premioFotoPath={premioSorteado.foto_path}
         jogadorNome={jogadorNome}
         onVoltar={() => {
           setJogadorNome(null);

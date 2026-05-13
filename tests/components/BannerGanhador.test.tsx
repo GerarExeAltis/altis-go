@@ -12,7 +12,7 @@ describe('BannerGanhador', () => {
         onVoltar={vi.fn()}
       />
     );
-    expect(screen.getByText(/Parab.ns, Maria/)).toBeInTheDocument();
+    expect(screen.getByText(/parab.ns, maria/i)).toBeInTheDocument();
     expect(screen.getByText('Vale R$10')).toBeInTheDocument();
     expect(screen.getByText(/retire/i)).toBeInTheDocument();
   });

@@ -97,7 +97,7 @@ function Jogar() {
   // mostrado no totem e no celular caso o admin tenha renomeado o premio
   // depois que obter-sessao retornou.
   const [premioSorteado, setPremioSorteado] = React.useState<
-    { nome: string; e_premio_real: boolean } | null
+    { nome: string; e_premio_real: boolean; foto_path: string | null } | null
   >(null);
 
   React.useEffect(() => {
@@ -109,12 +109,12 @@ function Jogar() {
     const pid = payload.premio_sorteado_id;
     let alive = true;
     sb.from('premios')
-      .select('nome, e_premio_real')
+      .select('nome, e_premio_real, foto_path')
       .eq('id', pid)
       .single()
       .then(({ data }) => {
         if (alive && data) {
-          setPremioSorteado(data as { nome: string; e_premio_real: boolean });
+          setPremioSorteado(data as { nome: string; e_premio_real: boolean; foto_path: string | null });
         }
       });
     return () => { alive = false; };
@@ -183,6 +183,7 @@ function Jogar() {
         <ResultadoJogador
           premioNome={premioSorteado.nome}
           ePremioReal={premioSorteado.e_premio_real}
+          premioFotoPath={premioSorteado.foto_path}
           nome={nome}
         />
       );

@@ -25,23 +25,40 @@ export function AttractMode({ onTocar, disabled }: Props) {
       type="button"
       onClick={onTocar}
       disabled={disabled}
-      className="flex min-h-screen w-full flex-col items-center justify-center gap-8 bg-background text-center transition-opacity disabled:opacity-50"
+      className="relative flex min-h-screen w-full flex-col items-center justify-center gap-8 overflow-hidden bg-background text-center transition-opacity disabled:opacity-50"
       aria-label="Toque para participar da Roleta de Prêmios"
     >
-      <LogoAltis size={128} />
-      <h1 className="text-6xl font-extrabold tracking-tight">ROLETA DE PRÊMIOS</h1>
-      <p className="animate-pulse text-3xl font-bold text-primary">TOQUE PARA PARTICIPAR</p>
-      <div className="mt-4">
+      {/* Glow radial sutil ao fundo */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 animate-[ganhador-bg-pulse_4s_ease-in-out_infinite]"
+        style={{
+          background:
+            'radial-gradient(ellipse at center, hsl(var(--primary) / 0.18) 0%, transparent 60%)',
+        }}
+      />
+
+      {/* GIF Altis (animacao da marca) em loop ao fundo, opacidade baixa */}
+      <div className="pointer-events-none absolute right-12 top-12 h-40 w-40 opacity-30">
         <Image
           src="/altis-animacao.gif"
           alt=""
-          width={200}
-          height={200}
+          width={160}
+          height={160}
           unoptimized
-          aria-hidden="true"
+          priority
+          aria-hidden
         />
       </div>
-      {disabled && <p className="text-sm text-muted-foreground">Gerando sessão...</p>}
+
+      <div className="relative z-10 flex flex-col items-center gap-8">
+        <LogoAltis size={128} />
+        <h1 className="text-7xl font-extrabold tracking-tight">ROLETA DE PRÊMIOS</h1>
+        <p className="text-3xl font-bold text-primary animate-[attract-glow_1.8s_ease-in-out_infinite]">
+          TOQUE PARA PARTICIPAR
+        </p>
+        {disabled && <p className="text-sm text-muted-foreground">Gerando sessão...</p>}
+      </div>
     </button>
   );
 }

@@ -5,7 +5,7 @@ import { ResultadoJogador } from '@/components/jogar/ResultadoJogador';
 describe('ResultadoJogador', () => {
   it('premio real mostra Parabens + nome + WhatsApp', () => {
     render(<ResultadoJogador premioNome="Vale R$10" ePremioReal nome="Maria" />);
-    expect(screen.getByText(/Parab.ns, Maria/)).toBeInTheDocument();
+    expect(screen.getByText(/parab.ns, maria/i)).toBeInTheDocument();
     expect(screen.getByText('Vale R$10')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /WhatsApp/i })).toHaveAttribute(
       'href',
@@ -21,6 +21,6 @@ describe('ResultadoJogador', () => {
 
   it('omite o nome quando nao passado', () => {
     render(<ResultadoJogador premioNome="x" ePremioReal />);
-    expect(screen.getByText(/Parab.ns!/)).toBeInTheDocument();
+    expect(screen.getByText(/parab.ns!/i)).toBeInTheDocument();
   });
 });
