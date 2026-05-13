@@ -16,14 +16,9 @@ const COR_PRIMARY_CLARO = '#4afad4';   // primary tom claro (identidade)
 const COR_PRIMARY_ESCURO = '#009993';  // primary tom escuro (contraste forte)
 const COR_BRANCO = '#ffffff';
 
-// Sequencia de 6 tons em ciclo — sempre Altis:
-//   claro -> branco -> escuro -> branco -> claro -> branco ...
+// Alternancia simples primary escuro / branco.
 const PALETA = [
-  COR_PRIMARY_CLARO,
-  COR_BRANCO,
   COR_PRIMARY_ESCURO,
-  COR_BRANCO,
-  COR_PRIMARY_CLARO,
   COR_BRANCO,
 ];
 
