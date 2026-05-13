@@ -11,7 +11,8 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
 } from '@/components/ui/dialog';
 import { EventoForm, type EventoFormPayload } from '@/components/admin/EventoForm';
-import { Plus, Edit } from 'lucide-react';
+import { HistoricoEventoModal } from '@/components/admin/HistoricoEventoModal';
+import { Plus, Edit, BarChart3 } from 'lucide-react';
 
 function corStatus(s: EventoStatus): 'default' | 'secondary' | 'destructive' | 'success' | 'outline' {
   if (s === 'ativo') return 'success';
@@ -27,6 +28,7 @@ export function EventosTab() {
   const [editando, setEditando] = React.useState<EventoDb | null>(null);
   const [erro, setErro] = React.useState<string | null>(null);
   const [enviando, setEnviando] = React.useState(false);
+  const [historicoEvento, setHistoricoEvento] = React.useState<EventoDb | null>(null);
 
   const recarregar = React.useCallback(async () => {
     if (!adminClient) return;
@@ -99,18 +101,35 @@ export function EventosTab() {
                 <Badge variant={corStatus(e.status)}>{e.status}</Badge>
               </TableCell>
               <TableCell className="text-right">
-                <Button
-                  size="sm" variant="ghost"
-                  onClick={() => { setEditando(e); setModalAberto(true); }}
-                  aria-label="Editar"
-                >
-                  <Edit className="h-4 w-4" />
-                </Button>
+                <div className="inline-flex items-center gap-1">
+                  <Button
+                    size="sm" variant="ghost"
+                    onClick={() => setHistoricoEvento(e)}
+                    aria-label="Ver historico"
+                    title="Ver historico"
+                  >
+                    <BarChart3 className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    size="sm" variant="ghost"
+                    onClick={() => { setEditando(e); setModalAberto(true); }}
+                    aria-label="Editar"
+                    title="Editar"
+                  >
+                    <Edit className="h-4 w-4" />
+                  </Button>
+                </div>
               </TableCell>
             </TableRow>
           ))}
         </TableBody>
       </Table>
+
+      <HistoricoEventoModal
+        evento={historicoEvento}
+        open={!!historicoEvento}
+        onOpenChange={(o) => !o && setHistoricoEvento(null)}
+      />
 
       <Dialog open={modalAberto} onOpenChange={setModalAberto}>
         <DialogContent onClose={() => setModalAberto(false)} className="max-w-lg">
