@@ -20,14 +20,14 @@ BEGIN
 END $$;
 
 INSERT INTO public.premios (id, evento_id, nome, peso_base, estoque_inicial, estoque_atual,
-                            ordem_roleta, e_premio_real, cor_hex)
+                            ordem_roleta, e_premio_real)
   VALUES
   ('22222222-2222-2222-2222-222222222222', '11111111-1111-1111-1111-111111111111',
-   'Vale R$10', 1, 100, 100, 1, true, '#4afad4'),
+   'Vale R$10', 1, 100, 100, 1, true),
   ('33333333-3333-3333-3333-333333333333', '11111111-1111-1111-1111-111111111111',
-   'TV',       10, 1,   1,   2, true, '#009993'),
+   'TV',       10, 1,   1,   2, true),
   ('44444444-4444-4444-4444-444444444444', '11111111-1111-1111-1111-111111111111',
-   'Nao foi',  30, 0,   0,   3, false, '#555555');
+   'Nao foi',  30, 0,   0,   3, false);
 
 -- ━━━━━━━━━━━━━━━━━━━━ Caso 1: sessao inexistente ━━━━━━━━━━━━━━━
 

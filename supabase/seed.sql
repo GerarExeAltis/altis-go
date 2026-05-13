@@ -65,26 +65,26 @@ VALUES (
 
 -- ━━━━━━━━━━━━━━━━━━━━━━ PREMIOS EXEMPLO ━━━━━━━━━━━━━━━━━━━━━━━━
 
-INSERT INTO public.premios (id, evento_id, nome, descricao, cor_hex,
+INSERT INTO public.premios (id, evento_id, nome, descricao,
                             peso_base, estoque_inicial, estoque_atual,
                             ordem_roleta, e_premio_real) VALUES
   ('cccccccc-1111-1111-1111-cccccccccccc',
    'bbbbbbbb-1111-1111-1111-bbbbbbbbbbbb',
    'Vale R$10', 'Vale-compra de R$10 em qualquer loja Altis',
-   '#4afad4', 1, 100, 100, 1, true),
+   1, 100, 100, 1, true),
 
   ('cccccccc-2222-2222-2222-cccccccccccc',
    'bbbbbbbb-1111-1111-1111-bbbbbbbbbbbb',
    'Camiseta Altis', 'Camiseta exclusiva Altis Sistemas',
-   '#f7b32b', 2, 20, 20, 2, true),
+   2, 20, 20, 2, true),
 
   ('cccccccc-3333-3333-3333-cccccccccccc',
    'bbbbbbbb-1111-1111-1111-bbbbbbbbbbbb',
    'Smart TV 32"', 'TV LED 32 polegadas',
-   '#e74c3c', 10, 1, 1, 3, true),
+   10, 1, 1, 3, true),
 
   ('cccccccc-9999-9999-9999-cccccccccccc',
    'bbbbbbbb-1111-1111-1111-bbbbbbbbbbbb',
    'Nao foi dessa vez', 'Obrigado por participar!',
-   '#555555', 30, 0, 0, 99, false)
+   30, 0, 0, 99, false)
 ON CONFLICT (id) DO NOTHING;

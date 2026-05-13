@@ -1,6 +1,6 @@
 BEGIN;
 
-SELECT plan(35);
+SELECT plan(34);
 
 -- ━━━━━━━━━━━━━━━━━━━━━━━━━━ ENUMS ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
@@ -42,9 +42,6 @@ SELECT has_index('public', 'eventos', 'unq_evento_ativo', 'indice unico parcial 
 SELECT col_has_check('public', 'premios', 'peso_base', 'premios.peso_base tem CHECK');
 SELECT col_has_check('public', 'premios', 'estoque_inicial', 'premios.estoque_inicial tem CHECK');
 SELECT col_has_check('public', 'premios', 'estoque_atual', 'premios.estoque_atual tem CHECK');
-
--- premios: cor_hex regex
-SELECT col_has_check('public', 'premios', 'cor_hex', 'premios.cor_hex tem CHECK regex');
 
 -- sessoes_jogo: anti-fraude estrutural
 SELECT has_index('public', 'sessoes_jogo', 'unq_jogada_tel_evento_jogo',

@@ -32,7 +32,6 @@ function PreviewRoleta({ premios }: PreviewJogoProps) {
     () => premios.map((p) => ({
       id: p.id,
       nome: p.nome,
-      cor_hex: p.cor_hex,
       foto_path: p.foto_path,
       ordem_roleta: p.ordem_roleta,
       e_premio_real: p.e_premio_real,

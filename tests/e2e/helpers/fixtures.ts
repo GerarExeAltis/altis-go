@@ -40,7 +40,6 @@ export async function criarEventoLimpo(): Promise<{ eventoId: string; premioReal
       estoque_atual: 100,
       ordem_roleta: 1,
       e_premio_real: true,
-      cor_hex: '#4afad4',
     },
     {
       id: premioNaoFoiId,
@@ -51,7 +50,6 @@ export async function criarEventoLimpo(): Promise<{ eventoId: string; premioReal
       estoque_atual: 0,
       ordem_roleta: 2,
       e_premio_real: false,
-      cor_hex: '#555555',
     },
   ]);
 

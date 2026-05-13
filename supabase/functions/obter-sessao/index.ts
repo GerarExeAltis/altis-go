@@ -43,7 +43,7 @@ Deno.serve(async (req) => {
 
     const [{ data: premios }, { data: lojas }] = await Promise.all([
       sb.from('premios')
-        .select('id, nome, cor_hex, foto_path, ordem_roleta, e_premio_real')
+        .select('id, nome, foto_path, ordem_roleta, e_premio_real')
         .eq('evento_id', sessao.evento_id)
         .order('ordem_roleta', { ascending: true }),
       sb.from('lojas')

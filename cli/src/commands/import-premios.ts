@@ -6,14 +6,13 @@ import { log } from '../lib/logger.js';
 import type { EnvOpts } from '../lib/env.js';
 
 const COLUNAS_OBRIGATORIAS = [
-  'nome', 'descricao', 'cor_hex', 'peso_base',
+  'nome', 'descricao', 'peso_base',
   'estoque_inicial', 'ordem_roleta', 'e_premio_real',
 ] as const;
 
 interface LinhaCsv {
   nome: string;
   descricao: string;
-  cor_hex: string;
   peso_base: string;
   estoque_inicial: string;
   ordem_roleta: string;
@@ -47,9 +46,6 @@ export async function importPremios(
   }
 
   const inserts = linhas.map((l, idx) => {
-    if (!/^#[0-9a-fA-F]{6}$/.test(l.cor_hex)) {
-      throw new Error(`Linha ${idx + 2}: cor_hex '${l.cor_hex}' inválido (use #RRGGBB).`);
-    }
     const peso = Number(l.peso_base);
     if (!Number.isInteger(peso) || peso < 0) {
       throw new Error(`Linha ${idx + 2}: peso_base inválido '${l.peso_base}'.`);
@@ -66,7 +62,6 @@ export async function importPremios(
     return {
       nome: l.nome,
       descricao: l.descricao || null,
-      cor_hex: l.cor_hex,
       peso_base: peso,
       estoque_inicial: estoque,
       estoque_atual: estoque,

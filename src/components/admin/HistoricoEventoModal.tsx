@@ -25,7 +25,6 @@ interface Metricas {
   premios: Array<{
     id: string;
     nome: string;
-    cor_hex: string | null;
     e_premio_real: boolean;
     estoque_inicial: number;
     estoque_atual: number;
@@ -55,10 +54,10 @@ export function HistoricoEventoModal({ evento, open, onOpenChange }: Props) {
         // Prêmios do evento (com estoque consumido)
         const { data: premiosData } = await adminClient
           .from('premios')
-          .select('id, nome, cor_hex, e_premio_real, estoque_inicial, estoque_atual')
+          .select('id, nome, e_premio_real, estoque_inicial, estoque_atual')
           .eq('evento_id', evento.id)
           .order('ordem_roleta');
-        const premios = (premiosData ?? []) as Array<Pick<PremioDb, 'id' | 'nome' | 'cor_hex' | 'e_premio_real' | 'estoque_inicial' | 'estoque_atual'>>;
+        const premios = (premiosData ?? []) as Array<Pick<PremioDb, 'id' | 'nome' | 'e_premio_real' | 'estoque_inicial' | 'estoque_atual'>>;
 
         // Ganhadores do evento (reais e não-foi)
         const { data: ganhadoresData } = await adminClient
@@ -107,7 +106,6 @@ export function HistoricoEventoModal({ evento, open, onOpenChange }: Props) {
           premios: premios.map((p) => ({
             id: p.id,
             nome: p.nome,
-            cor_hex: p.cor_hex,
             e_premio_real: p.e_premio_real,
             estoque_inicial: p.estoque_inicial,
             estoque_atual: p.estoque_atual,

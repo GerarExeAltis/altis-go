@@ -33,7 +33,6 @@ export async function criarPremioTest(
     estoque_atual: opts.estoque ?? 100,
     ordem_roleta: opts.ordem ?? 1,
     e_premio_real: opts.real ?? true,
-    cor_hex: '#4afad4',
   });
   if (error) throw new Error(`criarPremioTest: ${error.message}`);
   return id;

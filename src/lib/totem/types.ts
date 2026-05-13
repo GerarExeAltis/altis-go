@@ -10,7 +10,6 @@ export type SessaoStatus =
 export interface PremioDb {
   id: string;
   nome: string;
-  cor_hex: string | null;
   foto_path: string | null;
   ordem_roleta: number;
   e_premio_real: boolean;

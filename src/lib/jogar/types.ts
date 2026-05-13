@@ -1,7 +1,6 @@
 export interface PremioPublico {
   id: string;
   nome: string;
-  cor_hex: string | null;
   foto_path: string | null;
   ordem_roleta: number;
   e_premio_real: boolean;

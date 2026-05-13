@@ -33,9 +33,9 @@ function arquivoCsv(linhas: string[]): string {
 describe('cli: import-premios', () => {
   it('CSV válido insere prêmios no evento ativo', async () => {
     const file = arquivoCsv([
-      'nome,descricao,cor_hex,peso_base,estoque_inicial,ordem_roleta,e_premio_real',
-      'CSV_A,desc1,#abcdef,1,10,10,true',
-      'CSV_B,desc2,#123456,5,3,11,true',
+      'nome,descricao,peso_base,estoque_inicial,ordem_roleta,e_premio_real',
+      'CSV_A,desc1,1,10,10,true',
+      'CSV_B,desc2,5,3,11,true',
     ]);
     const result = await importPremios(file, {});
     expect(result.inseridos).toBe(2);
@@ -47,18 +47,6 @@ describe('cli: import-premios', () => {
     expect(data?.[0]).toMatchObject({
       nome: 'CSV_A', peso_base: 1, estoque_inicial: 10, estoque_atual: 10,
     });
-  });
-
-  it('cor_hex inválido rejeita linha (não insere parcial)', async () => {
-    const file = arquivoCsv([
-      'nome,descricao,cor_hex,peso_base,estoque_inicial,ordem_roleta,e_premio_real',
-      'CSV_OK,desc,#aabbcc,1,10,1,true',
-      'CSV_BAD,desc,naoehex,1,10,2,true',
-    ]);
-    await expect(importPremios(file, {})).rejects.toThrow(/cor_hex/i);
-    const sb = getAdminClient();
-    const { data } = await sb.from('premios').select('nome').like('nome', 'CSV_%');
-    expect(data).toEqual([]);
   });
 
   it('arquivo inexistente lança erro', async () => {
@@ -75,8 +63,8 @@ describe('cli: import-premios', () => {
 
   it('e_premio_real false aceita estoque_inicial=0', async () => {
     const file = arquivoCsv([
-      'nome,descricao,cor_hex,peso_base,estoque_inicial,ordem_roleta,e_premio_real',
-      'CSV_NaoFoi,nope,#555555,30,0,99,false',
+      'nome,descricao,peso_base,estoque_inicial,ordem_roleta,e_premio_real',
+      'CSV_NaoFoi,nope,30,0,99,false',
     ]);
     const result = await importPremios(file, {});
     expect(result.inseridos).toBe(1);

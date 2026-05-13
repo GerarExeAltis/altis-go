@@ -17,7 +17,6 @@ export interface PremioDb {
   nome: string;
   descricao: string | null;
   foto_path: string | null;
-  cor_hex: string | null;
   peso_base: number;
   estoque_inicial: number;
   estoque_atual: number;

@@ -46,7 +46,7 @@ function TotemFlow() {
         .from('eventos').select('id').eq('status', 'ativo').maybeSingle();
       if (!evt || !alive) return;
       const { data } = await sb.from('premios')
-        .select('id,nome,cor_hex,foto_path,ordem_roleta,e_premio_real,estoque_atual,peso_base')
+        .select('id,nome,foto_path,ordem_roleta,e_premio_real,estoque_atual,peso_base')
         .eq('evento_id', evt.id)
         .order('ordem_roleta', { ascending: true });
       if (alive && data) setPremios(data as PremioDb[]);
