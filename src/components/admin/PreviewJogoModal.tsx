@@ -71,9 +71,9 @@ export function PreviewJogoModal({ premios, open, onOpenChange, jogoInicial }: P
         </button>
       </header>
 
-      <div className="flex-1 overflow-y-auto p-6">
+      <div className="flex flex-1 flex-col items-center justify-center overflow-y-auto p-6">
         {mostrarSeletor && (
-          <div className="mb-4 flex flex-wrap gap-2">
+          <div className="mb-6 flex flex-wrap justify-center gap-2">
             {JOGOS.map((j) => {
               const ativo = j.id === jogoId;
               const semPreview = j.Preview === null;

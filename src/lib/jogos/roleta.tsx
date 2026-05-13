@@ -6,8 +6,8 @@ import type { PremioDb as PremioTotem } from '@/lib/totem/types';
 import { RoletaCanvas } from '@/components/totem/roleta/RoletaCanvas';
 import { usarAnimacaoRoleta } from '@/components/totem/roleta/usarAnimacaoRoleta';
 import { usePreferredMotion } from '@/hooks/usePreferredMotion';
+import { Button } from '@/components/ui/button';
 import { Play, RotateCcw } from 'lucide-react';
-import { cn } from '@/lib/utils';
 
 function sortearPreview(premios: PremioDb[]): string | null {
   const elegiveis = premios.filter((p) => p.peso_base > 0 && (p.estoque_atual > 0 || !p.e_premio_real));
@@ -90,7 +90,7 @@ function PreviewRoleta({ premios }: PreviewJogoProps) {
     <div className="space-y-4">
       <div className="flex items-center justify-center">
         <div
-          className="flex items-center justify-center overflow-hidden rounded-lg border border-border/60 bg-background"
+          className="flex items-center justify-center"
           style={{ width: 560, height: 560, maxWidth: '100%', flexShrink: 0 }}
         >
           {montarCanvas ? (
@@ -102,28 +102,20 @@ function PreviewRoleta({ premios }: PreviewJogoProps) {
       </div>
 
       <div className="flex flex-wrap items-center justify-center gap-3">
-        <button
-          type="button"
-          onClick={girar}
-          disabled={girando}
-          className={cn(
-            'inline-flex h-12 items-center justify-center gap-2 rounded-lg bg-primary px-6 text-base font-bold text-primary-foreground shadow-md transition-all',
-            'hover:scale-105 active:scale-100',
-            'disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:scale-100'
-          )}
-        >
-          <Play className="h-5 w-5 fill-current" />
-          {girando ? 'GIRANDO...' : 'GIRAR'}
-        </button>
-        <button
-          type="button"
+        <Button size="lg" onClick={girar} disabled={girando} className="gap-2">
+          <Play className="h-4 w-4 fill-current" />
+          {girando ? 'Girando...' : 'Girar'}
+        </Button>
+        <Button
+          size="lg"
+          variant="outline"
           onClick={reset}
           disabled={girando || !premioVencedorId}
-          className="inline-flex h-12 items-center justify-center gap-2 rounded-lg border border-border/60 bg-background px-4 text-sm font-medium hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
+          className="gap-2"
         >
           <RotateCcw className="h-4 w-4" />
           Resetar
-        </button>
+        </Button>
       </div>
     </div>
   );
