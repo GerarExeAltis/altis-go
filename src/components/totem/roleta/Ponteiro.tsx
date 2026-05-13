@@ -4,10 +4,12 @@ import * as THREE from 'three';
 import { useFrame } from '@react-three/fiber';
 import gsap from 'gsap';
 
-// "Metal Altis" — verde-cinza dessaturado coordenado com o aro/eixo.
-const COR_OURO = '#6b8d8a';
-const COR_OURO_ESCURO = '#3a4f4d';
-const COR_VERMELHO = '#c0392b';
+// "Metal Altis" — verde-cinza claro coordenado com aro/eixo.
+const COR_OURO = '#a3bbb8';
+const COR_OURO_ESCURO = '#7a9591';
+// Ponta do ponteiro em primary escuro Altis — destaca contra o metal
+// claro e mantem a identidade do sistema (era vermelho generico antes).
+const COR_VERMELHO = '#009993';
 
 interface Props {
   /** Ref do <group> da Roda (para ler rotation.z e detectar troca de fatia). */

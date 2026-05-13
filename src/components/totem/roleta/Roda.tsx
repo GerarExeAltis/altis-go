@@ -31,11 +31,9 @@ function corFatia(i: number): string {
   return PALETA[i % PALETA.length];
 }
 
-// "Metal Altis" no lugar do dourado classico — aro/pinos/lampadas em
-// tons primary (verde-agua escuro) com metalness alta. Coerente com a
-// identidade visual do sistema.
-const COR_OURO = '#009993';
-const COR_OURO_ESCURO = '#006661';
+// "Metal Altis" — verde-cinza claro suave (prata-verde nao agressivo).
+const COR_OURO = '#a3bbb8';
+const COR_OURO_ESCURO = '#7a9591';
 const COR_DETALHE_ESCURO = '#0a1d1c';
 
 export const Roda = React.forwardRef<THREE.Group, Props>(function Roda(
@@ -208,15 +206,11 @@ function Fatia({
   return (
     <group>
       <mesh geometry={geometry}>
-        {/* MeshPhysicalMaterial com clearcoat = brilho laqueado tipo joia */}
-        <meshPhysicalMaterial
-          color={cor}
-          side={THREE.DoubleSide}
-          metalness={0.05}
-          roughness={0.35}
-          clearcoat={0.8}
-          clearcoatRoughness={0.15}
-        />
+        {/* MeshBasicMaterial = cor pura, nao reage a iluminacao da cena.
+            Garante que o branco fique branco mesmo e o primary fique
+            saturado, sem ficar acinzentado pelo clearcoat refletindo
+            o ambiente escuro. */}
+        <meshBasicMaterial color={cor} side={THREE.DoubleSide} />
       </mesh>
       <Text
         position={[textX, textY, 0.02]}
