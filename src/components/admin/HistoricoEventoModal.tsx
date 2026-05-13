@@ -167,11 +167,6 @@ export function HistoricoEventoModal({ evento, open, onOpenChange }: Props) {
                     return (
                       <div key={p.id} className="space-y-1 p-3">
                         <div className="flex items-center gap-2 text-sm">
-                          <span
-                            className="h-4 w-4 shrink-0 rounded"
-                            style={{ backgroundColor: p.cor_hex ?? '#cccccc' }}
-                            aria-hidden
-                          />
                           <span className="flex-1 font-medium">{p.nome}</span>
                           {!p.e_premio_real && <Badge variant="secondary">Slot vazio</Badge>}
                           <span className="text-xs text-muted-foreground">

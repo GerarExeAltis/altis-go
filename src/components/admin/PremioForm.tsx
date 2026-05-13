@@ -7,12 +7,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { CorPickerInline } from './CorPickerInline';
 
 const schema = z.object({
   nome: z.string().trim().min(2),
   descricao: z.string().nullable().optional(),
-  cor_hex: z.string().regex(/^#[0-9a-fA-F]{6}$/, 'cor inválida (#RRGGBB)'),
   peso_base: z.number().int().min(0, 'peso deve ser >= 0'),
   estoque_inicial: z.number().int().min(0),
   ordem_roleta: z.number().int().default(0),
@@ -35,7 +33,7 @@ export function PremioForm({ valoresIniciais, onSubmit, enviando }: Props) {
   const { register, handleSubmit, control, formState: { errors } } = useForm<PremioFormPayload>({
     resolver: zodResolver(schema),
     defaultValues: {
-      nome: '', descricao: '', cor_hex: '#4afad4',
+      nome: '', descricao: '',
       peso_base: 1, estoque_inicial: 1, ordem_roleta: 0,
       e_premio_real: true,
       ...valoresIniciais,
@@ -72,17 +70,6 @@ export function PremioForm({ valoresIniciais, onSubmit, enviando }: Props) {
           {errors.estoque_inicial &&
             <p className="text-sm text-destructive">{errors.estoque_inicial.message}</p>}
         </div>
-      </div>
-      <div className="space-y-1.5">
-        <Label htmlFor="cor">Cor da fatia</Label>
-        <Controller
-          name="cor_hex"
-          control={control}
-          render={({ field }) => (
-            <CorPickerInline id="cor" value={field.value} onChange={field.onChange} />
-          )}
-        />
-        {errors.cor_hex && <p className="text-sm text-destructive">{errors.cor_hex.message}</p>}
       </div>
 
       <Controller

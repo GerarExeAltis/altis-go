@@ -122,11 +122,6 @@ function PreviewRoleta({ premios }: PreviewJogoProps) {
             Resultado da simulacao
           </p>
           <div className="flex items-center gap-2">
-            <span
-              className="h-5 w-5 rounded ring-1 ring-border/60"
-              style={{ backgroundColor: resultado.cor_hex ?? '#cccccc' }}
-              aria-hidden
-            />
             <span className="text-lg font-bold">{resultado.nome}</span>
             {!resultado.e_premio_real && <Badge variant="secondary">Slot vazio</Badge>}
           </div>

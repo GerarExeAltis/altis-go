@@ -9,7 +9,6 @@ describe('PremioForm', () => {
     expect(screen.getByLabelText(/nome do pr.mio/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/peso/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/estoque inicial/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/cor da fatia/i)).toBeInTheDocument();
   });
 
   it('rejeita peso negativo', async () => {

@@ -13,11 +13,7 @@ export function CatalogoPremios({ premios }: { premios: PremioPublico[] }) {
       <ul className="mt-2 space-y-1">
         {reais.map((p) => (
           <li key={p.id} className="flex items-center gap-2">
-            <span
-              className="inline-block h-4 w-4 rounded"
-              style={{ backgroundColor: p.cor_hex ?? '#cccccc' }}
-              aria-hidden
-            />
+            <span className="text-primary" aria-hidden>•</span>
             <span>{p.nome}</span>
           </li>
         ))}

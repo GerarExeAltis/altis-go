@@ -48,10 +48,11 @@ function ItemSortavel({ premio, ganhadoresCount, onEditar, onExcluir }: ItemProp
         <GripVertical className="h-4 w-4" />
       </button>
       <span
-        className="h-8 w-8 rounded ring-1 ring-border/60"
-        style={{ backgroundColor: premio.cor_hex ?? '#cccccc' }}
+        className="flex h-8 w-8 items-center justify-center rounded bg-muted text-xs font-semibold text-muted-foreground ring-1 ring-border/60"
         aria-hidden
-      />
+      >
+        {premio.ordem_roleta + 1}
+      </span>
       <div className="flex-1">
         <div className="flex items-center gap-2 font-medium">
           {premio.nome}
@@ -257,7 +258,6 @@ export function PremiosTab() {
             valoresIniciais={editando ? {
               nome: editando.nome,
               descricao: editando.descricao ?? '',
-              cor_hex: editando.cor_hex ?? '#4afad4',
               peso_base: editando.peso_base,
               estoque_inicial: editando.estoque_inicial,
               ordem_roleta: editando.ordem_roleta,
