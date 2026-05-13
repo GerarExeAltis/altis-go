@@ -203,17 +203,24 @@ function Fatia({
   }, [inicio, fim, raio]);
 
   const anguloCentro = (inicio + fim) / 2;
-  const distTexto = raio * 0.70;
+  // Posicao do texto: 62% do raio = centro da fatia (entre miolo e borda).
+  // Antes era 70% (muito proximo da borda — esbarrava no aro em fatias estreitas).
+  const distTexto = raio * 0.62;
   const textX = Math.cos(anguloCentro) * distTexto;
   const textY = Math.sin(anguloCentro) * distTexto;
+  // Texto le da borda para o centro (estilo wheel of fortune).
   const rotacaoTexto = anguloCentro + Math.PI;
 
-  // Cor do texto: escuro Altis sobre claro/branco, branco sobre primary escuro.
+  // Cor do texto coordenada com o resto da roleta:
+  //   sobre primary escuro: branco puro
+  //   sobre primary claro/branco: grafite escuro #1a2733 (mesma cor do bisel/aro)
   const ehPrimaryEscuro = cor === COR_PRIMARY_ESCURO;
-  const textColor = ehPrimaryEscuro ? '#ffffff' : '#003834';
-  const outlineColor = ehPrimaryEscuro ? '#003834' : '#ffffff';
+  const textColor = ehPrimaryEscuro ? '#ffffff' : '#1a2733';
+  const outlineColor = ehPrimaryEscuro ? '#000000' : '#ffffff';
 
-  const fontSize = Math.max(0.14, Math.min(0.26, 1.5 / total));
+  // Tamanho da fonte: maior quando ha poucas fatias, menor quando ha muitas.
+  // 1.8/total funciona bem entre 4-12 fatias.
+  const fontSize = Math.max(0.16, Math.min(0.32, 1.8 / total));
 
   return (
     <group>
@@ -231,12 +238,13 @@ function Fatia({
         color={textColor}
         anchorX="center"
         anchorY="middle"
-        maxWidth={raio * 0.55}
+        maxWidth={raio * 0.48}
         textAlign="center"
-        fontWeight={700}
-        outlineWidth={fontSize * 0.06}
+        fontWeight={800}
+        letterSpacing={0.02}
+        outlineWidth={fontSize * 0.03}
         outlineColor={outlineColor}
-        outlineOpacity={0.5}
+        outlineOpacity={0.25}
       >
         {premio.nome}
       </Text>
