@@ -56,9 +56,9 @@ export function Ponteiro({ rodaRef, totalFatias }: Props) {
   });
 
   return (
-    // position.y = 2.95: ponta do cone aponta para Y=2.675 (toca os pinos
-    // dourados em y=2.635 + raio 0.085 do pino).
-    <group ref={groupRef} position={[0, 2.95, 0.25]}>
+    // position.y = 2.80: ponta do cone entra no aro da roleta (Y=2.525),
+    // dando a impressao de que esta sobre as fatias e batendo nos pinos.
+    <group ref={groupRef} position={[0, 2.80, 0.25]}>
       {/* Cone vermelho (corpo) — geometria vira pra baixo via rotation PI no Z */}
       <mesh rotation={[0, 0, Math.PI]}>
         <coneGeometry args={[0.22, 0.55, 3]} />
