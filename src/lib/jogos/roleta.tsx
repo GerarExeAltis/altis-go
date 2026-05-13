@@ -80,8 +80,13 @@ function PreviewRoleta({ premios }: PreviewJogoProps) {
 
   return (
     <div className="space-y-4">
-      <div className="mx-auto h-[380px] w-[380px] max-w-full overflow-hidden rounded-lg border border-border/60 bg-background">
-        <RoletaCanvas premios={premiosTotem} rodaRef={rodaRef} />
+      <div className="flex items-center justify-center">
+        <div
+          className="overflow-hidden rounded-lg border border-border/60 bg-background"
+          style={{ width: 380, height: 380, flexShrink: 0 }}
+        >
+          <RoletaCanvas premios={premiosTotem} rodaRef={rodaRef} />
+        </div>
       </div>
 
       <div className="flex flex-wrap items-center justify-center gap-3">

@@ -13,22 +13,42 @@ interface Props {
 }
 
 export function RoletaCanvas({ premios, rodaRef }: Props) {
+  // Wrapper com tamanho explicito + position:relative garante que o R3F
+  // (que mede o parent via ResizeObserver) capture as dimensoes corretas
+  // mesmo quando renderizado dentro de portal/modal com animacao de zoom.
   return (
-    <Canvas
-      orthographic
-      camera={{ position: [0, 0, 5], zoom: 110 }}
-      style={{ width: '100%', height: '100%' }}
-      gl={{ antialias: true }}
+    <div
+      style={{
+        position: 'relative',
+        width: '100%',
+        height: '100%',
+        minHeight: 0,
+        minWidth: 0,
+      }}
     >
-      {/* Iluminacao em camadas — destaque metalico do dourado */}
-      <ambientLight intensity={0.6} />
-      <directionalLight position={[3, 4, 5]} intensity={0.9} />
-      <directionalLight position={[-3, -2, 4]} intensity={0.35} />
-      <pointLight position={[0, 0, 3]} intensity={0.5} color="#ffe7a0" />
+      <Canvas
+        orthographic
+        camera={{ position: [0, 0, 5], zoom: 110 }}
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          display: 'block',
+        }}
+        gl={{ antialias: true }}
+        resize={{ scroll: false, debounce: { scroll: 0, resize: 50 } }}
+      >
+        <ambientLight intensity={0.6} />
+        <directionalLight position={[3, 4, 5]} intensity={0.9} />
+        <directionalLight position={[-3, -2, 4]} intensity={0.35} />
+        <pointLight position={[0, 0, 3]} intensity={0.5} color="#ffe7a0" />
 
-      <Roda ref={rodaRef} premios={premios} />
-      <EixoCentro />
-      <Ponteiro />
-    </Canvas>
+        <Roda ref={rodaRef} premios={premios} />
+        <EixoCentro />
+        <Ponteiro />
+      </Canvas>
+    </div>
   );
 }

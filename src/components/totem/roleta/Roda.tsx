@@ -18,8 +18,8 @@ const COR_PRIMARY_DARK = '#4afad4';
 const COR_OURO = '#f4c430';
 const COR_OURO_ESCURO = '#a8740a';
 const COR_DETALHE_ESCURO = '#1a1208';
-// Vermelho cassino (alterna com a cor primary nas fatias).
-const COR_VERMELHO_CASSINO = '#8b1a1a';
+// Branco (alterna com a cor primary nas fatias).
+const COR_BRANCO = '#ffffff';
 
 export const Roda = React.forwardRef<THREE.Group, Props>(function Roda(
   { premios, raio = 2.5 }, ref
@@ -42,7 +42,7 @@ export const Roda = React.forwardRef<THREE.Group, Props>(function Roda(
       {premios.map((p, i) => {
         const inicio = i * anguloPorFatia;
         const fim = inicio + anguloPorFatia;
-        const cor = i % 2 === 0 ? corPrimary : COR_VERMELHO_CASSINO;
+        const cor = i % 2 === 0 ? corPrimary : COR_BRANCO;
         return (
           <Fatia
             key={p.id}
@@ -119,8 +119,8 @@ function Fatia({
   // a base da letra fica perto da borda e o topo aponta pro miolo.
   const rotacaoTexto = anguloCentro + Math.PI;
 
-  // Texto branco brilhante (dourado) em ambas as fatias — alto contraste
-  // tanto sobre verde quanto vermelho.
+  // Cor do texto: contraste com fundo (escuro sobre branco, branco sobre primary).
+  const textColor = cor === COR_BRANCO ? '#1a1208' : '#ffffff';
   const fontSize = Math.max(0.14, Math.min(0.26, 1.5 / total));
 
   return (
@@ -137,15 +137,15 @@ function Fatia({
         position={[textX, textY, 0.02]}
         rotation={[0, 0, rotacaoTexto]}
         fontSize={fontSize}
-        color="#fff8d6"
+        color={textColor}
         anchorX="center"
         anchorY="middle"
         maxWidth={raio * 0.55}
         textAlign="center"
         fontWeight={700}
-        outlineWidth={fontSize * 0.08}
-        outlineColor="#000000"
-        outlineOpacity={0.55}
+        outlineWidth={fontSize * 0.04}
+        outlineColor={textColor === '#ffffff' ? '#000000' : '#ffffff'}
+        outlineOpacity={0.3}
       >
         {premio.nome}
       </Text>
