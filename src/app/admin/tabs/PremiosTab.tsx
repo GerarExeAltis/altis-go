@@ -17,8 +17,9 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
 } from '@/components/ui/dialog';
 import { PremioForm, type PremioFormPayload } from '@/components/admin/PremioForm';
+import { PreviewRoletaModal } from '@/components/admin/PreviewRoletaModal';
 import { uploadFotoPremio } from '@/lib/admin/uploadFoto';
-import { Plus, Edit, GripVertical, Trash2 } from 'lucide-react';
+import { Plus, Edit, GripVertical, Trash2, Eye } from 'lucide-react';
 
 interface ItemProps {
   premio: PremioDb;
@@ -80,6 +81,7 @@ export function PremiosTab() {
   const [editando, setEditando] = React.useState<PremioDb | null>(null);
   const [erro, setErro] = React.useState<string | null>(null);
   const [enviando, setEnviando] = React.useState(false);
+  const [previewAberto, setPreviewAberto] = React.useState(false);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -206,9 +208,19 @@ export function PremiosTab() {
           <h2 className="text-2xl font-bold tracking-tight">Prêmios</h2>
           <p className="text-muted-foreground">Arraste para reordenar na roleta.</p>
         </div>
-        <Button onClick={() => { setEditando(null); setModalAberto(true); }}>
-          <Plus className="mr-1 h-4 w-4" />Novo prêmio
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            onClick={() => setPreviewAberto(true)}
+            disabled={premios.length === 0}
+            title="Visualizar a roleta como o cliente vê"
+          >
+            <Eye className="mr-1 h-4 w-4" />Visualizar
+          </Button>
+          <Button onClick={() => { setEditando(null); setModalAberto(true); }}>
+            <Plus className="mr-1 h-4 w-4" />Novo prêmio
+          </Button>
+        </div>
       </div>
 
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
@@ -226,6 +238,12 @@ export function PremiosTab() {
           </div>
         </SortableContext>
       </DndContext>
+
+      <PreviewRoletaModal
+        premios={premios}
+        open={previewAberto}
+        onOpenChange={setPreviewAberto}
+      />
 
       <Dialog open={modalAberto} onOpenChange={setModalAberto}>
         <DialogContent onClose={() => setModalAberto(false)} className="max-w-lg">
