@@ -4,9 +4,9 @@ import * as THREE from 'three';
 import { useFrame } from '@react-three/fiber';
 import gsap from 'gsap';
 
-// Coordenado com aro/eixo: grafite escuro com ponta primary saturado.
-const COR_OURO = '#2c3e50';
-const COR_OURO_ESCURO = '#1a2733';
+// Coordenado com aro/eixo: cinza-azulado claro + ponta primary saturado.
+const COR_OURO = '#8fa1b3';
+const COR_OURO_ESCURO = '#5d6f80';
 // Ponta do ponteiro em primary claro — chama atencao + identidade Altis.
 const COR_VERMELHO = '#4afad4';
 

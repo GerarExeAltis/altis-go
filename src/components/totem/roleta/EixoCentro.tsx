@@ -3,9 +3,9 @@ import * as React from 'react';
 import * as THREE from 'three';
 import { useFrame } from '@react-three/fiber';
 
-// Coordenado com a Roda: grafite escuro no anel + joia primary saturado.
-const COR_OURO = '#2c3e50';        // grafite escuro do anel externo
-const COR_OURO_ESCURO = '#1a2733';  // bisel/sombra mais escuro
+// Coordenado com a Roda: cinza-azulado claro + joia primary saturado.
+const COR_OURO = '#8fa1b3';
+const COR_OURO_ESCURO = '#5d6f80';
 const COR_PRIMARY = '#4afad4';
 const COR_PRIMARY_ESCURO = '#009993';
 const COR_DETALHE_ESCURO = '#0a1d1c';
