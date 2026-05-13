@@ -33,7 +33,7 @@ export function PreviewJogoModal({ premios, open, onOpenChange, jogoInicial }: P
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         onClose={() => onOpenChange(false)}
-        className="max-h-[92vh] max-w-3xl overflow-y-auto"
+        className="max-h-[92vh] max-w-xl overflow-y-auto"
       >
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
