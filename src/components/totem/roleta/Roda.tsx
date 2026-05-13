@@ -13,12 +13,13 @@ interface Props {
 // Paleta Altis (segue tema).
 const COR_PRIMARY_LIGHT = '#009993';
 const COR_PRIMARY_DARK = '#4afad4';
-const COR_BRANCO = '#ffffff';
 
 // Tons dourados (cassino).
 const COR_OURO = '#f4c430';
 const COR_OURO_ESCURO = '#a8740a';
 const COR_DETALHE_ESCURO = '#1a1208';
+// Vermelho cassino (alterna com a cor primary nas fatias).
+const COR_VERMELHO_CASSINO = '#8b1a1a';
 
 export const Roda = React.forwardRef<THREE.Group, Props>(function Roda(
   { premios, raio = 2.5 }, ref
@@ -41,7 +42,7 @@ export const Roda = React.forwardRef<THREE.Group, Props>(function Roda(
       {premios.map((p, i) => {
         const inicio = i * anguloPorFatia;
         const fim = inicio + anguloPorFatia;
-        const cor = i % 2 === 0 ? corPrimary : COR_BRANCO;
+        const cor = i % 2 === 0 ? corPrimary : COR_VERMELHO_CASSINO;
         return (
           <Fatia
             key={p.id}
@@ -110,13 +111,17 @@ function Fatia({
   }, [inicio, fim, raio]);
 
   const anguloCentro = (inicio + fim) / 2;
-  const distTexto = raio * 0.62;
+  // Texto posicionado a 70% do raio (mais perto da borda, igual cassino).
+  const distTexto = raio * 0.70;
   const textX = Math.cos(anguloCentro) * distTexto;
   const textY = Math.sin(anguloCentro) * distTexto;
-  const rotacaoTexto = anguloCentro - Math.PI / 2;
+  // Rotacao radial-lendo-para-o-centro (estilo wheel of fortune):
+  // a base da letra fica perto da borda e o topo aponta pro miolo.
+  const rotacaoTexto = anguloCentro + Math.PI;
 
-  const textColor = cor === COR_BRANCO ? '#1a1208' : '#ffffff';
-  const fontSize = Math.max(0.14, Math.min(0.28, 1.6 / total));
+  // Texto branco brilhante (dourado) em ambas as fatias — alto contraste
+  // tanto sobre verde quanto vermelho.
+  const fontSize = Math.max(0.14, Math.min(0.26, 1.5 / total));
 
   return (
     <group>
@@ -132,15 +137,15 @@ function Fatia({
         position={[textX, textY, 0.02]}
         rotation={[0, 0, rotacaoTexto]}
         fontSize={fontSize}
-        color={textColor}
+        color="#fff8d6"
         anchorX="center"
         anchorY="middle"
-        maxWidth={raio * 0.7}
+        maxWidth={raio * 0.55}
         textAlign="center"
         fontWeight={700}
-        outlineWidth={fontSize * 0.04}
-        outlineColor={textColor === '#ffffff' ? '#000000' : '#ffffff'}
-        outlineOpacity={0.25}
+        outlineWidth={fontSize * 0.08}
+        outlineColor="#000000"
+        outlineOpacity={0.55}
       >
         {premio.nome}
       </Text>
