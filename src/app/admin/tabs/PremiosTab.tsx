@@ -17,7 +17,7 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
 } from '@/components/ui/dialog';
 import { PremioForm, type PremioFormPayload } from '@/components/admin/PremioForm';
-import { PreviewRoletaModal } from '@/components/admin/PreviewRoletaModal';
+import { PreviewJogoModal } from '@/components/admin/PreviewJogoModal';
 import { uploadFotoPremio } from '@/lib/admin/uploadFoto';
 import { Plus, Edit, GripVertical, Trash2, Eye } from 'lucide-react';
 
@@ -239,7 +239,7 @@ export function PremiosTab() {
         </SortableContext>
       </DndContext>
 
-      <PreviewRoletaModal
+      <PreviewJogoModal
         premios={premios}
         open={previewAberto}
         onOpenChange={setPreviewAberto}
