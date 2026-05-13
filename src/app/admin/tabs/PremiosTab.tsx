@@ -18,25 +18,18 @@ import {
 } from '@/components/ui/dialog';
 import { PremioForm, type PremioFormPayload } from '@/components/admin/PremioForm';
 import { uploadFotoPremio } from '@/lib/admin/uploadFoto';
-import { Plus, Edit, GripVertical, Trash2, Minus } from 'lucide-react';
+import { Plus, Edit, GripVertical, Trash2 } from 'lucide-react';
 
 interface ItemProps {
   premio: PremioDb;
   ganhadoresCount: number;
   onEditar: () => void;
   onExcluir: () => void;
-  onAjustarEstoque: (delta: number) => void;
 }
 
-function ItemSortavel({
-  premio, ganhadoresCount, onEditar, onExcluir, onAjustarEstoque,
-}: ItemProps) {
+function ItemSortavel({ premio, ganhadoresCount, onEditar, onExcluir }: ItemProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({ id: premio.id });
-
-  // 'sorteados' = ganhadores reais (fonte: tabela ganhadores).
-  const sorteados = ganhadoresCount;
-  const semEstoque = premio.estoque_inicial === 0;
 
   return (
     <div
@@ -64,40 +57,9 @@ function ItemSortavel({
           {!premio.e_premio_real && <Badge variant="secondary">Slot vazio</Badge>}
         </div>
         <div className="text-xs text-muted-foreground">
-          peso {premio.peso_base} · sorteados {sorteados}/{premio.estoque_inicial}
+          peso {premio.peso_base} · sorteados {ganhadoresCount}/{premio.estoque_inicial}
         </div>
       </div>
-
-      {premio.e_premio_real && !semEstoque && (
-        <div className="flex items-center gap-1">
-          <Button
-            size="sm"
-            variant="ghost"
-            onClick={() => onAjustarEstoque(-1)}
-            disabled={premio.estoque_atual === 0}
-            aria-label="Diminuir estoque"
-            title="Diminuir estoque"
-            className="h-7 w-7 p-0"
-          >
-            <Minus className="h-3.5 w-3.5" />
-          </Button>
-          <span className="min-w-[3.5rem] text-center font-mono text-sm font-semibold tabular-nums">
-            {premio.estoque_atual}/{premio.estoque_inicial}
-          </span>
-          <Button
-            size="sm"
-            variant="ghost"
-            onClick={() => onAjustarEstoque(+1)}
-            disabled={premio.estoque_atual >= premio.estoque_inicial}
-            aria-label="Aumentar estoque"
-            title="Aumentar estoque"
-            className="h-7 w-7 p-0"
-          >
-            <Plus className="h-3.5 w-3.5" />
-          </Button>
-        </div>
-      )}
-
       <Button size="sm" variant="ghost" onClick={onEditar} aria-label="Editar">
         <Edit className="h-4 w-4" />
       </Button>
@@ -215,26 +177,6 @@ export function PremiosTab() {
     }
   };
 
-  const ajustarEstoque = async (premio: PremioDb, delta: number) => {
-    if (!adminClient) return;
-    const novo = Math.min(
-      premio.estoque_inicial,
-      Math.max(0, premio.estoque_atual + delta)
-    );
-    if (novo === premio.estoque_atual) return;
-    // Update otimista
-    setPremios((arr) => arr.map((p) => p.id === premio.id ? { ...p, estoque_atual: novo } : p));
-    const { error } = await adminClient
-      .from('premios')
-      .update({ estoque_atual: novo })
-      .eq('id', premio.id);
-    if (error) {
-      // Reverte em caso de erro
-      setPremios((arr) => arr.map((p) => p.id === premio.id ? { ...p, estoque_atual: premio.estoque_atual } : p));
-      alert(`Falha ao ajustar estoque: ${error.message}`);
-    }
-  };
-
   const excluir = async (premio: PremioDb) => {
     if (!adminClient) return;
     if (!confirm(`Excluir o prêmio "${premio.nome}"? Esta ação é irreversível.`)) return;
@@ -279,7 +221,6 @@ export function PremiosTab() {
                 ganhadoresCount={ganhadoresPorPremio[p.id] ?? 0}
                 onEditar={() => { setEditando(p); setModalAberto(true); }}
                 onExcluir={() => excluir(p)}
-                onAjustarEstoque={(d) => ajustarEstoque(p, d)}
               />
             ))}
           </div>
