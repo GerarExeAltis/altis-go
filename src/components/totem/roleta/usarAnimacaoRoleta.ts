@@ -32,7 +32,7 @@ export function usarAnimacaoRoleta({
     const total = premios.length;
     const anguloFatia = (Math.PI * 2) / total;
     const anguloAlvo = -(idx * anguloFatia + anguloFatia / 2) + Math.PI / 2;
-    const voltas = 8 + Math.random() * 2;
+    const voltas = 7 + Math.random() * 2;
     const jitter = (Math.random() - 0.5) * anguloFatia * 0.6;
     const final = anguloAlvo + voltas * Math.PI * 2 + jitter;
 
@@ -46,10 +46,12 @@ export function usarAnimacaoRoleta({
       return;
     }
 
+    // duration 12s + expo.out: desaceleracao bem prolongada no final,
+    // como roleta de cassino real arrastando antes de parar.
     gsap.to(rodaRef.current.rotation, {
       z: final,
-      duration: 9,
-      ease: 'power4.out',
+      duration: 12,
+      ease: 'expo.out',
       onComplete: onConcluir,
     });
   }, [premios, premioVencedorId, reduzir, onConcluir]);

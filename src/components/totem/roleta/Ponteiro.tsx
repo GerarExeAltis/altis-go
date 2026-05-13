@@ -45,12 +45,13 @@ export function Ponteiro({ rodaRef, totalFatias }: Props) {
       const direcao = diff > 0 ? -1 : 1;
       ultimoSlotRef.current = slot;
 
-      // Animacao tipo "spring": vai pra um lado e volta com easing back.
+      // Balanco suave: amplitude menor (0.18 rad ~10deg) e easing
+      // sem overshoot, mais proximo de um pendulo natural.
       gsap.killTweensOf(groupRef.current.rotation);
       gsap.fromTo(
         groupRef.current.rotation,
-        { z: 0.32 * direcao },
-        { z: 0, duration: 0.22, ease: 'back.out(2.5)' }
+        { z: 0.18 * direcao },
+        { z: 0, duration: 0.35, ease: 'power2.out' }
       );
     }
   });
