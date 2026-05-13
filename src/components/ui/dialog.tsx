@@ -49,7 +49,7 @@ export function DialogContent({
   return (
     <div
       className={cn(
-        'relative w-full max-w-md rounded-lg border border-border/60 bg-background p-6 shadow-2xl animate-in zoom-in-95',
+        'relative w-full max-w-md rounded-lg border border-border/60 bg-background p-6 shadow-2xl animate-in fade-in',
         className
       )}
     >

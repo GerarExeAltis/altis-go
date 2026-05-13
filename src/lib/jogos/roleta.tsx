@@ -25,6 +25,14 @@ function PreviewRoleta({ premios }: PreviewJogoProps) {
   const { reduzir } = usePreferredMotion();
   const [premioVencedorId, setVencedor] = React.useState<string | null>(null);
   const [girando, setGirando] = React.useState(false);
+  // Delay para montar o Canvas DEPOIS da animacao do modal terminar.
+  // O R3F mede o parent via getBoundingClientRect; se montar durante o
+  // fade-in/zoom do Dialog, captura dimensoes intermediarias erradas.
+  const [montarCanvas, setMontarCanvas] = React.useState(false);
+  React.useEffect(() => {
+    const id = setTimeout(() => setMontarCanvas(true), 120);
+    return () => clearTimeout(id);
+  }, []);
 
   const premiosTotem = React.useMemo<PremioTotem[]>(
     () => premios.map((p) => ({
@@ -82,10 +90,14 @@ function PreviewRoleta({ premios }: PreviewJogoProps) {
     <div className="space-y-4">
       <div className="flex items-center justify-center">
         <div
-          className="overflow-hidden rounded-lg border border-border/60 bg-background"
+          className="flex items-center justify-center overflow-hidden rounded-lg border border-border/60 bg-background"
           style={{ width: 380, height: 380, flexShrink: 0 }}
         >
-          <RoletaCanvas premios={premiosTotem} rodaRef={rodaRef} />
+          {montarCanvas ? (
+            <RoletaCanvas premios={premiosTotem} rodaRef={rodaRef} />
+          ) : (
+            <span className="text-sm text-muted-foreground">Carregando roleta...</span>
+          )}
         </div>
       </div>
 
