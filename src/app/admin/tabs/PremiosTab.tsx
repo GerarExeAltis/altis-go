@@ -23,6 +23,7 @@ import { cn } from '@/lib/utils';
 
 interface ItemProps {
   premio: PremioDb;
+  ganhadoresCount: number;
   onEditar: () => void;
   onExcluir: () => void;
   onAjustarEstoque: (delta: number) => void;
@@ -34,14 +35,20 @@ function classeBarraEstoque(pct: number): string {
   return 'bg-emerald-500';
 }
 
-function ItemSortavel({ premio, onEditar, onExcluir, onAjustarEstoque }: ItemProps) {
+function ItemSortavel({
+  premio, ganhadoresCount, onEditar, onExcluir, onAjustarEstoque,
+}: ItemProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({ id: premio.id });
 
   const pct = premio.estoque_inicial > 0
     ? Math.round((premio.estoque_atual / premio.estoque_inicial) * 100)
     : 0;
-  const sorteados = premio.estoque_inicial - premio.estoque_atual;
+  // 'sorteados' = ganhadores reais entregues/registrados. Antes era calculado
+  // como estoque_inicial - estoque_atual, mas isso fica errado quando o
+  // estoque_inicial e editado depois de ja ter ganhadores. Agora vem da
+  // tabela ganhadores (fonte da verdade).
+  const sorteados = ganhadoresCount;
   const sembarra = premio.estoque_inicial === 0;
 
   return (
@@ -133,6 +140,7 @@ export function PremiosTab() {
   const { adminJwt } = useAdmin();
   const [eventoId, setEventoId] = React.useState<string | null>(null);
   const [premios, setPremios] = React.useState<PremioDb[]>([]);
+  const [ganhadoresPorPremio, setGanhadoresPorPremio] = React.useState<Record<string, number>>({});
   const [modalAberto, setModalAberto] = React.useState(false);
   const [editando, setEditando] = React.useState<PremioDb | null>(null);
   const [erro, setErro] = React.useState<string | null>(null);
@@ -149,12 +157,26 @@ export function PremiosTab() {
     if (!evt) {
       setEventoId(null);
       setPremios([]);
+      setGanhadoresPorPremio({});
       return;
     }
     setEventoId(evt.id);
     const { data } = await adminClient.from('premios')
       .select('*').eq('evento_id', evt.id).order('ordem_roleta');
     setPremios((data as PremioDb[]) ?? []);
+
+    // Conta ganhadores reais por premio — fonte da verdade para 'sorteados',
+    // independente do estoque_atual (que pode estar dessincronizado por
+    // edicoes do estoque_inicial).
+    const { data: gs } = await adminClient
+      .from('ganhadores')
+      .select('premio_id')
+      .eq('evento_id', evt.id);
+    const contagem: Record<string, number> = {};
+    for (const g of (gs ?? []) as Array<{ premio_id: string }>) {
+      contagem[g.premio_id] = (contagem[g.premio_id] ?? 0) + 1;
+    }
+    setGanhadoresPorPremio(contagem);
   }, [adminClient]);
 
   React.useEffect(() => { recarregar(); }, [recarregar]);
@@ -180,10 +202,16 @@ export function PremiosTab() {
       let premioId = editando?.id;
 
       if (editando) {
+        // Preserva ganhadores existentes ao mudar o estoque_inicial.
+        // 'consumidos' = quantos ja sairam (fonte: tabela ganhadores,
+        // mais confiavel que estoque_inicial_antigo - estoque_atual_antigo
+        // caso ja exista divergencia).
+        const consumidos = ganhadoresPorPremio[editando.id] ?? 0;
+        const novoAtual = Math.max(0, form.estoque_inicial - consumidos);
         const { error } = await adminClient.from('premios')
           .update({
             ...form,
-            estoque_atual: Math.min(editando.estoque_atual, form.estoque_inicial),
+            estoque_atual: novoAtual,
           })
           .eq('id', editando.id);
         if (error) throw error;
@@ -275,6 +303,7 @@ export function PremiosTab() {
               <ItemSortavel
                 key={p.id}
                 premio={p}
+                ganhadoresCount={ganhadoresPorPremio[p.id] ?? 0}
                 onEditar={() => { setEditando(p); setModalAberto(true); }}
                 onExcluir={() => excluir(p)}
                 onAjustarEstoque={(d) => ajustarEstoque(p, d)}

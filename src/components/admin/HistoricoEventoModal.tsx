@@ -89,6 +89,14 @@ export function HistoricoEventoModal({ evento, open, onOpenChange }: Props) {
         const entregues = flatten.filter((g) => g.e_premio_real && g.entregue).length;
         const pendentes = ganhadoresReais - entregues;
 
+        // Contagem real de sorteados por premio (fonte da verdade = tabela
+        // ganhadores; estoque_inicial - estoque_atual pode dessincronizar
+        // depois de edicao manual do estoque_inicial).
+        const sorteadosPorPremio: Record<string, number> = {};
+        for (const g of ganhadores) {
+          sorteadosPorPremio[g.premio_id] = (sorteadosPorPremio[g.premio_id] ?? 0) + 1;
+        }
+
         if (!alive) return;
         setMetricas({
           jogadasTotal: jogadasTotal ?? 0,
@@ -103,7 +111,7 @@ export function HistoricoEventoModal({ evento, open, onOpenChange }: Props) {
             e_premio_real: p.e_premio_real,
             estoque_inicial: p.estoque_inicial,
             estoque_atual: p.estoque_atual,
-            sorteados: p.estoque_inicial - p.estoque_atual,
+            sorteados: sorteadosPorPremio[p.id] ?? 0,
           })),
           ultimosGanhadores: flatten
             .filter((g) => g.e_premio_real)
