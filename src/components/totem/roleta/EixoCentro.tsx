@@ -3,9 +3,9 @@ import * as React from 'react';
 import * as THREE from 'three';
 import { useFrame } from '@react-three/fiber';
 
-// "Metal Altis" — verde-cinza claro suave, coordenado com Roda/Ponteiro.
-const COR_OURO = '#a3bbb8';
-const COR_OURO_ESCURO = '#7a9591';
+// Coordenado com a Roda: grafite escuro no anel + joia primary saturado.
+const COR_OURO = '#2c3e50';        // grafite escuro do anel externo
+const COR_OURO_ESCURO = '#1a2733';  // bisel/sombra mais escuro
 const COR_PRIMARY = '#4afad4';
 const COR_PRIMARY_ESCURO = '#009993';
 const COR_DETALHE_ESCURO = '#0a1d1c';

@@ -31,10 +31,16 @@ function corFatia(i: number): string {
   return PALETA[i % PALETA.length];
 }
 
-// "Metal Altis" — verde-cinza claro suave (prata-verde nao agressivo).
-const COR_OURO = '#a3bbb8';
-const COR_OURO_ESCURO = '#7a9591';
+// Aro estilo Stake/moderno — grafite escuro neutro (nao compete com as
+// fatias coloridas). Pinos ficam em primary saturado para identidade.
+const COR_ARO = '#2c3e50';         // grafite escuro (aro principal)
+const COR_ARO_BISEL = '#1a2733';    // ainda mais escuro (sombra interna)
+const COR_PINO = '#4afad4';         // primary saturado (pinos = identidade Altis)
 const COR_DETALHE_ESCURO = '#0a1d1c';
+
+// Aliases para nao quebrar o restante do arquivo (Lampadas/separador usam).
+const COR_OURO = COR_ARO;
+const COR_OURO_ESCURO = COR_ARO_BISEL;
 
 export const Roda = React.forwardRef<THREE.Group, Props>(function Roda(
   { premios, raio = 2.5 }, ref
@@ -99,7 +105,7 @@ export const Roda = React.forwardRef<THREE.Group, Props>(function Roda(
         <meshStandardMaterial color={COR_OURO_ESCURO} metalness={0.7} roughness={0.4} />
       </mesh>
 
-      {/* Pinos dourados nas divisas entre fatias */}
+      {/* Pinos PRIMARY nas divisas entre fatias (identidade Altis) */}
       {premios.map((_, i) => {
         const ang = i * anguloPorFatia;
         const x = Math.cos(ang) * (raio + 0.05);
@@ -107,7 +113,13 @@ export const Roda = React.forwardRef<THREE.Group, Props>(function Roda(
         return (
           <mesh key={`pino-${i}`} position={[x, y, 0.18]}>
             <sphereGeometry args={[0.085, 16, 16]} />
-            <meshStandardMaterial color={COR_OURO} metalness={0.9} roughness={0.15} />
+            <meshStandardMaterial
+              color={COR_PINO}
+              emissive={COR_PINO}
+              emissiveIntensity={0.4}
+              metalness={0.3}
+              roughness={0.3}
+            />
           </mesh>
         );
       })}
