@@ -91,10 +91,10 @@ function PreviewRoleta({ premios }: PreviewJogoProps) {
       <div className="flex items-center justify-center">
         <div
           className="flex items-center justify-center overflow-hidden rounded-lg border border-border/60 bg-background"
-          style={{ width: 380, height: 380, flexShrink: 0 }}
+          style={{ width: 560, height: 560, maxWidth: '100%', flexShrink: 0 }}
         >
           {montarCanvas ? (
-            <RoletaCanvas premios={premiosTotem} rodaRef={rodaRef} zoom={60} />
+            <RoletaCanvas premios={premiosTotem} rodaRef={rodaRef} zoom={90} />
           ) : (
             <span className="text-sm text-muted-foreground">Carregando roleta...</span>
           )}
