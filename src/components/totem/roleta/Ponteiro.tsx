@@ -4,9 +4,9 @@ import * as THREE from 'three';
 import { useFrame } from '@react-three/fiber';
 import gsap from 'gsap';
 
-// "Metal Altis" no lugar do dourado classico do ponteiro.
-const COR_OURO = '#009993';
-const COR_OURO_ESCURO = '#006661';
+// "Metal Altis" — verde-cinza dessaturado coordenado com o aro/eixo.
+const COR_OURO = '#6b8d8a';
+const COR_OURO_ESCURO = '#3a4f4d';
 const COR_VERMELHO = '#c0392b';
 
 interface Props {
@@ -36,8 +36,17 @@ export function Ponteiro({ rodaRef, totalFatias }: Props) {
     if (!rodaRef.current || !groupRef.current || totalFatias <= 0) return;
     const rotacao = rodaRef.current.rotation.z;
     const anguloPorFatia = (Math.PI * 2) / totalFatias;
-    // Normaliza para [0, 2*PI)
-    const normal = ((rotacao % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
+    // O ponteiro fisicamente esta em PI/2 (topo). O pino i no espaco da
+    // camera fica em (rotacao + i*anguloPorFatia). Para um pino estar
+    // EXATAMENTE sob o ponteiro: rotacao + i*anguloPorFatia ≡ PI/2.
+    // Logo o slot atual sob o ponteiro e:
+    //   slot = floor( (PI/2 - rotacao) mod 2PI / anguloPorFatia )
+    // Sem o offset PI/2, o detector disparava quando o ponteiro estava
+    // no MEIO da fatia (entre dois pinos), nao quando o pino passa por
+    // ele. Agora dispara no instante exato em que cada pino cruza a
+    // ponta do ponteiro.
+    const desloc = Math.PI / 2 - rotacao;
+    const normal = ((desloc % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
     const slot = Math.floor(normal / anguloPorFatia);
 
     if (slot !== ultimoSlotRef.current) {

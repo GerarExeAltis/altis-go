@@ -3,9 +3,9 @@ import * as React from 'react';
 import * as THREE from 'three';
 import { useFrame } from '@react-three/fiber';
 
-// "Metal Altis" — substitui o dourado por tons da paleta primary.
-const COR_OURO = '#009993';
-const COR_OURO_ESCURO = '#006661';
+// "Metal Altis" — verde-cinza dessaturado, mais sobrio que o primary puro.
+const COR_OURO = '#6b8d8a';
+const COR_OURO_ESCURO = '#3a4f4d';
 const COR_PRIMARY = '#4afad4';
 const COR_PRIMARY_ESCURO = '#009993';
 const COR_DETALHE_ESCURO = '#0a1d1c';
