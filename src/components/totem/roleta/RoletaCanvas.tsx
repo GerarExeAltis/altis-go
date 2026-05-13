@@ -16,12 +16,16 @@ export function RoletaCanvas({ premios, rodaRef }: Props) {
   return (
     <Canvas
       orthographic
-      camera={{ position: [0, 0, 5], zoom: 120 }}
+      camera={{ position: [0, 0, 5], zoom: 110 }}
       style={{ width: '100%', height: '100%' }}
       gl={{ antialias: true }}
     >
-      <ambientLight intensity={1.0} />
-      <pointLight position={[5, 5, 5]} intensity={0.5} />
+      {/* Iluminacao em camadas — destaque metalico do dourado */}
+      <ambientLight intensity={0.6} />
+      <directionalLight position={[3, 4, 5]} intensity={0.9} />
+      <directionalLight position={[-3, -2, 4]} intensity={0.35} />
+      <pointLight position={[0, 0, 3]} intensity={0.5} color="#ffe7a0" />
+
       <Roda ref={rodaRef} premios={premios} />
       <EixoCentro />
       <Ponteiro />
