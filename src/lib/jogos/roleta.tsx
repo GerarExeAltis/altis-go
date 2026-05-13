@@ -94,7 +94,7 @@ function PreviewRoleta({ premios }: PreviewJogoProps) {
           style={{ width: 380, height: 380, flexShrink: 0 }}
         >
           {montarCanvas ? (
-            <RoletaCanvas premios={premiosTotem} rodaRef={rodaRef} />
+            <RoletaCanvas premios={premiosTotem} rodaRef={rodaRef} zoom={60} />
           ) : (
             <span className="text-sm text-muted-foreground">Carregando roleta...</span>
           )}

@@ -10,9 +10,18 @@ import { EixoCentro } from './EixoCentro';
 interface Props {
   premios: PremioDb[];
   rodaRef: React.MutableRefObject<THREE.Group | null>;
+  /**
+   * Zoom da camera ortografica. Default 110 (totem fullscreen).
+   * Para containers menores use valores menores — regra empirica:
+   *   container 380px -> zoom 60
+   *   container 480px -> zoom 75
+   *   container 800px -> zoom 110 (default)
+   * Calculo: zoom ~ container_px / 6.5
+   */
+  zoom?: number;
 }
 
-export function RoletaCanvas({ premios, rodaRef }: Props) {
+export function RoletaCanvas({ premios, rodaRef, zoom = 110 }: Props) {
   // Wrapper com tamanho explicito + position:relative garante que o R3F
   // (que mede o parent via ResizeObserver) capture as dimensoes corretas
   // mesmo quando renderizado dentro de portal/modal com animacao de zoom.
@@ -28,7 +37,7 @@ export function RoletaCanvas({ premios, rodaRef }: Props) {
     >
       <Canvas
         orthographic
-        camera={{ position: [0, 0, 5], zoom: 110 }}
+        camera={{ position: [0, 0, 5], zoom }}
         style={{
           position: 'absolute',
           top: 0,
