@@ -38,7 +38,15 @@ function TotemFlow() {
   const [premios, setPremios] = React.useState<PremioDb[]>([]);
   const [jogadorNome, setJogadorNome] = React.useState<string | null>(null);
 
+  // Carrega premios do evento ativo. Re-executa SEMPRE que o totem
+  // entra em 'criando_sessao' (cliente acabou de tocar e vai gerar QR),
+  // alem do load inicial. Isso garante que se o admin reordenou,
+  // editou, adicionou ou removeu premios entre uma jogada e outra, a
+  // roleta visual fica sincronizada com o que o backend vai sortear.
+  // Sem isso, IDs/ordem ficavam stale e a fatia visual nao batia com
+  // o premio_sorteado_id retornado do sortear() do banco.
   React.useEffect(() => {
+    if (state.tipo !== 'attract' && state.tipo !== 'criando_sessao') return;
     const sb = getSupabaseBrowserClient();
     let alive = true;
     (async () => {
@@ -48,11 +56,12 @@ function TotemFlow() {
       const { data } = await sb.from('premios')
         .select('id,nome,foto_path,ordem_roleta,e_premio_real,estoque_atual,peso_base')
         .eq('evento_id', evt.id)
-        .order('ordem_roleta', { ascending: true });
+        .order('ordem_roleta', { ascending: true })
+        .order('id', { ascending: true }); // desempate determinista (igual ao sortear() SQL)
       if (alive && data) setPremios(data as PremioDb[]);
     })();
     return () => { alive = false; };
-  }, []);
+  }, [state.tipo]);
 
   const sessaoId =
     state.tipo === 'aguardando_celular' ||
