@@ -3,10 +3,7 @@ import * as React from 'react';
 import type { PremioDb } from '@/lib/admin/types';
 import type { JogoId } from '@/lib/jogos/types';
 import { JOGOS, getJogo, jogosComPreview } from '@/lib/jogos/catalog';
-import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
-} from '@/components/ui/dialog';
-import { Eye } from 'lucide-react';
+import { Eye, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface Props {
@@ -17,6 +14,12 @@ interface Props {
   jogoInicial?: JogoId;
 }
 
+/**
+ * Painel de preview renderizado INLINE dentro da area de conteudo do
+ * AdminLayout — cobre a area com 'absolute inset-0', respeitando a
+ * sidebar e o header globais. Espera estar dentro de um pai com
+ * `position: relative` (vide AdminLayout — flex-1 ja tem 'relative').
+ */
 export function PreviewJogoModal({ premios, open, onOpenChange, jogoInicial }: Props) {
   const previewables = React.useMemo(() => jogosComPreview(), []);
   const [jogoId, setJogoId] = React.useState<JogoId>(
@@ -27,48 +30,71 @@ export function PreviewJogoModal({ premios, open, onOpenChange, jogoInicial }: P
     if (open && jogoInicial) setJogoId(jogoInicial);
   }, [open, jogoInicial]);
 
+  // Esc fecha o painel
+  React.useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onOpenChange(false);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [open, onOpenChange]);
+
+  if (!open) return null;
+
   const jogo = getJogo(jogoId);
+  const mostrarSeletor = JOGOS.length > 1;
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent
-        onClose={() => onOpenChange(false)}
-        className="h-[92vh] max-w-[min(92vw,1400px)] overflow-y-auto"
-      >
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
+    <div
+      role="dialog"
+      aria-modal="true"
+      className="absolute inset-0 z-20 flex flex-col bg-background/95 backdrop-blur-sm animate-in fade-in"
+    >
+      <header className="flex items-start justify-between border-b border-border/60 bg-background px-6 py-4">
+        <div>
+          <h2 className="flex items-center gap-2 text-lg font-semibold leading-none tracking-tight">
             <Eye className="h-5 w-5" />
             Preview de Jogo
-          </DialogTitle>
-          <DialogDescription>
+          </h2>
+          <p className="mt-1.5 text-sm text-muted-foreground">
             Simulacao visual da experiencia do cliente. NAO afeta dados reais.
-          </DialogDescription>
-        </DialogHeader>
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={() => onOpenChange(false)}
+          aria-label="Fechar preview"
+          className="rounded-sm text-muted-foreground transition-colors hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        >
+          <X className="h-5 w-5" />
+        </button>
+      </header>
 
-        {/* Seletor de jogo — so aparece se houver mais de 1 com preview */}
-        {previewables.length > 1 && (
-          <div className="flex flex-wrap gap-2 pb-2">
+      <div className="flex-1 overflow-y-auto p-6">
+        {mostrarSeletor && (
+          <div className="mb-4 flex flex-wrap gap-2">
             {JOGOS.map((j) => {
               const ativo = j.id === jogoId;
-              const desabilitado = j.Preview === null;
+              const semPreview = j.Preview === null;
               return (
                 <button
                   key={j.id}
                   type="button"
-                  onClick={() => !desabilitado && setJogoId(j.id)}
-                  disabled={desabilitado}
+                  onClick={() => !semPreview && setJogoId(j.id)}
+                  disabled={semPreview}
                   className={cn(
                     'inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-sm font-medium transition-colors',
                     ativo
                       ? 'border-primary bg-primary/10 text-primary'
                       : 'border-border/60 hover:bg-muted',
-                    desabilitado && 'cursor-not-allowed opacity-50'
+                    semPreview && 'cursor-not-allowed opacity-50'
                   )}
-                  title={desabilitado ? `${j.nome} — preview nao disponivel` : j.nome}
+                  title={semPreview ? `${j.nome} — preview nao disponivel` : j.nome}
                 >
                   <span aria-hidden>{j.icone}</span>
                   <span>{j.nome}</span>
-                  {desabilitado && j.badge && (
+                  {semPreview && j.badge && (
                     <span className="ml-1 text-[10px] uppercase tracking-wider text-muted-foreground">
                       {j.badge}
                     </span>
@@ -79,15 +105,18 @@ export function PreviewJogoModal({ premios, open, onOpenChange, jogoInicial }: P
           </div>
         )}
 
-        {/* Conteudo do preview escolhido */}
         {jogo?.Preview ? (
           <jogo.Preview premios={premios} />
         ) : (
-          <p className="py-8 text-center text-sm text-muted-foreground">
-            Preview de <strong>{jogo?.nome ?? jogoId}</strong> ainda nao implementado.
-          </p>
+          <div className="flex flex-col items-center justify-center gap-3 py-12 text-center">
+            <span className="text-6xl" aria-hidden>{jogo?.icone ?? '🎮'}</span>
+            <p className="text-lg font-semibold">{jogo?.nome ?? jogoId}</p>
+            <p className="max-w-xs text-sm text-muted-foreground">
+              Preview deste jogo ainda nao foi implementado.
+            </p>
+          </div>
         )}
-      </DialogContent>
-    </Dialog>
+      </div>
+    </div>
   );
 }

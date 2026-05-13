@@ -12,7 +12,7 @@ export function AdminLayout({ abaAtiva, onAbaChange, children }: Props) {
   return (
     <div className="flex min-h-[calc(100vh-65px)] bg-muted/30">
       <AdminSidebar abaAtiva={abaAtiva} onChange={onAbaChange} />
-      <div className="flex-1 overflow-auto p-6">{children}</div>
+      <div className="relative flex-1 overflow-auto p-6">{children}</div>
     </div>
   );
 }
