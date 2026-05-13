@@ -56,7 +56,7 @@ export function RoletaCanvas({ premios, rodaRef, zoom = 110 }: Props) {
 
         <Roda ref={rodaRef} premios={premios} />
         <EixoCentro />
-        <Ponteiro />
+        <Ponteiro rodaRef={rodaRef} totalFatias={premios.length} />
       </Canvas>
     </div>
   );
