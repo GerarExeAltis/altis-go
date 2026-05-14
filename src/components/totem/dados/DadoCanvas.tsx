@@ -32,15 +32,18 @@ function FacePips({ valor, normal, rotation }: {
   rotation: [number, number, number];
 }) {
   const pips = pipsPorFace(valor);
-  // Offset maior (0.515) afasta os pips da face do cubo o suficiente
-  // pra eliminar risco de z-fighting em angulos oblicuos. Combinado
-  // com polygonOffset no material da face (abaixo), garante separacao
-  // robusta no depth buffer.
-  const offset = 0.515;
+  // offset=0.5 alinha o centro do grupo de pips EXATAMENTE na face
+  // do cubo. Cada pip individual e empurrado pra DENTRO (z=-0.04),
+  // simulando uma cavidade superficial — esfera afundada na face,
+  // nao bola pra fora.
+  // O risco de z-fighting (face do cubo competindo com superficie
+  // da esfera no plano de tangencia) e mitigado pelo polygonOffset
+  // aplicado ao material da face logo abaixo.
+  const offset = 0.5;
   return (
     <group rotation={rotation} position={[normal[0] * offset, normal[1] * offset, normal[2] * offset]}>
       {pips.map(([x, y], i) => (
-        <mesh key={i} position={[x, y, 0]}>
+        <mesh key={i} position={[x, y, -0.04]}>
           <sphereGeometry args={[0.075, 24, 24]} />
           <meshStandardMaterial
             color="#0a1518"
