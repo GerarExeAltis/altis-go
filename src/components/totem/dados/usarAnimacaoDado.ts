@@ -171,20 +171,21 @@ export function usarAnimacaoDado({
   }, [matar, aplicar]);
 
   const lancar = React.useCallback((vencedorId: string) => {
-    if (reveladoRef.current) return;
+    // SEMPRE mata tweens anteriores e reseta o gate de revelacao —
+    // se um lance anterior nao limpou (ex: usuario resetou no meio
+    // da animacao, ou re-iniciou rapido), nao queremos que essa
+    // chamada caia num early return e os dados fiquem invisiveis.
+    matar();
     reveladoRef.current = true;
     animandoRef.current = true;
 
     const premio = premios.find((p) => p.id === vencedorId);
     if (!premio) {
-      matar();
       onConcluir();
       return;
     }
     const face = faceDoPremio(premio);
     const [rxAlvo, ryAlvo, rzAlvo] = ROTACOES_FACES[face] ?? [0, 0, 0];
-
-    matar();
 
     // Posicoes alvo aleatorias com repulsao
     const dispersao = calcularDispersao();
@@ -304,7 +305,10 @@ export function usarAnimacaoDado({
   }, [premios, onConcluir, reduzir, aplicar, matar]);
 
   const iniciar = React.useCallback(() => {
-    if (animandoRef.current) return;
+    // Quando chamado explicitamente pelo pai, SEMPRE prossegue para
+    // o lance. Se ja estamos animando, mata e recomeca — evita o
+    // bug onde a primeira chamada apos um reset/mount nao disparava
+    // a animacao por causa de animandoRef antigo travado.
     if (!premioVencedorId) {
       animandoRef.current = true;
       return;
