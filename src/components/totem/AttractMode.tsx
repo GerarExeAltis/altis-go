@@ -1,8 +1,9 @@
 'use client';
 import * as React from 'react';
-import Image from 'next/image';
 import { RoletaCanvas } from '@/components/totem/roleta/RoletaCanvas';
 import type { PremioDb } from '@/lib/totem/types';
+
+const BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH ?? '';
 
 interface Props {
   onTocar: () => void;
@@ -41,16 +42,17 @@ export function AttractMode({ onTocar, disabled, premios }: Props) {
         }}
       />
 
-      {/* GIF Altis (animacao da marca) no topo esquerdo */}
+      {/* GIF Altis (animacao da marca) no topo esquerdo. Usamos <img>
+          nativo + basePath manual para evitar problemas de prefix do
+          Next/Image em static export. */}
       <div className="pointer-events-none absolute left-8 top-8 h-32 w-32 opacity-60">
-        <Image
-          src="/altis-animacao.gif"
+        <img
+          src={`${BASE_PATH}/altis-animacao.gif`}
           alt=""
           width={128}
           height={128}
-          unoptimized
-          priority
           aria-hidden
+          className="h-full w-full object-contain"
         />
       </div>
 

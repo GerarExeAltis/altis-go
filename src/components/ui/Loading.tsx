@@ -1,7 +1,8 @@
 'use client';
 import * as React from 'react';
-import Image from 'next/image';
 import { cn } from '@/lib/utils';
+
+const BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH ?? '';
 
 interface LoadingProps {
   /** Cobre a tela toda com overlay (default true). Quando false, ocupa o espaco do pai. */
@@ -43,14 +44,15 @@ export function Loading({
         className
       )}
     >
-      <Image
-        src="/altis-animacao.gif"
+      {/* <img> nativo + basePath manual: Next/Image as vezes nao prefixa
+          em static export com unoptimized=true, e GIF animado nao precisa
+          da otimizacao. */}
+      <img
+        src={`${BASE_PATH}/altis-animacao.gif`}
         alt=""
-        width={300}
-        height={300}
-        priority
-        unoptimized
-        className="h-70 w-70 object-contain"
+        width={280}
+        height={280}
+        className="h-72 w-72 object-contain"
       />
     </div>
   );
