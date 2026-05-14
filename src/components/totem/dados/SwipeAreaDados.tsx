@@ -107,6 +107,7 @@ export function SwipeAreaDados({
           count={2}
           zoom={120}
           trail={iniciando}
+          postprocessing
         />
       )}
     </div>

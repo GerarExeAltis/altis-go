@@ -157,6 +157,14 @@ interface Props {
   hover?: boolean;
   /** Quando true, desenha um Trail luminoso atras de cada dado (durante o lance). */
   trail?: boolean;
+  /**
+   * Habilita o pipeline de postprocessing (SMAA + Bloom). Quando true,
+   * o EffectComposer cria render targets opacos internos que perdem o
+   * alpha do canvas — entao o fundo fica colorido em vez de transparente.
+   * Default: false. Ligue so no jogo principal (lance dos dados) onde
+   * o ganho visual compensa.
+   */
+  postprocessing?: boolean;
 }
 
 export function DadoCanvas({
@@ -169,6 +177,7 @@ export function DadoCanvas({
   autoRotateSpeed = 1,
   hover = false,
   trail = false,
+  postprocessing = false,
 }: Props) {
   const basePositions: Array<[number, number, number]> =
     count === 1 ? [[0, 0, 0]] : [[-0.9, 0, 0], [0.9, 0, 0]];
@@ -185,7 +194,20 @@ export function DadoCanvas({
         style={{
           position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', display: 'block',
         }}
-        gl={{ antialias: true, toneMapping: THREE.ACESFilmicToneMapping, toneMappingExposure: 1.0 }}
+        gl={{
+          antialias: true,
+          alpha: true,
+          premultipliedAlpha: false,
+          toneMapping: THREE.ACESFilmicToneMapping,
+          toneMappingExposure: 1.0,
+        }}
+        onCreated={({ gl, scene }) => {
+          // Forca o renderer a limpar com alpha=0 (transparente) — sem
+          // isso o WebGL pode usar o clearColor opaco do contexto, o que
+          // pinta um quadrado de fundo onde o canvas esta posicionado.
+          gl.setClearColor(0x000000, 0);
+          scene.background = null;
+        }}
       >
         <ambientLight intensity={0.35} color="#fff5e6" />
         <directionalLight
@@ -246,20 +268,22 @@ export function DadoCanvas({
           );
         })}
 
-        {/* Postprocessing: SMAA suaviza arestas (substitui MSAA — mais
-            barato no nivel de qualidade que queremos) e Bloom leve em
-            highlights especulares dos pips e do cubo. luminanceThreshold
-            alto (0.85) limita o bloom a reflexos brilhantes — sem
-            "estourar" a cena. */}
-        <EffectComposer multisampling={0}>
-          <SMAA />
-          <Bloom
-            intensity={0.35}
-            luminanceThreshold={0.85}
-            luminanceSmoothing={0.2}
-            mipmapBlur
-          />
-        </EffectComposer>
+        {/* Postprocessing: SMAA suaviza arestas e Bloom leve em
+            highlights. So liga quando solicitado — o EffectComposer
+            cria buffers RGB que opacificam o canvas (perde alpha),
+            entao no attract mode (autoRotate) deixamos desligado para
+            o fundo ficar realmente transparente. */}
+        {postprocessing && (
+          <EffectComposer multisampling={0}>
+            <SMAA />
+            <Bloom
+              intensity={0.35}
+              luminanceThreshold={0.85}
+              luminanceSmoothing={0.2}
+              mipmapBlur
+            />
+          </EffectComposer>
+        )}
       </Canvas>
     </div>
   );
