@@ -23,13 +23,18 @@ export function LoginForm() {
   const { signIn, signOut } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
-  // Mensagem inicial: se o AuthGuard nos mandou de volta com ?erro=credenciais
-  // (sessao valida no Auth mas sem perfil ativo no app), mostra a mesma
-  // mensagem generica de "Credenciais inválidas" — nao vazamos o motivo
-  // real para evitar dar dica a um atacante.
-  const [erro, setErro] = React.useState<string | null>(
-    searchParams?.get('erro') === 'credenciais' ? ERRO_GENERICO : null,
-  );
+  const [erro, setErro] = React.useState<string | null>(null);
+
+  // Se o AuthGuard nos mandou de volta com ?erro=credenciais (sessao
+  // valida no Auth mas sem perfil ativo), mostra a mesma mensagem
+  // generica — nao vazamos o motivo real para evitar dar dica a um
+  // atacante. useEffect garante que pegamos o param mesmo se o
+  // primeiro render do Suspense ainda nao tinha resolvido.
+  React.useEffect(() => {
+    if (searchParams?.get('erro') === 'credenciais') {
+      setErro(ERRO_GENERICO);
+    }
+  }, [searchParams]);
 
   const [mostrarSenha, setMostrarSenha] = React.useState(false);
 
