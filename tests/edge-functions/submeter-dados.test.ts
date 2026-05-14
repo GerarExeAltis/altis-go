@@ -39,7 +39,7 @@ const dadosValidos = (telefone: string) => ({
   nome: 'Maria Teste',
   telefone,
   email: 'maria@test.local',
-  loja_id: null,
+  empresa: null,
 });
 
 describe('submeter-dados', () => {

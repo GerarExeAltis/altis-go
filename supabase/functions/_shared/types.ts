@@ -34,7 +34,7 @@ export interface DadosJogador {
   nome: string;
   telefone: string;
   email: string;
-  loja_id?: string | null;
+  empresa?: string | null;
 }
 
 export interface PremioPublico {
@@ -43,10 +43,4 @@ export interface PremioPublico {
   foto_path: string | null;
   ordem_roleta: number;
   e_premio_real: boolean;
-}
-
-export interface LojaPublica {
-  id: string;
-  nome: string;
-  cidade: string | null;
 }

@@ -38,7 +38,7 @@ Deno.serve(async (req) => {
         jogador_nome: dados.nome,
         jogador_telefone: dados.telefone,
         jogador_email: dados.email,
-        jogador_loja_id: dados.loja_id ?? null,
+        jogador_empresa: dados.empresa ?? null,
         jogador_fingerprint: fingerprint,
         jogador_ip: meta.ip,
         jogador_user_agent: meta.user_agent,
@@ -66,7 +66,7 @@ Deno.serve(async (req) => {
       // Reverte dados gravados para liberar a sessão de novo.
       await sb.from('sessoes_jogo').update({
         jogador_nome: null, jogador_telefone: null, jogador_email: null,
-        jogador_loja_id: null, jogador_fingerprint: null,
+        jogador_empresa: null, jogador_fingerprint: null,
       }).eq('id', s);
       // unique_violation no UNIQUE(evento,jogo,telefone) parcial: telefone duplicado.
       const rpcCode = (rpcErr as { code?: string }).code;

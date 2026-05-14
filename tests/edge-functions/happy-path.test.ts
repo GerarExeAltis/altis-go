@@ -44,7 +44,7 @@ describe('happy-path E2E', () => {
         nome: 'E2E Tester',
         telefone: TELEFONE_E2E,
         email: 'e2e@tester.local',
-        loja_id: null,
+        empresa: null,
       },
       fingerprint: '0e2e'.repeat(8),
     });

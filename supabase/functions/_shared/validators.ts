@@ -60,7 +60,7 @@ export const dadosJogadorSchema = z.object({
   nome: nomeSchema,
   telefone: telefoneSchema,
   email: emailSchema,
-  loja_id: uuidSchema.nullable().optional(),
+  empresa: z.string().trim().max(120).nullable().optional(),
 });
 
 export type DadosJogadorValidado = z.infer<typeof dadosJogadorSchema>;

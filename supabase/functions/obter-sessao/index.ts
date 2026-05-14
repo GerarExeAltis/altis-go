@@ -41,21 +41,14 @@ Deno.serve(async (req) => {
       if (uErr) throw new Error(`update status: ${uErr.message}`);
     }
 
-    const [{ data: premios }, { data: lojas }] = await Promise.all([
-      sb.from('premios')
-        .select('id, nome, foto_path, ordem_roleta, e_premio_real')
-        .eq('evento_id', sessao.evento_id)
-        .order('ordem_roleta', { ascending: true }),
-      sb.from('lojas')
-        .select('id, nome, cidade')
-        .eq('ativa', true)
-        .order('nome', { ascending: true }),
-    ]);
+    const { data: premios } = await sb.from('premios')
+      .select('id, nome, foto_path, ordem_roleta, e_premio_real')
+      .eq('evento_id', sessao.evento_id)
+      .order('ordem_roleta', { ascending: true });
 
     return jsonOk({
       sessao: { id: sessao.id, jogo: sessao.jogo, expira_em: sessao.expira_em },
       premios: premios ?? [],
-      lojas: lojas ?? [],
     });
   } catch (err) {
     return jsonErr(err);
