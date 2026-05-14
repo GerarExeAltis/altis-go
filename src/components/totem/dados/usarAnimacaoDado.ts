@@ -17,34 +17,81 @@ function faceDoPremio(premio: PremioDb): number {
 
 interface RotState { x: number; y: number; z: number; }
 interface PosState { x: number; y: number; z: number; }
+interface Ponto2D  { x: number; y: number; }
 
 /**
- * Coreografia em 3 segmentos com trajetoria PARABOLICA bem visivel
- * (lancamento + ponto alto + descida), total 3 segundos:
+ * Gera posicoes finais ESPALHADAS pela area do canvas com angulos
+ * aleatorios. Aplica relaxamento (repulsao) — se os 2 dados ficarem
+ * mais perto que `minDist`, sao empurrados pra lados opostos ate
+ * a distancia minima ser respeitada. Evita aglomeracao.
  *
- *  - LANÇAMENTO (0 -> 0.6s): dado parte do PONTO DO COPO (centro-baixo)
- *    para o PONTO ALTO LATERAL — sobe em arco, escala cresce 0.05 -> 1.6.
- *    Cada dado vai pra um lado (esquerda/direita). Sensacao de "saiu
- *    do copo voando".
+ * Area util do canvas (zoom 120, viewport ~5x4 unidades):
+ *   x ∈ [-2.6, 2.6]    y ∈ [-0.4, 0.6]
+ */
+function calcularDispersao(): {
+  apice: [Ponto2D, Ponto2D];
+  final: [Ponto2D, Ponto2D];
+  anguloRot: [number, number];
+} {
+  const RAIO_FINAL_MIN = 1.4;
+  const RAIO_FINAL_MAX = 2.2;
+  const RAIO_APICE = 2.3;
+  const MIN_DIST = 1.6;
+  const Y_APICE_MIN = 2.0;
+  const Y_APICE_MAX = 2.8;
+
+  // Angulo aleatorio inicial entre 0 e 2pi; segundo dado fica ~oposto
+  // (com leve variacao) para abrir bem em direcoes distintas.
+  const a1 = Math.random() * Math.PI * 2;
+  const a2 = a1 + Math.PI + (Math.random() - 0.5) * 0.8;
+
+  const d1 = RAIO_FINAL_MIN + Math.random() * (RAIO_FINAL_MAX - RAIO_FINAL_MIN);
+  const d2 = RAIO_FINAL_MIN + Math.random() * (RAIO_FINAL_MAX - RAIO_FINAL_MIN);
+
+  const final: [Ponto2D, Ponto2D] = [
+    { x: Math.cos(a1) * d1, y: (Math.sin(a1) * d1) * 0.18 }, // achatado no Y final (chao)
+    { x: Math.cos(a2) * d2, y: (Math.sin(a2) * d2) * 0.18 },
+  ];
+
+  // Relaxamento: se muito proximos, empurra ate respeitar MIN_DIST
+  const dx = final[0].x - final[1].x;
+  const dy = final[0].y - final[1].y;
+  const d = Math.hypot(dx, dy);
+  if (d < MIN_DIST) {
+    const ux = d > 0.001 ? dx / d : 1;
+    const uy = d > 0.001 ? dy / d : 0;
+    const push = (MIN_DIST - d) / 2 + 0.1;
+    final[0].x += ux * push;
+    final[0].y += uy * push;
+    final[1].x -= ux * push;
+    final[1].y -= uy * push;
+  }
+
+  // Apice no caminho — mesmo angulo, raio maior, Y alto
+  const apice: [Ponto2D, Ponto2D] = [
+    { x: Math.cos(a1) * RAIO_APICE, y: Y_APICE_MIN + Math.random() * (Y_APICE_MAX - Y_APICE_MIN) },
+    { x: Math.cos(a2) * RAIO_APICE, y: Y_APICE_MIN + Math.random() * (Y_APICE_MAX - Y_APICE_MIN) },
+  ];
+
+  return { apice, final, anguloRot: [a1, a2] };
+}
+
+/**
+ * Coreografia de DISPERSAO PELA TELA, 3 segundos exatos:
  *
- *  - APICE (0.6 -> 1.0s): dado permanece no alto fazendo tumble forte
- *    (rotacao acelerada em todos os eixos), escala 1.6 (maxima).
+ *  - LANCAMENTO (0 -> 0.55s): dado parte da posicao do copo
+ *    (centro-baixo) para o APICE com angulo aleatorio. Escala
+ *    0.05 -> 1.6 (back.out).
+ *  - APICE (0.55 -> 0.90s): tumbleia no alto.
+ *  - QUEDA (0.90 -> 2.60s): cai em arco ate a posicao FINAL
+ *    aleatoria (com relaxamento contra aglomeracao). Escala
+ *    1.6 -> 1.0 (zoom-out).
+ *  - ASSENTA (2.60 -> 3.00s): pequeno quique de chao + face do
+ *    premio voltada pra cima.
+ *  - WOBBLE pos-3s (3.0 -> 4.4s): inclinacao + bobbing leve.
  *
- *  - QUEDA (1.0 -> 2.6s): dado cai em arco do alto-lateral pra
- *    posicao final (lateral-baixo), escala 1.6 -> 1.0 gradualmente,
- *    rotacao desacelerando ate as ultimas voltas.
- *
- *  - ASSENTA (2.6 -> 3.0s): rotacao final converge na face do
- *    premio sorteado. Pequeno quique em Y.
- *
- *  - WOBBLE pos-3s (3.0 -> 4.4s): inclinacao leve + bobbing
- *    apresentando os dados na posicao final.
- *
- * Cada eixo de rotacao tem easing DIFERENTE (X power3.out, Y expo.out,
- * Z power2.out) — momentum nao uniforme, parece dado real.
- *
- * Drei <Trail> envolvendo cada dado mostra o caminho percorrido — fica
- * facil ver visualmente a trajetoria do copo ate o spot final.
+ * Repulsao garante que mesmo com angulos proximos, os dois dados
+ * acabam separados na tela.
  */
 export function usarAnimacaoDado({
   premios, premioVencedorId, reduzir, onConcluir,
@@ -124,7 +171,10 @@ export function usarAnimacaoDado({
 
     matar();
 
-    // Posicao inicial: dentro do copo (centro-baixo), escala minuscula
+    // Posicoes alvo aleatorias com repulsao
+    const dispersao = calcularDispersao();
+
+    // Estado inicial: dentro do copo (centro-baixo)
     rotRefs.current[0] = { x: 0, y: 0, z: 0 };
     rotRefs.current[1] = { x: 0.3, y: 0.2, z: 0.1 };
     posRefs.current[0] = { x: -0.1, y: 0.0, z: 0 };
@@ -142,7 +192,7 @@ export function usarAnimacaoDado({
       rotRefs.current.forEach((ref, i) => {
         tl.to(ref, { x: rxAlvo, y: ryAlvo, z: rzAlvo, duration: 0.5, ease: 'power1.inOut' }, 0);
         tl.to(posRefs.current[i], {
-          x: i === 0 ? -0.9 : 0.9, y: 0, z: 0, duration: 0.5,
+          x: dispersao.final[i].x, y: dispersao.final[i].y, z: 0, duration: 0.5,
         }, 0);
         tl.to(scaleRefs.current[i], { s: 1, duration: 0.5 }, 0);
       });
@@ -150,91 +200,70 @@ export function usarAnimacaoDado({
       return;
     }
 
-    // Pontos da trajetoria parabolica (em coordenadas do Canvas)
-    //   START (copo): xStart=±0.1, y=0
-    //   APEX  (alto): xApex=±2.2, y=2.6
-    //   FINAL (baixo lateral): xFinal=±0.9, y=0
     const T_LANCAMENTO = 0.55;
     const T_APICE = 0.35;
-    const T_QUEDA = 1.7;
-    const T_ASSENTA = 0.4;
+    const T_QUEDA = 1.70;
+    const T_ASSENTA = 0.40;
     // Total: 3.0s
 
-    const voltasLancamento = 1.5;
-    const voltasApice = 1.8;
-    const voltasQueda = 3.0;
+    const voltasTotais = 6;
 
     rotRefs.current.forEach((ref, i) => {
-      const lado = i === 0 ? -1 : 1;
       const yMult = i === 0 ? 1 : 1.15;
       const xMult = i === 0 ? 1 : 0.9;
+      const apice = dispersao.apice[i];
+      const final = dispersao.final[i];
 
-      const apexX = lado * 2.2;
-      const apexY = 2.6;
-      const finalX = lado * 0.9;
-      const finalY = 0;
-
-      const finalRotX = ref.x + (voltasLancamento + voltasApice + voltasQueda) * Math.PI * 2 * xMult
+      const finalRotX = ref.x + voltasTotais * Math.PI * 2 * xMult
                        + (((rxAlvo - ref.x) % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
-      const finalRotY = ref.y + (voltasLancamento + voltasApice + voltasQueda) * Math.PI * 2 * yMult
+      const finalRotY = ref.y + voltasTotais * Math.PI * 2 * yMult
                        + (((ryAlvo - ref.y) % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
-      const finalRotZ = ref.z + (voltasLancamento + voltasApice + voltasQueda - 1) * Math.PI * 2
+      const finalRotZ = ref.z + (voltasTotais - 1) * Math.PI * 2
                        + (((rzAlvo - ref.z) % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
 
       const pos = posRefs.current[i];
       const scl = scaleRefs.current[i];
 
-      // === FASE 1: LANCAMENTO (0 -> 0.55s) ===
-      // Sai do copo subindo em arco ate o apice lateral
+      // LANCAMENTO — sai do copo subindo em arco ate o apice
       tl.to(scl, { s: 1.6, duration: T_LANCAMENTO, ease: 'back.out(1.4)' }, 0);
-      tl.to(pos, { x: apexX, duration: T_LANCAMENTO, ease: 'power2.out' }, 0);
-      tl.to(pos, { y: apexY, duration: T_LANCAMENTO, ease: 'power2.out' }, 0);
+      tl.to(pos, { x: apice.x, duration: T_LANCAMENTO, ease: 'power2.out' }, 0);
+      tl.to(pos, { y: apice.y, duration: T_LANCAMENTO, ease: 'power2.out' }, 0);
       tl.to(ref, {
-        x: '+=' + Math.PI * 2 * voltasLancamento * xMult,
-        y: '+=' + Math.PI * 2 * voltasLancamento * yMult,
-        z: '+=' + Math.PI * 2 * voltasLancamento,
+        x: '+=' + Math.PI * 3 * xMult,
+        y: '+=' + Math.PI * 3 * yMult,
+        z: '+=' + Math.PI * 2,
         duration: T_LANCAMENTO,
         ease: 'power1.out',
       }, 0);
 
-      // === FASE 2: APICE (0.55 -> 0.90s) ===
-      // Dado fica no alto tumbleando rapido — visivel no pico
-      const apexStart = T_LANCAMENTO;
-      tl.to(pos, { y: apexY + 0.2, duration: T_APICE * 0.5, ease: 'sine.inOut' }, apexStart);
-      tl.to(pos, { y: apexY - 0.1, duration: T_APICE * 0.5, ease: 'sine.in' }, apexStart + T_APICE * 0.5);
+      // APICE — tumble no alto
+      const apiceStart = T_LANCAMENTO;
+      tl.to(pos, { y: apice.y + 0.2, duration: T_APICE * 0.4, ease: 'sine.inOut' }, apiceStart);
+      tl.to(pos, { y: apice.y - 0.1, duration: T_APICE * 0.6, ease: 'sine.in' }, apiceStart + T_APICE * 0.4);
       tl.to(ref, {
-        x: '+=' + Math.PI * 2 * voltasApice * xMult,
-        y: '+=' + Math.PI * 2 * voltasApice * yMult,
-        z: '+=' + Math.PI * 2 * voltasApice,
+        x: '+=' + Math.PI * 2 * xMult,
+        y: '+=' + Math.PI * 2 * yMult,
+        z: '+=' + Math.PI * 1.5,
         duration: T_APICE,
         ease: 'none',
-      }, apexStart);
+      }, apiceStart);
 
-      // === FASE 3: QUEDA (0.90 -> 2.60s) ===
-      // Cai em arco ate o final lateral, escala diminui
-      const quedaStart = apexStart + T_APICE;
-      tl.to(pos, { x: finalX, duration: T_QUEDA, ease: 'power2.inOut' }, quedaStart);
-      tl.to(pos, { y: finalY, duration: T_QUEDA, ease: 'power2.in' }, quedaStart);
+      // QUEDA — cai em arco ate o final disperso
+      const quedaStart = apiceStart + T_APICE;
+      tl.to(pos, { x: final.x, duration: T_QUEDA, ease: 'power2.inOut' }, quedaStart);
+      tl.to(pos, { y: final.y, duration: T_QUEDA, ease: 'power2.in' }, quedaStart);
       tl.to(scl, { s: 1.0, duration: T_QUEDA, ease: 'power1.inOut' }, quedaStart);
-      // Rotacao com easings diferentes por eixo
-      tl.to(ref, {
-        x: finalRotX, duration: T_QUEDA, ease: 'power3.out',
-      }, quedaStart);
-      tl.to(ref, {
-        y: finalRotY, duration: T_QUEDA, ease: 'expo.out',
-      }, quedaStart);
-      tl.to(ref, {
-        z: finalRotZ, duration: T_QUEDA, ease: 'power2.out',
-      }, quedaStart);
+      tl.to(ref, { x: finalRotX, duration: T_QUEDA, ease: 'power3.out' }, quedaStart);
+      tl.to(ref, { y: finalRotY, duration: T_QUEDA, ease: 'expo.out' }, quedaStart);
+      tl.to(ref, { z: finalRotZ, duration: T_QUEDA, ease: 'power2.out' }, quedaStart);
 
-      // === FASE 4: ASSENTA (2.60 -> 3.00s) ===
-      // Pequeno quique de chao + reafirma face final (ja esta proximo)
+      // ASSENTA — pequeno quique
       const assentaStart = quedaStart + T_QUEDA;
-      tl.to(pos, { y: 0.2, duration: T_ASSENTA * 0.4, ease: 'power2.out' }, assentaStart);
-      tl.to(pos, { y: 0, duration: T_ASSENTA * 0.6, ease: 'power2.in' }, assentaStart + T_ASSENTA * 0.4);
+      tl.to(pos, { y: final.y + 0.2, duration: T_ASSENTA * 0.4, ease: 'power2.out' }, assentaStart);
+      tl.to(pos, { y: final.y, duration: T_ASSENTA * 0.6, ease: 'power2.in' }, assentaStart + T_ASSENTA * 0.4);
     });
 
-    // === WOBBLE pos-3s (3.0 -> 4.4s) ===
+    // WOBBLE pos-3s — apresentacao final viva
     const inicioWobble = 3.0;
     rotRefs.current.forEach((ref, i) => {
       tl.to(ref, {
@@ -246,7 +275,11 @@ export function usarAnimacaoDado({
         repeat: 1,
       }, inicioWobble);
       tl.to(posRefs.current[i], {
-        y: 0.06, duration: 0.5, ease: 'sine.inOut', yoyo: true, repeat: 1,
+        y: dispersao.final[i].y + 0.06,
+        duration: 0.5,
+        ease: 'sine.inOut',
+        yoyo: true,
+        repeat: 1,
       }, inicioWobble);
     });
 
