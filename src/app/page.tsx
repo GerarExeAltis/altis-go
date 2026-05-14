@@ -26,7 +26,7 @@ function Welcome() {
         <h1 className="text-3xl font-bold tracking-tight">Bem-vindo, {nomeCurto}</h1>
         <p className="mt-2 text-muted-foreground">Escolha um jogo para abrir o totem.</p>
       </div>
-      <div className="mt-12 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="mt-12 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-2">
         {JOGOS.map((jogo) => (
           <GameCard
             key={jogo.id}

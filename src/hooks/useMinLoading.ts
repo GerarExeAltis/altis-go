@@ -9,7 +9,7 @@ import * as React from 'react';
  * Mude este valor aqui para afetar TODAS as telas que usam useMinLoading
  * sem passar `minMs` explicitamente.
  */
-export const LOADING_MIN_MS = 4000;
+export const LOADING_MIN_MS = 2000;
 
 /**
  * Mantém o estado de loading verdadeiro por no mínimo `minMs` ms — usado

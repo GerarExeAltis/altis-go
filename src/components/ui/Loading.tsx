@@ -46,11 +46,11 @@ export function Loading({
       <Image
         src="/altis-animacao.gif"
         alt=""
-        width={400}
-        height={400}
+        width={300}
+        height={300}
         priority
         unoptimized
-        className="h-48 w-48 object-contain"
+        className="h-70 w-70 object-contain"
       />
     </div>
   );
