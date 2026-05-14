@@ -3,16 +3,6 @@ import * as React from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 
-/**
- * Dado 3D estilo cassino (1 ou 2 dados lado a lado).
- *
- * Convencao das faces:
- *   1 -> +Y (cima)   6 -> -Y (baixo)
- *   2 -> +Z (frente) 5 -> -Z (tras)
- *   3 -> +X (direita) 4 -> -X (esquerda)
- *
- * Rotacoes para deixar cada face VOLTADA pra cima (+Y).
- */
 export const ROTACOES_FACES: Record<number, [number, number, number]> = {
   1: [0, 0, 0],
   2: [-Math.PI / 2, 0, 0],
@@ -57,7 +47,7 @@ function FacePips({ valor, normal, rotation }: {
 function CuboDado() {
   return (
     <>
-      <mesh>
+      <mesh castShadow>
         <boxGeometry args={[1, 1, 1]} />
         <meshStandardMaterial color="#fafafa" roughness={0.4} metalness={0.05} />
       </mesh>
@@ -73,62 +63,105 @@ function CuboDado() {
 
 function Dado({ rotation, position }: {
   rotation: [number, number, number];
-  position?: [number, number, number];
+  position: [number, number, number];
 }) {
   const groupRef = React.useRef<THREE.Group | null>(null);
   React.useEffect(() => {
     if (!groupRef.current) return;
     groupRef.current.rotation.set(rotation[0], rotation[1], rotation[2]);
-  }, [rotation]);
+    groupRef.current.position.set(position[0], position[1], position[2]);
+  }, [rotation, position]);
 
   return (
-    <group ref={groupRef} position={position}>
+    <group ref={groupRef}>
       <CuboDado />
     </group>
   );
 }
 
-function DadoAutoRotate({ position, speedScale = 1 }: {
-  position?: [number, number, number];
+function DadoAutoRotate({ position, speedScale = 1, hover = false }: {
+  position: [number, number, number];
   speedScale?: number;
+  hover?: boolean;
 }) {
   const groupRef = React.useRef<THREE.Group | null>(null);
+  const t = React.useRef(0);
   useFrame((_, delta) => {
     if (!groupRef.current) return;
     groupRef.current.rotation.x += delta * 0.5 * speedScale;
     groupRef.current.rotation.y += delta * 0.7 * speedScale;
+    if (hover) {
+      // Pequeno bobbing vertical — sensacao de "flutuando na mao"
+      t.current += delta;
+      groupRef.current.position.y = position[1] + Math.sin(t.current * 1.8) * 0.08;
+    } else {
+      groupRef.current.position.y = position[1];
+    }
+    groupRef.current.position.x = position[0];
+    groupRef.current.position.z = position[2];
   });
 
   return (
-    <group ref={groupRef} position={position}>
+    <group ref={groupRef}>
       <CuboDado />
     </group>
   );
 }
 
+/**
+ * Sombra plana no chao (cinza translucido). Acompanha o dado em X/Z
+ * mas fica fixa em Y=0 — quando o dado pula, a sombra encolhe um
+ * pouco (efeito de altura). Visualmente reforca a sensacao de fisica.
+ */
+function SombraDado({ dadoY, baseX, baseZ }: { dadoY: number; baseX: number; baseZ: number }) {
+  // escala da sombra: 1 quando dadoY=0, menor quando dadoY>0
+  const altura = Math.max(0, dadoY);
+  const escala = Math.max(0.4, 1 - altura * 0.35);
+  const opacidade = Math.max(0.15, 0.45 - altura * 0.15);
+  return (
+    <mesh
+      rotation={[-Math.PI / 2, 0, 0]}
+      position={[baseX, -0.55, baseZ]}
+      scale={[escala, escala, escala]}
+    >
+      <circleGeometry args={[0.55, 32]} />
+      <meshBasicMaterial color="#000000" transparent opacity={opacidade} />
+    </mesh>
+  );
+}
+
 interface Props {
-  /** Rotacoes de cada dado (1 ou 2). Ignorada se autoRotate=true. */
+  /** Rotacoes de cada dado. */
   rotations?: Array<[number, number, number]>;
+  /** Posicoes (offsets) de cada dado em relacao a sua base. */
+  positions?: Array<[number, number, number]>;
   /** Quando true, dados giram em loop sem destino. */
   autoRotate?: boolean;
   /** Quantos dados renderizar (1 ou 2). Default 2. */
   count?: 1 | 2;
   /** Zoom da camera ortografica. */
   zoom?: number;
-  /** Velocidade relativa do auto-rotate (1=normal). Use ~0.4 para "balanco lento". */
+  /** Velocidade relativa do auto-rotate (1=normal). */
   autoRotateSpeed?: number;
+  /** Quando true, dados flutuam levemente em Y (visual "na mao"). */
+  hover?: boolean;
 }
 
 export function DadoCanvas({
-  rotations = [[0, 0, 0], [0, 0, 0]],
+  rotations,
+  positions,
   autoRotate = false,
   count = 2,
   zoom = 100,
   autoRotateSpeed = 1,
+  hover = false,
 }: Props) {
-  // Posicionamento dos dados: 1 centrado, 2 espacados lateralmente
-  const positions: Array<[number, number, number]> =
+  // Posicoes base: 1 centrado, 2 lado a lado
+  const basePositions: Array<[number, number, number]> =
     count === 1 ? [[0, 0, 0]] : [[-0.8, 0, 0], [0.8, 0, 0]];
+
+  const rots = rotations ?? basePositions.map(() => [0, 0, 0] as [number, number, number]);
+  const offs = positions ?? basePositions.map(() => [0, 0, 0] as [number, number, number]);
 
   return (
     <div style={{ position: 'relative', width: '100%', height: '100%', minHeight: 0, minWidth: 0 }}>
@@ -145,21 +178,27 @@ export function DadoCanvas({
         <directionalLight position={[-3, -2, -4]} intensity={0.3} />
         <pointLight position={[0, 0, 3]} intensity={0.4} color="#4afad4" />
 
-        {positions.map((pos, i) =>
-          autoRotate ? (
-            <DadoAutoRotate
-              key={i}
-              position={pos}
-              speedScale={i === 0 ? autoRotateSpeed : autoRotateSpeed * 1.15}
-            />
-          ) : (
-            <Dado
-              key={i}
-              rotation={rotations[i] ?? [0, 0, 0]}
-              position={pos}
-            />
-          )
-        )}
+        {basePositions.map((base, i) => {
+          const finalPos: [number, number, number] = [
+            base[0] + (offs[i]?.[0] ?? 0),
+            base[1] + (offs[i]?.[1] ?? 0),
+            base[2] + (offs[i]?.[2] ?? 0),
+          ];
+          return (
+            <React.Fragment key={i}>
+              <SombraDado dadoY={finalPos[1]} baseX={base[0]} baseZ={base[2]} />
+              {autoRotate ? (
+                <DadoAutoRotate
+                  position={finalPos}
+                  speedScale={i === 0 ? autoRotateSpeed : autoRotateSpeed * 1.15}
+                  hover={hover}
+                />
+              ) : (
+                <Dado rotation={rots[i] ?? [0, 0, 0]} position={finalPos} />
+              )}
+            </React.Fragment>
+          );
+        })}
       </Canvas>
     </div>
   );

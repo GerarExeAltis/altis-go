@@ -15,8 +15,8 @@ import type { PremioDb } from '@/lib/totem/types';
 import { AttractModeDados } from '@/components/totem/AttractModeDados';
 import { QrCodeScreen } from '@/components/totem/QrCodeScreen';
 import { ModalResultadoPremio } from '@/components/jogos/ModalResultadoPremio';
-import { DadoCanvas } from '@/components/totem/dados/DadoCanvas';
 import { usarAnimacaoDado } from '@/components/totem/dados/usarAnimacaoDado';
+import { SwipeAreaDados } from '@/components/totem/dados/SwipeAreaDados';
 import { ErroOverlay } from '@/components/totem/ErroOverlay';
 
 export default function TotemDadosPage() {
@@ -165,7 +165,7 @@ function TotemDadosFlow() {
     }
   }, [sessaoIdEstado, accessToken]);
 
-  const { rotations, iniciar } = usarAnimacaoDado({
+  const { rotations, positions, iniciar } = usarAnimacaoDado({
     premios,
     premioVencedorId,
     reduzir,
@@ -240,33 +240,17 @@ function TotemDadosFlow() {
         <h2 className="p-6 text-center text-4xl font-bold tracking-tight">
           {jogadorNome ? `Boa sorte, ${jogadorNome}!` : 'Boa sorte!'}
         </h2>
-        {/* Area dos dados: clicavel/touchavel para rolar. Durante
-            "pronta_para_girar" os dados ja estao girando lentamente em
-            auto-rotate (sensacao de "balancando na mao"). Tocar/clicar
-            dispara a rolagem real. */}
-        <div
-          className={`relative h-full w-full ${aguardandoToque ? 'cursor-grab active:cursor-grabbing' : ''}`}
-          role={aguardandoToque ? 'button' : undefined}
-          tabIndex={aguardandoToque ? 0 : undefined}
-          aria-label={aguardandoToque ? 'Toque para rolar os dados' : undefined}
-          onPointerDown={aguardandoToque && !iniciando ? dispararDado : undefined}
-          onKeyDown={(e) => {
-            if (aguardandoToque && !iniciando && (e.key === ' ' || e.key === 'Enter')) {
-              e.preventDefault();
-              dispararDado();
-            }
-          }}
-        >
-          {aguardandoToque ? (
-            <DadoCanvas autoRotate count={2} zoom={120} autoRotateSpeed={0.55} />
-          ) : (
-            <DadoCanvas rotations={rotations} count={2} zoom={120} />
-          )}
-        </div>
+        <SwipeAreaDados
+          aguardandoToque={aguardandoToque}
+          iniciando={iniciando}
+          onLancar={dispararDado}
+          rotations={rotations}
+          positions={positions}
+        />
         <div className="flex items-center justify-center p-6">
           {aguardandoToque && (
             <p className="text-lg font-medium text-muted-foreground animate-[attract-glow_2.4s_ease-in-out_infinite]">
-              {iniciando ? 'Rolando...' : '👆 Toque nos dados para rolar'}
+              {iniciando ? 'Rolando...' : '🎲 Arraste os dados para lançar'}
             </p>
           )}
         </div>
