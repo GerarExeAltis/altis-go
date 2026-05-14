@@ -35,14 +35,19 @@ function calcularDispersao(): {
   apice: [Ponto3D, Ponto3D];
   final: [Ponto3D, Ponto3D];
 } {
-  const RAIO_MIN = 1.5;
-  const RAIO_MAX = 2.3;
-  const RAIO_APICE = 2.4;
-  const MIN_DIST_XZ = 1.7;
-  const Y_APICE_MIN = 2.0;
-  const Y_APICE_MAX = 2.8;
-  const Z_FATOR = 0.55; // achata o eixo Z (profundidade) para nao
-                       // sairem muito pra tras da camera isometrica
+  // Coordenadas calibradas para zoom 120 + camera isometrica:
+  //  viewport vertical ~5 unidades (±2.5 do centro)
+  //  viewport horizontal ~5 unidades (±2.5)
+  // Apice precisa caber DENTRO do viewport para os dados nao sairem
+  // da tela durante o voo. Considerando scale 1.6 no apice + meio
+  // tamanho 0.5 = ate 1.3 unidades de raio do centro do dado.
+  const RAIO_MIN = 1.2;
+  const RAIO_MAX = 1.9;
+  const RAIO_APICE = 1.6;
+  const MIN_DIST_XZ = 1.5;
+  const Y_APICE_MIN = 1.3;
+  const Y_APICE_MAX = 1.8;
+  const Z_FATOR = 0.5; // achata o eixo Z para nao saírem pra tras
 
   // Angulo aleatorio inicial 0..2pi para o dado 1; segundo fica
   // oposto com jitter para os 2 irem em direcoes distintas.

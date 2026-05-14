@@ -41,22 +41,22 @@ export function SwipeAreaDados({
   const habilitado = aguardandoToque && !iniciando;
 
   const TREMOR_MS = 600;
-  const SAIDA_MS = 550; // copo tomba e sai (cubic-bezier suave)
-  // Overlap: dados comecam a "florescer" do ponto do copo um pouco
-  // ANTES do copo sumir totalmente — sensacao de continuidade fluida
-  // em vez de corte abrupto entre as 2 animacoes.
-  const OVERLAP_MS = 220;
+  const SAIDA_MS = 550; // copo desce + encolhe + fade
 
   const lancar = () => {
     if (!habilitado || estadoCopo !== 'idle') return;
     setEstadoCopo('tremor');
-    window.setTimeout(() => setEstadoCopo('saindo'), TREMOR_MS);
-    // Dispara dados ANTES do copo sumir completamente — eles surgem
-    // ja na fase final da saida do copo, dando overlap fluido.
+    // No fim do tremor, copo comeca a sair E dados comecam a animar
+    // SIMULTANEAMENTE — sem isso havia janela ~150ms onde o copo
+    // ja estava fade-out parcial e os dados ainda em escala 0.05
+    // (invisiveis), causando "tela vazia" momentanea.
     window.setTimeout(() => {
+      setEstadoCopo('saindo');
       onLancar();
-    }, TREMOR_MS + SAIDA_MS - OVERLAP_MS);
-    // Quando o copo termina, oculta totalmente
+    }, TREMOR_MS);
+    // Quando o copo termina sua saida (550ms apos virar 'saindo'),
+    // oculta totalmente para os dados ficarem sem concorrer com a
+    // animacao CSS persistente do "forwards".
     window.setTimeout(() => {
       setEstadoCopo('oculto');
     }, TREMOR_MS + SAIDA_MS);
@@ -70,9 +70,14 @@ export function SwipeAreaDados({
   }, [habilitado, estadoCopo]);
 
   const copoVisivel = habilitado && estadoCopo !== 'oculto';
-  // Dados ficam visiveis quando NAO estamos em idle/tremor — comecam
-  // a surgir junto com a saida do copo (overlap fluido).
-  const dadosVisiveis = !habilitado || estadoCopo === 'saindo' || estadoCopo === 'oculto';
+  // Canvas dos dados monta JA NO TREMOR (em vez de esperar 'saindo')
+  // para o Environment HDRI da drei ter tempo de baixar/inicializar
+  // antes dos dados aparecerem. Em idle puro o Canvas nao monta
+  // (economiza GPU enquanto o operador nao tocou).
+  // Os dados ficam invisiveis (scale 0.05) ate iniciar() ser chamado.
+  const dadosVisiveis =
+    !habilitado || estadoCopo === 'tremor' ||
+    estadoCopo === 'saindo' || estadoCopo === 'oculto';
 
   return (
     <div
