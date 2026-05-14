@@ -57,7 +57,7 @@ function FacePips({ valor, normal, rotation }: {
   );
 }
 
-function CuboDado() {
+export function CuboDado() {
   return (
     <>
       <RoundedBox args={[1, 1, 1]} radius={0.085} smoothness={6} bevelSegments={6} creaseAngle={0.4}>

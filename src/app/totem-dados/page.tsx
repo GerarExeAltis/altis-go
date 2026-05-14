@@ -15,7 +15,6 @@ import type { PremioDb } from '@/lib/totem/types';
 import { AttractModeDados } from '@/components/totem/AttractModeDados';
 import { QrCodeScreen } from '@/components/totem/QrCodeScreen';
 import { ModalResultadoPremio } from '@/components/jogos/ModalResultadoPremio';
-import { usarAnimacaoDado } from '@/components/totem/dados/usarAnimacaoDado';
 import { SwipeAreaDados } from '@/components/totem/dados/SwipeAreaDados';
 import { ErroOverlay } from '@/components/totem/ErroOverlay';
 
@@ -165,17 +164,6 @@ function TotemDadosFlow() {
     }
   }, [sessaoIdEstado, accessToken]);
 
-  const { rotations, positions, scales, iniciar } = usarAnimacaoDado({
-    premios,
-    premioVencedorId,
-    reduzir,
-    onConcluir: onAnimacaoConcluir,
-  });
-
-  React.useEffect(() => {
-    if (state.tipo === 'girando') iniciar();
-  }, [state.tipo, iniciar]);
-
   const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
   const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? '';
   const qrUrl =
@@ -244,9 +232,11 @@ function TotemDadosFlow() {
           aguardandoToque={aguardandoToque}
           iniciando={iniciando}
           onLancar={dispararDado}
-          rotations={rotations}
-          positions={positions}
-          scales={scales}
+          iniciarLance={state.tipo === 'girando'}
+          premios={premios}
+          premioVencedorId={premioVencedorId}
+          reduzirMovimento={reduzir}
+          onConcluir={onAnimacaoConcluir}
         />
         <div className="flex items-center justify-center p-6">
           {aguardandoToque && (

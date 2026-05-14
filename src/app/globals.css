@@ -94,33 +94,6 @@
   to   { opacity: 1; }
 }
 
-/* Pequeno balanco vertical do copo enquanto idle — convida ao clique. */
-@keyframes copo-bobbing {
-  0%, 100% { transform: translateY(0) rotate(0deg); }
-  50%      { transform: translateY(-4px) rotate(-1deg); }
-}
-
-/* Tremor controlado: rotacao oscilante na parte superior. */
-@keyframes copo-tremor {
-  0%   { transform: rotate(0deg); }
-  10%  { transform: rotate(-8deg); }
-  25%  { transform: rotate(10deg); }
-  40%  { transform: rotate(-12deg); }
-  55%  { transform: rotate(11deg); }
-  70%  { transform: rotate(-7deg); }
-  85%  { transform: rotate(5deg); }
-  100% { transform: rotate(0deg); }
-}
-
-/* Saida do copo: simples desce + encolhe + fade, sem rotacao.
-   Antes o keyframe tombava 180 graus o que visualmente parecia
-   estranho. Agora e um sumico suave que cede a cena para os dados. */
-@keyframes copo-saindo {
-  0%   { transform: translateY(0)     scale(1.00); opacity: 1; }
-  40%  { transform: translateY(24px)  scale(0.92); opacity: 0.85; }
-  100% { transform: translateY(110px) scale(0.55); opacity: 0; }
-}
-
 @keyframes modal-pop-in {
   0%   { opacity: 0; transform: scale(0.85) translateY(20px); }
   60%  { opacity: 1; transform: scale(1.03) translateY(0); }

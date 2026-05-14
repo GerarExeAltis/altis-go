@@ -2,74 +2,55 @@
 import * as React from 'react';
 import type { JogoDef, PreviewJogoProps } from './types';
 import type { PremioDb } from '@/lib/admin/types';
-import type { PremioDb as PremioTotem } from '@/lib/totem/types';
-import { DadoCanvas } from '@/components/totem/dados/DadoCanvas';
-import { usarAnimacaoDado } from '@/components/totem/dados/usarAnimacaoDado';
+import { MotorFisicaDados } from '@/components/totem/dados/MotorFisicaDados';
 import { usePreferredMotion } from '@/hooks/usePreferredMotion';
 import { Button } from '@/components/ui/button';
 import { Dices, RotateCcw } from 'lucide-react';
 
-function sortearPreview(premios: PremioDb[]): string | null {
+function sortearPreview(premios: PremioDb[]): PremioDb | null {
   const elegiveis = premios.filter((p) => p.peso_base > 0 && (p.estoque_atual > 0 || !p.e_premio_real));
   if (elegiveis.length === 0) return null;
   const pesoTotal = elegiveis.reduce((acc, p) => acc + p.peso_base, 0);
   let r = Math.random() * pesoTotal;
   for (const p of elegiveis) {
     r -= p.peso_base;
-    if (r <= 0) return p.id;
+    if (r <= 0) return p;
   }
-  return elegiveis[elegiveis.length - 1].id;
+  return elegiveis[elegiveis.length - 1];
+}
+
+function faceDoPremio(premio: PremioDb): number {
+  return Math.min(6, Math.max(1, premio.ordem_roleta + 1));
 }
 
 function PreviewDados({ premios }: PreviewJogoProps) {
   const { reduzir } = usePreferredMotion();
-  const [premioVencedorId, setVencedor] = React.useState<string | null>(null);
+  const [faceAlvo, setFaceAlvo] = React.useState(1);
+  const [trigger, setTrigger] = React.useState(0);
   const [girando, setGirando] = React.useState(false);
   const [montarCanvas, setMontarCanvas] = React.useState(false);
+
   React.useEffect(() => {
     const id = setTimeout(() => setMontarCanvas(true), 120);
     return () => clearTimeout(id);
   }, []);
 
-  const premiosTotem = React.useMemo<PremioTotem[]>(
-    () => premios.map((p) => ({
-      id: p.id,
-      nome: p.nome,
-      foto_path: p.foto_path,
-      ordem_roleta: p.ordem_roleta,
-      e_premio_real: p.e_premio_real,
-      estoque_atual: p.estoque_atual,
-      peso_base: p.peso_base,
-    })),
-    [premios]
-  );
-
   const onConcluir = React.useCallback(() => setGirando(false), []);
-
-  const { rotations, positions, scales, iniciar } = usarAnimacaoDado({
-    premios: premiosTotem,
-    premioVencedorId,
-    reduzir,
-    onConcluir,
-  });
-
-  React.useEffect(() => {
-    if (girando && premioVencedorId) iniciar();
-  }, [girando, premioVencedorId, iniciar]);
 
   const rolar = () => {
     if (girando) return;
-    const id = sortearPreview(premios);
-    if (!id) {
+    const p = sortearPreview(premios);
+    if (!p) {
       alert('Nenhum premio elegivel (sem peso/estoque)');
       return;
     }
-    setVencedor(id);
+    setFaceAlvo(faceDoPremio(p));
+    setTrigger((t) => t + 1);
     setGirando(true);
   };
 
   const reset = () => {
-    setVencedor(null);
+    setFaceAlvo(1);
     setGirando(false);
   };
 
@@ -79,12 +60,6 @@ function PreviewDados({ premios }: PreviewJogoProps) {
         Nenhum premio cadastrado. Adicione premios para visualizar o dado.
       </p>
     );
-  }
-
-  if (premios.length > 6) {
-    // Aviso UX: o dado so tem 6 faces, premios alem do indice 5 vao
-    // reusar faces. O sorteio do backend continua correto, mas o
-    // visual do dado nao bate com a posicao do premio na lista.
   }
 
   return (
@@ -102,7 +77,12 @@ function PreviewDados({ premios }: PreviewJogoProps) {
           style={{ width: 480, height: 480, maxWidth: '100%', flexShrink: 0 }}
         >
           {montarCanvas ? (
-            <DadoCanvas rotations={rotations} positions={positions} scales={scales} count={2} zoom={100} />
+            <MotorFisicaDados
+              faceAlvo={faceAlvo}
+              lancarTrigger={trigger}
+              reduzirMovimento={reduzir}
+              onConcluir={onConcluir}
+            />
           ) : (
             <span className="text-sm text-muted-foreground">Carregando dado...</span>
           )}
@@ -114,13 +94,7 @@ function PreviewDados({ premios }: PreviewJogoProps) {
           <Dices className="h-4 w-4" />
           {girando ? 'Rolando...' : 'Rolar'}
         </Button>
-        <Button
-          size="lg"
-          variant="outline"
-          onClick={reset}
-          disabled={girando || !premioVencedorId}
-          className="gap-2"
-        >
+        <Button size="lg" variant="outline" onClick={reset} disabled={girando} className="gap-2">
           <RotateCcw className="h-4 w-4" />
           Resetar
         </Button>
