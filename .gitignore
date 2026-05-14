@@ -61,3 +61,6 @@ pnpm-debug.log*
 /test-results/
 /playwright-report/
 /playwright/.cache/
+
+# Supabase Studio snippets locais (scratch SQL, nao versionar)
+supabase/snippets/
