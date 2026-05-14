@@ -1,15 +1,9 @@
 'use client';
 import * as React from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
-import { RoundedBox, ContactShadows, Environment } from '@react-three/drei';
+import { RoundedBox, ContactShadows, Environment, Trail } from '@react-three/drei';
 import * as THREE from 'three';
 
-/**
- * Convencao das faces:
- *   1 -> +Y (cima)    6 -> -Y (baixo)
- *   2 -> +Z (frente)  5 -> -Z (tras)
- *   3 -> +X (direita) 4 -> -X (esquerda)
- */
 export const ROTACOES_FACES: Record<number, [number, number, number]> = {
   1: [0, 0, 0],
   2: [-Math.PI / 2, 0, 0],
@@ -32,12 +26,6 @@ function pipsPorFace(valor: number): Array<[number, number]> {
   }
 }
 
-/**
- * Pip 3D: pequena esfera escura "embutida" na face, com material
- * lustroso (baixa rugosidade, leve metalness) para parecer cavidade
- * polida no dado de cassino real. Usa half-sphere posicionada
- * ligeiramente fora da face — refletida pela iluminacao.
- */
 function FacePips({ valor, normal, rotation }: {
   valor: number;
   normal: [number, number, number];
@@ -62,10 +50,6 @@ function FacePips({ valor, normal, rotation }: {
   );
 }
 
-/**
- * Cubo dado com cantos arredondados (RoundedBox da drei), material
- * marfim levemente reflexivo. Pips em todas as 6 faces.
- */
 function CuboDado() {
   return (
     <>
@@ -87,10 +71,17 @@ function CuboDado() {
   );
 }
 
-function Dado({ rotation, position, scale = 1 }: {
+/**
+ * Dado controlado externamente (rotation+position+scale). Envolto em
+ * <Trail> da drei quando `trail=true` — produz um rastro luminoso
+ * turquesa atras do dado, visualizando a trajetoria. attenuation
+ * cubica faz o rastro afinar conforme se distancia do dado.
+ */
+function Dado({ rotation, position, scale = 1, trail = false }: {
   rotation: [number, number, number];
   position: [number, number, number];
   scale?: number;
+  trail?: boolean;
 }) {
   const groupRef = React.useRef<THREE.Group | null>(null);
   React.useEffect(() => {
@@ -100,10 +91,23 @@ function Dado({ rotation, position, scale = 1 }: {
     groupRef.current.scale.set(scale, scale, scale);
   }, [rotation, position, scale]);
 
-  return (
-    <group ref={groupRef} castShadow>
+  const conteudo = (
+    <group ref={groupRef}>
       <CuboDado />
     </group>
+  );
+
+  if (!trail) return conteudo;
+
+  return (
+    <Trail
+      width={1.6}
+      length={5}
+      color={new THREE.Color('#4afad4')}
+      attenuation={(t) => t * t}
+    >
+      {conteudo}
+    </Trail>
   );
 }
 
@@ -129,7 +133,7 @@ function DadoAutoRotate({ position, speedScale = 1, hover = false }: {
   });
 
   return (
-    <group ref={groupRef} castShadow>
+    <group ref={groupRef}>
       <CuboDado />
     </group>
   );
@@ -144,16 +148,10 @@ interface Props {
   zoom?: number;
   autoRotateSpeed?: number;
   hover?: boolean;
+  /** Quando true, desenha um Trail luminoso atras de cada dado (durante o lance). */
+  trail?: boolean;
 }
 
-/**
- * Renderiza ate 2 dados em cena com:
- *  - RoundedBox geometria (cantos suaves estilo dado de cassino)
- *  - MeshStandardMaterial + Environment "city" para reflexos sutis
- *  - ContactShadows (sombra projetada realista no chao)
- *  - Iluminacao em 3 pontos: key (directional), fill (ambient warm),
- *    rim (point primary turquesa para acento Altis)
- */
 export function DadoCanvas({
   rotations,
   positions,
@@ -163,6 +161,7 @@ export function DadoCanvas({
   zoom = 100,
   autoRotateSpeed = 1,
   hover = false,
+  trail = false,
 }: Props) {
   const basePositions: Array<[number, number, number]> =
     count === 1 ? [[0, 0, 0]] : [[-0.9, 0, 0], [0.9, 0, 0]];
@@ -181,7 +180,6 @@ export function DadoCanvas({
         }}
         gl={{ antialias: true, toneMapping: THREE.ACESFilmicToneMapping, toneMappingExposure: 1.0 }}
       >
-        {/* Iluminacao em 3 pontos para volume + acento de marca */}
         <ambientLight intensity={0.35} color="#fff5e6" />
         <directionalLight
           position={[4, 6, 4]}
@@ -198,10 +196,8 @@ export function DadoCanvas({
         <directionalLight position={[-3, 2, -3]} intensity={0.35} color="#dbe6ff" />
         <pointLight position={[0, 1.2, 2.5]} intensity={0.6} color="#4afad4" distance={6} />
 
-        {/* Reflexos sutis no dado (HDRI generico) */}
         <Environment preset="city" />
 
-        {/* Sombra de contato no "chao" — Y = -0.6 onde os dados pousam */}
         <ContactShadows
           position={[0, -0.6, 0]}
           opacity={0.55}
@@ -231,6 +227,7 @@ export function DadoCanvas({
                   rotation={rots[i] ?? [0, 0, 0]}
                   position={finalPos}
                   scale={scales?.[i] ?? 1}
+                  trail={trail}
                 />
               )}
             </React.Fragment>

@@ -92,7 +92,8 @@ export function SwipeAreaDados({
         </div>
       )}
 
-      {/* Canvas 3D com os dados — so monta quando o copo saiu */}
+      {/* Canvas 3D com os dados — o Trail luminoso so liga durante
+          a animacao (iniciando), nao no estado final pos-resultado. */}
       {dadosVisiveis && (
         <DadoCanvas
           rotations={rotations}
@@ -100,6 +101,7 @@ export function SwipeAreaDados({
           scales={scales}
           count={2}
           zoom={120}
+          trail={iniciando}
         />
       )}
     </div>
