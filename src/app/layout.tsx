@@ -6,7 +6,7 @@ import '@/sentry.client.config';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Altis Bet',
+  title: 'AltisGo',
   description: 'Plataforma de jogos com premiação — Altis Sistemas',
 };
 

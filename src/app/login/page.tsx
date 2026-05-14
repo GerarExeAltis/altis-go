@@ -12,7 +12,7 @@ export default function LoginPage() {
         <div className="flex flex-col items-center gap-3 text-center">
           <Image
             src="/altis-bet-logo.png"
-            alt="Altis Bet"
+            alt="AltisGo"
             width={240}
             height={80}
             priority
