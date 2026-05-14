@@ -198,13 +198,18 @@ export function DadoCanvas({
 
         <Environment preset="city" />
 
+        {/* Sombra logo abaixo da BASE dos dados. Como o cubo tem aresta
+            1.0 e a base esta em y=-0.5 quando o centro esta em y=0,
+            posicionamos a sombra em y=-0.52 (encostada na base) com
+            area ampla (scale 14) cobrindo todas as posicoes de
+            dispersao aleatoria. */}
         <ContactShadows
-          position={[0, -0.6, 0]}
-          opacity={0.55}
-          scale={6}
-          blur={2.4}
-          far={2}
-          resolution={512}
+          position={[0, -0.52, 0]}
+          opacity={0.5}
+          scale={14}
+          blur={2.0}
+          far={1.5}
+          resolution={1024}
           color="#0a1d1c"
         />
 

@@ -17,63 +17,78 @@ function faceDoPremio(premio: PremioDb): number {
 
 interface RotState { x: number; y: number; z: number; }
 interface PosState { x: number; y: number; z: number; }
-interface Ponto2D  { x: number; y: number; }
+interface Ponto3D { x: number; y: number; z: number; }
 
 /**
- * Gera posicoes finais ESPALHADAS pela area do canvas com angulos
- * aleatorios. Aplica relaxamento (repulsao) — se os 2 dados ficarem
- * mais perto que `minDist`, sao empurrados pra lados opostos ate
- * a distancia minima ser respeitada. Evita aglomeracao.
+ * Gera posicoes finais ESPALHADAS no plano XZ (chao da cena) — Y e
+ * o eixo VERTICAL no Three.js, entao Y final precisa ser 0 (apoio
+ * no chao). Antes o codigo usava plano XY o que fazia dados ficarem
+ * suspensos no ar e empilhados na perspectiva da camera isometrica.
  *
- * Area util do canvas (zoom 120, viewport ~5x4 unidades):
- *   x ∈ [-2.6, 2.6]    y ∈ [-0.4, 0.6]
+ * Aplica repulsao: se distancia em XZ < MIN_DIST, empurra.
+ *
+ * Area util do canvas (camera ortografica isometrica zoom 120):
+ *   x ∈ [-2.6, 2.6]    z ∈ [-1.6, 1.6] (limitado pra nao sair pra
+ *   tras da camera). y final fixo em 0 (chao).
  */
 function calcularDispersao(): {
-  apice: [Ponto2D, Ponto2D];
-  final: [Ponto2D, Ponto2D];
-  anguloRot: [number, number];
+  apice: [Ponto3D, Ponto3D];
+  final: [Ponto3D, Ponto3D];
 } {
-  const RAIO_FINAL_MIN = 1.4;
-  const RAIO_FINAL_MAX = 2.2;
-  const RAIO_APICE = 2.3;
-  const MIN_DIST = 1.6;
+  const RAIO_MIN = 1.5;
+  const RAIO_MAX = 2.3;
+  const RAIO_APICE = 2.4;
+  const MIN_DIST_XZ = 1.7;
   const Y_APICE_MIN = 2.0;
   const Y_APICE_MAX = 2.8;
+  const Z_FATOR = 0.55; // achata o eixo Z (profundidade) para nao
+                       // sairem muito pra tras da camera isometrica
 
-  // Angulo aleatorio inicial entre 0 e 2pi; segundo dado fica ~oposto
-  // (com leve variacao) para abrir bem em direcoes distintas.
+  // Angulo aleatorio inicial 0..2pi para o dado 1; segundo fica
+  // oposto com jitter para os 2 irem em direcoes distintas.
   const a1 = Math.random() * Math.PI * 2;
   const a2 = a1 + Math.PI + (Math.random() - 0.5) * 0.8;
 
-  const d1 = RAIO_FINAL_MIN + Math.random() * (RAIO_FINAL_MAX - RAIO_FINAL_MIN);
-  const d2 = RAIO_FINAL_MIN + Math.random() * (RAIO_FINAL_MAX - RAIO_FINAL_MIN);
+  const d1 = RAIO_MIN + Math.random() * (RAIO_MAX - RAIO_MIN);
+  const d2 = RAIO_MIN + Math.random() * (RAIO_MAX - RAIO_MIN);
 
-  const final: [Ponto2D, Ponto2D] = [
-    { x: Math.cos(a1) * d1, y: (Math.sin(a1) * d1) * 0.18 }, // achatado no Y final (chao)
-    { x: Math.cos(a2) * d2, y: (Math.sin(a2) * d2) * 0.18 },
+  // y=-0.02: dado fica ligeiramente abaixo do "centro" do canvas,
+  // alinhado com a ContactShadows em y=-0.52 (base do dado encostada
+  // no chao da cena). Sem isso parecia levitando.
+  const final: [Ponto3D, Ponto3D] = [
+    { x: Math.cos(a1) * d1, y: -0.02, z: Math.sin(a1) * d1 * Z_FATOR },
+    { x: Math.cos(a2) * d2, y: -0.02, z: Math.sin(a2) * d2 * Z_FATOR },
   ];
 
-  // Relaxamento: se muito proximos, empurra ate respeitar MIN_DIST
+  // Repulsao no plano XZ
   const dx = final[0].x - final[1].x;
-  const dy = final[0].y - final[1].y;
-  const d = Math.hypot(dx, dy);
-  if (d < MIN_DIST) {
+  const dz = final[0].z - final[1].z;
+  const d = Math.hypot(dx, dz);
+  if (d < MIN_DIST_XZ) {
     const ux = d > 0.001 ? dx / d : 1;
-    const uy = d > 0.001 ? dy / d : 0;
-    const push = (MIN_DIST - d) / 2 + 0.1;
+    const uz = d > 0.001 ? dz / d : 0;
+    const push = (MIN_DIST_XZ - d) / 2 + 0.15;
     final[0].x += ux * push;
-    final[0].y += uy * push;
+    final[0].z += uz * push;
     final[1].x -= ux * push;
-    final[1].y -= uy * push;
+    final[1].z -= uz * push;
   }
 
-  // Apice no caminho — mesmo angulo, raio maior, Y alto
-  const apice: [Ponto2D, Ponto2D] = [
-    { x: Math.cos(a1) * RAIO_APICE, y: Y_APICE_MIN + Math.random() * (Y_APICE_MAX - Y_APICE_MIN) },
-    { x: Math.cos(a2) * RAIO_APICE, y: Y_APICE_MIN + Math.random() * (Y_APICE_MAX - Y_APICE_MIN) },
+  // Apice da trajetoria — mesmo angulo no plano XZ, Y elevado
+  const apice: [Ponto3D, Ponto3D] = [
+    {
+      x: Math.cos(a1) * RAIO_APICE,
+      y: Y_APICE_MIN + Math.random() * (Y_APICE_MAX - Y_APICE_MIN),
+      z: Math.sin(a1) * RAIO_APICE * Z_FATOR,
+    },
+    {
+      x: Math.cos(a2) * RAIO_APICE,
+      y: Y_APICE_MIN + Math.random() * (Y_APICE_MAX - Y_APICE_MIN),
+      z: Math.sin(a2) * RAIO_APICE * Z_FATOR,
+    },
   ];
 
-  return { apice, final, anguloRot: [a1, a2] };
+  return { apice, final };
 }
 
 /**
@@ -192,7 +207,7 @@ export function usarAnimacaoDado({
       rotRefs.current.forEach((ref, i) => {
         tl.to(ref, { x: rxAlvo, y: ryAlvo, z: rzAlvo, duration: 0.5, ease: 'power1.inOut' }, 0);
         tl.to(posRefs.current[i], {
-          x: dispersao.final[i].x, y: dispersao.final[i].y, z: 0, duration: 0.5,
+          x: dispersao.final[i].x, y: dispersao.final[i].y, z: dispersao.final[i].z, duration: 0.5,
         }, 0);
         tl.to(scaleRefs.current[i], { s: 1, duration: 0.5 }, 0);
       });
@@ -228,6 +243,7 @@ export function usarAnimacaoDado({
       tl.to(scl, { s: 1.6, duration: T_LANCAMENTO, ease: 'back.out(1.4)' }, 0);
       tl.to(pos, { x: apice.x, duration: T_LANCAMENTO, ease: 'power2.out' }, 0);
       tl.to(pos, { y: apice.y, duration: T_LANCAMENTO, ease: 'power2.out' }, 0);
+      tl.to(pos, { z: apice.z, duration: T_LANCAMENTO, ease: 'power2.out' }, 0);
       tl.to(ref, {
         x: '+=' + Math.PI * 3 * xMult,
         y: '+=' + Math.PI * 3 * yMult,
@@ -248,10 +264,11 @@ export function usarAnimacaoDado({
         ease: 'none',
       }, apiceStart);
 
-      // QUEDA — cai em arco ate o final disperso
+      // QUEDA — cai em arco ate o final disperso (no plano XZ)
       const quedaStart = apiceStart + T_APICE;
       tl.to(pos, { x: final.x, duration: T_QUEDA, ease: 'power2.inOut' }, quedaStart);
       tl.to(pos, { y: final.y, duration: T_QUEDA, ease: 'power2.in' }, quedaStart);
+      tl.to(pos, { z: final.z, duration: T_QUEDA, ease: 'power2.inOut' }, quedaStart);
       tl.to(scl, { s: 1.0, duration: T_QUEDA, ease: 'power1.inOut' }, quedaStart);
       tl.to(ref, { x: finalRotX, duration: T_QUEDA, ease: 'power3.out' }, quedaStart);
       tl.to(ref, { y: finalRotY, duration: T_QUEDA, ease: 'expo.out' }, quedaStart);
