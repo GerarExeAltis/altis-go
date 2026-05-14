@@ -19,7 +19,7 @@ export interface DadosJogadorInput {
   nome: string;
   telefone: string;
   email: string;
-  loja_id: string | null;
+  empresa: string | null;
 }
 
 export async function submeterDados(
@@ -38,6 +38,31 @@ export async function submeterDados(
     throw new Error(`${body.codigo ?? 'ERR'}|${body.erro ?? 'submeter-dados falhou'}`);
   }
   return body as SubmeterDadosResp;
+}
+
+export interface StatusSessao {
+  status: string;
+  premio_sorteado_id: string | null;
+}
+
+/**
+ * Polling minimo do status da sessao para o celular.
+ * Celular usa anon-key e nao pode ler sessoes_jogo direto (RLS) nem
+ * receber postgres_changes via Realtime (RLS tambem aplicada). Edge
+ * Function obter-status retorna apenas status + premio_sorteado_id
+ * com service_role apos validar o token JWT da sessao.
+ */
+export async function obterStatus(s: string, t: string): Promise<StatusSessao> {
+  const res = await fetch(`${env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/obter-status`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ s, t }),
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(`${body.codigo ?? 'ERR'}|${body.erro ?? 'obter-status falhou'}`);
+  }
+  return res.json() as Promise<StatusSessao>;
 }
 
 /** Jogador no celular dispara a animacao da roleta no totem. */

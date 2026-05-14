@@ -4,8 +4,7 @@ import { useSearchParams } from 'next/navigation';
 import { obterSessao, submeterDados } from '@/lib/jogar/edgeFunctions';
 import type { ObterSessaoResp } from '@/lib/jogar/types';
 import { useFingerprint } from '@/hooks/useFingerprint';
-import { useSessaoRealtime } from '@/hooks/useSessaoRealtime';
-import { getSupabaseBrowserClient } from '@/lib/supabase/browser';
+import { usePollingStatus } from '@/hooks/usePollingStatus';
 import { FormJogador, type DadosForm } from '@/components/jogar/FormJogador';
 import { CatalogoPremios } from '@/components/jogar/CatalogoPremios';
 import { AguardandoTotem } from '@/components/jogar/AguardandoTotem';
@@ -89,36 +88,29 @@ function Jogar() {
     );
   }, [s, t]);
 
-  const sessaoIdAtiva = fase === 'aguardando' && sessao ? sessao.sessao.id : null;
-  const { payload } = useSessaoRealtime(sessaoIdAtiva);
+  // Polling do status enquanto a sessao esta viva (form ja submetido).
+  // Nao usamos Realtime porque o celular e anon e a RLS de sessoes_jogo
+  // so libera SELECT para authenticated — Realtime postgres_changes
+  // aplica RLS e nao entrega events. obter-status e PII-safe.
+  const pollingAtivo = fase === 'aguardando' || fase === 'finalizado';
+  const { status: payload } = usePollingStatus(
+    pollingAtivo && sessao ? sessao.sessao.id : null,
+    pollingAtivo ? t : null,
+  );
 
-  // Busca o premio sorteado direto do banco no momento de mostrar o
-  // resultado — fonte da verdade unica, evita divergencia entre o nome
-  // mostrado no totem e no celular caso o admin tenha renomeado o premio
-  // depois que obter-sessao retornou.
-  const [premioSorteado, setPremioSorteado] = React.useState<
-    { nome: string; e_premio_real: boolean; foto_path: string | null } | null
-  >(null);
-
-  React.useEffect(() => {
-    if (fase !== 'finalizado' || !payload?.premio_sorteado_id) {
-      setPremioSorteado(null);
-      return;
-    }
-    const sb = getSupabaseBrowserClient();
-    const pid = payload.premio_sorteado_id;
-    let alive = true;
-    sb.from('premios')
-      .select('nome, e_premio_real, foto_path')
-      .eq('id', pid)
-      .single()
-      .then(({ data }) => {
-        if (alive && data) {
-          setPremioSorteado(data as { nome: string; e_premio_real: boolean; foto_path: string | null });
-        }
-      });
-    return () => { alive = false; };
-  }, [fase, payload]);
+  // Resolve o premio sorteado usando o array `premios` que veio do
+  // obter-sessao inicial (mesma viagem que populou o catalogo). Anon
+  // nao pode fazer select direto na tabela premios via supabase-js.
+  const premioSorteado = React.useMemo(() => {
+    if (fase !== 'finalizado' || !payload?.premio_sorteado_id || !sessao) return null;
+    const p = sessao.premios.find((x) => x.id === payload.premio_sorteado_id);
+    if (!p) return null;
+    return {
+      nome: p.nome,
+      e_premio_real: p.e_premio_real,
+      foto_path: p.foto_path ?? null,
+    };
+  }, [fase, payload, sessao]);
 
   React.useEffect(() => {
     if (!payload) return;
@@ -202,7 +194,7 @@ function Jogar() {
 
       <CatalogoPremios premios={sessao.premios} />
 
-      <FormJogador lojas={sessao.lojas} onSubmit={onSubmit} enviando={enviando} />
+      <FormJogador onSubmit={onSubmit} enviando={enviando} />
 
       <p className="mt-4 text-center text-xs text-muted-foreground">
         Ao participar, você concorda com a Política de Privacidade da Altis.

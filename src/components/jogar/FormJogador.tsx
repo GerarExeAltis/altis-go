@@ -3,11 +3,9 @@ import * as React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import type { LojaPublica } from '@/lib/jogar/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 
 const DDDS = new Set([
@@ -27,7 +25,7 @@ const schema = z.object({
       .refine((v) => v[2] === '9', 'celular precisa começar com 9 após DDD')
   ),
   email: z.string().email('e-mail inválido'),
-  loja_id: z.string().uuid().nullable().optional(),
+  empresa: z.string().trim().max(120).optional(),
   lgpd: z.boolean().refine((v) => v === true, 'Você precisa aceitar a Política de Privacidade.'),
 });
 type FormValues = z.infer<typeof schema>;
@@ -36,19 +34,18 @@ export interface DadosForm {
   nome: string;
   telefone: string;
   email: string;
-  loja_id: string | null;
+  empresa: string | null;
 }
 
 interface Props {
-  lojas: LojaPublica[];
   onSubmit: (dados: DadosForm) => void;
   enviando?: boolean;
 }
 
-export function FormJogador({ lojas, onSubmit, enviando }: Props) {
+export function FormJogador({ onSubmit, enviando }: Props) {
   const { register, handleSubmit, formState: { errors } } = useForm<FormValues>({
     resolver: zodResolver(schema),
-    defaultValues: { nome: '', telefone: '', email: '', loja_id: undefined, lgpd: false },
+    defaultValues: { nome: '', telefone: '', email: '', empresa: '', lgpd: false },
   });
 
   const submit = (data: FormValues) => {
@@ -56,7 +53,7 @@ export function FormJogador({ lojas, onSubmit, enviando }: Props) {
       nome: data.nome,
       telefone: data.telefone,
       email: data.email,
-      loja_id: data.loja_id ?? null,
+      empresa: data.empresa && data.empresa.length > 0 ? data.empresa : null,
     });
   };
 
@@ -88,18 +85,15 @@ export function FormJogador({ lojas, onSubmit, enviando }: Props) {
       </div>
 
       <div className="space-y-1.5">
-        <Label htmlFor="loja">Loja (opcional)</Label>
-        <Select
-          id="loja"
-          {...register('loja_id', { setValueAs: (v: string) => (v === '' ? null : v) })}
-        >
-          <option value="">— Selecione —</option>
-          {lojas.map((l) => (
-            <option key={l.id} value={l.id}>
-              {l.nome}{l.cidade ? ` (${l.cidade})` : ''}
-            </option>
-          ))}
-        </Select>
+        <Label htmlFor="empresa">Empresa (opcional)</Label>
+        <Input
+          id="empresa"
+          type="text"
+          autoComplete="organization"
+          placeholder="Nome da empresa onde você trabalha"
+          {...register('empresa')}
+        />
+        {errors.empresa && <p className="text-sm text-destructive">{errors.empresa.message}</p>}
       </div>
 
       <Checkbox

@@ -40,7 +40,7 @@ export interface GanhadorDb {
   jogador_nome: string;
   jogador_telefone: string;
   jogador_email: string;
-  jogador_loja_id: string | null;
+  jogador_empresa: string | null;
   ganho_em: string;
   entregue: boolean;
   entregue_em: string | null;
@@ -59,13 +59,6 @@ export interface AuditoriaDb {
   ip: string | null;
   user_agent: string | null;
   criado_em: string;
-}
-
-export interface LojaDb {
-  id: string;
-  nome: string;
-  cidade: string | null;
-  ativa: boolean;
 }
 
 export interface FingerprintBloqueadoDb {
