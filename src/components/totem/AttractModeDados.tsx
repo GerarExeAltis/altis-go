@@ -33,15 +33,6 @@ export function AttractModeDados({ onTocar, disabled, premios }: Props) {
       className="relative flex min-h-screen w-full flex-col items-center justify-center overflow-hidden bg-background text-center transition-opacity disabled:opacity-50"
       aria-label="Toque para participar dos Dados da Sorte"
     >
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 animate-[ganhador-bg-pulse_4s_ease-in-out_infinite]"
-        style={{
-          background:
-            'radial-gradient(ellipse at center, hsl(var(--primary) / 0.18) 0%, transparent 60%)',
-        }}
-      />
-
       <div className="pointer-events-none absolute left-8 top-8 h-32 w-32 opacity-60">
         <img
           src={`${BASE_PATH}/altis-animacao.gif`}
