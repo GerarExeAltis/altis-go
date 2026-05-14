@@ -2,7 +2,9 @@
 import * as React from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { RoundedBox, ContactShadows, Environment, Trail } from '@react-three/drei';
+import { EffectComposer, Bloom, SMAA } from '@react-three/postprocessing';
 import * as THREE from 'three';
+import { texturaPipsParaFace, PIPS_PLANO_TAMANHO } from './texturasPipsFace';
 
 export const ROTACOES_FACES: Record<number, [number, number, number]> = {
   1: [0, 0, 0],
@@ -13,47 +15,45 @@ export const ROTACOES_FACES: Record<number, [number, number, number]> = {
   6: [Math.PI, 0, 0],
 };
 
-function pipsPorFace(valor: number): Array<[number, number]> {
-  const o = 0.28;
-  switch (valor) {
-    case 1: return [[0, 0]];
-    case 2: return [[-o, -o], [o, o]];
-    case 3: return [[-o, -o], [0, 0], [o, o]];
-    case 4: return [[-o, -o], [-o, o], [o, -o], [o, o]];
-    case 5: return [[-o, -o], [-o, o], [0, 0], [o, -o], [o, o]];
-    case 6: return [[-o, -o], [-o, 0], [-o, o], [o, -o], [o, 0], [o, o]];
-    default: return [];
-  }
-}
-
+// Pips renderizados como UM plano texturizado por face em vez de
+// 6 esferas. Tecnica usada por Dice So Nice (Foundry VTT) e
+// @3d-dice/dice-box-threejs: o pip e desenhado num canvas 2D
+// (gradiente radial + highlight) e aplicado como mapa de cor com
+// alphaTest. Vantagens vs geometria:
+//   - Zero risco de z-fighting (nao ha duas superficies competindo
+//     no mesmo plano — o plano texturizado fica 0.001 a frente da
+//     face e e a unica geometria naquele z).
+//   - 1 draw call por face em vez de ate 6 esferas.
+//   - Pips ja vem com sombreado pintado (radial gradient simula
+//     a cavidade) — mais barato e mais consistente que iluminacao
+//     dinamica em 6 esferas pequenas.
 function FacePips({ valor, normal, rotation }: {
   valor: number;
   normal: [number, number, number];
   rotation: [number, number, number];
 }) {
-  const pips = pipsPorFace(valor);
-  // offset=0.5 alinha o centro do grupo de pips EXATAMENTE na face
-  // do cubo. Cada pip individual e empurrado pra DENTRO (z=-0.04),
-  // simulando uma cavidade superficial — esfera afundada na face,
-  // nao bola pra fora.
-  // O risco de z-fighting (face do cubo competindo com superficie
-  // da esfera no plano de tangencia) e mitigado pelo polygonOffset
-  // aplicado ao material da face logo abaixo.
-  const offset = 0.5;
+  const textura = React.useMemo(() => texturaPipsParaFace(valor), [valor]);
+  if (!textura) return null;
+
+  // 0.501 = ligeiramente a frente da face do cubo (face em 0.5).
+  // O plano e a unica geometria naquele z, entao 1 unidade de
+  // sobre-offset basta — sem polygonOffset ou alphaTest.
+  const offsetFace = 0.501;
   return (
-    <group rotation={rotation} position={[normal[0] * offset, normal[1] * offset, normal[2] * offset]}>
-      {pips.map(([x, y], i) => (
-        <mesh key={i} position={[x, y, -0.04]}>
-          <sphereGeometry args={[0.075, 24, 24]} />
-          <meshStandardMaterial
-            color="#0a1518"
-            roughness={0.25}
-            metalness={0.55}
-            envMapIntensity={0.6}
-          />
-        </mesh>
-      ))}
-    </group>
+    <mesh
+      rotation={rotation}
+      position={[normal[0] * offsetFace, normal[1] * offsetFace, normal[2] * offsetFace]}
+    >
+      <planeGeometry args={[PIPS_PLANO_TAMANHO, PIPS_PLANO_TAMANHO]} />
+      <meshStandardMaterial
+        map={textura}
+        transparent
+        alphaTest={0.15}
+        roughness={0.32}
+        metalness={0.4}
+        envMapIntensity={0.55}
+      />
+    </mesh>
   );
 }
 
@@ -66,9 +66,6 @@ function CuboDado() {
           roughness={0.42}
           metalness={0.08}
           envMapIntensity={0.55}
-          polygonOffset
-          polygonOffsetFactor={1}
-          polygonOffsetUnits={1}
         />
       </RoundedBox>
       <FacePips valor={1} normal={[0, 1, 0]}  rotation={[-Math.PI / 2, 0, 0]} />
@@ -248,6 +245,21 @@ export function DadoCanvas({
             </React.Fragment>
           );
         })}
+
+        {/* Postprocessing: SMAA suaviza arestas (substitui MSAA — mais
+            barato no nivel de qualidade que queremos) e Bloom leve em
+            highlights especulares dos pips e do cubo. luminanceThreshold
+            alto (0.85) limita o bloom a reflexos brilhantes — sem
+            "estourar" a cena. */}
+        <EffectComposer multisampling={0}>
+          <SMAA />
+          <Bloom
+            intensity={0.35}
+            luminanceThreshold={0.85}
+            luminanceSmoothing={0.2}
+            mipmapBlur
+          />
+        </EffectComposer>
       </Canvas>
     </div>
   );
