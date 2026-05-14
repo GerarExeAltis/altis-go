@@ -61,16 +61,18 @@ function CuboDado() {
   );
 }
 
-function Dado({ rotation, position }: {
+function Dado({ rotation, position, scale = 1 }: {
   rotation: [number, number, number];
   position: [number, number, number];
+  scale?: number;
 }) {
   const groupRef = React.useRef<THREE.Group | null>(null);
   React.useEffect(() => {
     if (!groupRef.current) return;
     groupRef.current.rotation.set(rotation[0], rotation[1], rotation[2]);
     groupRef.current.position.set(position[0], position[1], position[2]);
-  }, [rotation, position]);
+    groupRef.current.scale.set(scale, scale, scale);
+  }, [rotation, position, scale]);
 
   return (
     <group ref={groupRef}>
@@ -142,6 +144,8 @@ interface Props {
   rotations?: Array<[number, number, number]>;
   /** Posicoes (offsets) de cada dado em relacao a sua base. */
   positions?: Array<[number, number, number]>;
+  /** Escala de cada dado (1=normal, >1=maior, <1=menor). Default todos 1. */
+  scales?: number[];
   /** Quando true, dados giram em loop sem destino. */
   autoRotate?: boolean;
   /** Quantos dados renderizar (1 ou 2). Default 2. */
@@ -157,6 +161,7 @@ interface Props {
 export function DadoCanvas({
   rotations,
   positions,
+  scales,
   autoRotate = false,
   count = 2,
   zoom = 100,
@@ -207,7 +212,7 @@ export function DadoCanvas({
                   hover={hover}
                 />
               ) : (
-                <Dado rotation={rots[i] ?? [0, 0, 0]} position={finalPos} />
+                <Dado rotation={rots[i] ?? [0, 0, 0]} position={finalPos} scale={scales?.[i] ?? 1} />
               )}
             </React.Fragment>
           );

@@ -165,7 +165,7 @@ function TotemDadosFlow() {
     }
   }, [sessaoIdEstado, accessToken]);
 
-  const { rotations, positions, iniciar } = usarAnimacaoDado({
+  const { rotations, positions, scales, iniciar } = usarAnimacaoDado({
     premios,
     premioVencedorId,
     reduzir,
@@ -246,6 +246,7 @@ function TotemDadosFlow() {
           onLancar={dispararDado}
           rotations={rotations}
           positions={positions}
+          scales={scales}
         />
         <div className="flex items-center justify-center p-6">
           {aguardandoToque && (

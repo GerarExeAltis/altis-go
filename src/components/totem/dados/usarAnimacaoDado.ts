@@ -19,25 +19,21 @@ interface RotState { x: number; y: number; z: number; }
 interface PosState { x: number; y: number; z: number; }
 
 /**
- * Animacao estilo "Duelo de Dados" / Yahtzee:
+ * Sequencia da animacao apos o copo sair de cena (controlada por
+ * SwipeAreaDados): exatamente 3 SEGUNDOS de rotacao+giro com os dados
+ * encolhendo de scale=1.6 -> 1.0 (efeito zoom-out enquanto rolam).
+ * Apos os 3s, dados param na face do premio com leve inclinacao e
+ * giro suave continuo (bobbing).
  *
- *   FASE 1 — Saida do copo (350ms): dados saem voando pra cima do
- *            canto superior esquerdo (posicao do copo) ate o centro
- *            superior da area, com bastante rotacao inicial.
- *   FASE 2 — Queda parabolica (500ms): dados caem em arcos cruzados
- *            (um vai pela direita, outro pela esquerda — eles SE
- *            CRUZAM no meio do arco, dando o efeito de colisao).
- *   FASE 3 — Colisao + ricochete (250ms): no ponto de cruzamento,
- *            cada dado ganha uma deflexao lateral oposta + rotacao
- *            extra (sensacao de "bateu e quicou").
- *   FASE 4 — Quica no chao (400ms): Y oscila 2x diminuindo.
- *   FASE 5 — Assenta (1.2s): rotacao final converge na face do premio.
+ * O hook retorna rotations[], positions[] e scales[] que o
+ * DadoCanvas aplica.
  */
 export function usarAnimacaoDado({
   premios, premioVencedorId, reduzir, onConcluir,
 }: Args): {
   rotations: Array<[number, number, number]>;
   positions: Array<[number, number, number]>;
+  scales: number[];
   iniciar: () => void;
   reset: () => void;
 } {
@@ -47,10 +43,7 @@ export function usarAnimacaoDado({
   const [positions, setPositions] = React.useState<Array<[number, number, number]>>([
     [0, 0, 0], [0, 0, 0],
   ]);
-
-  // Posicoes "dentro do copo": canto superior esquerdo do canvas
-  // (Y alto, X negativo). Quando o lance comeca, partem dali.
-  const POS_DENTRO_COPO: PosState = { x: -3.5, y: 3, z: 0 };
+  const [scales, setScales] = React.useState<number[]>([1, 1]);
 
   const rotRefs = React.useRef<[RotState, RotState]>([
     { x: 0, y: 0, z: 0 },
@@ -60,6 +53,9 @@ export function usarAnimacaoDado({
     { x: 0, y: 0, z: 0 },
     { x: 0, y: 0, z: 0 },
   ]);
+  const scaleRefs = React.useRef<[{ s: number }, { s: number }]>([
+    { s: 1 }, { s: 1 },
+  ]);
   const tweensRef = React.useRef<Array<gsap.core.Tween | gsap.core.Timeline>>([]);
   const animandoRef = React.useRef(false);
   const reveladoRef = React.useRef(false);
@@ -67,8 +63,10 @@ export function usarAnimacaoDado({
   const aplicar = React.useCallback(() => {
     const [ra, rb] = rotRefs.current;
     const [pa, pb] = posRefs.current;
+    const [sa, sb] = scaleRefs.current;
     setRotations([[ra.x, ra.y, ra.z], [rb.x, rb.y, rb.z]]);
     setPositions([[pa.x, pa.y, pa.z], [pb.x, pb.y, pb.z]]);
+    setScales([sa.s, sb.s]);
   }, []);
 
   const matar = React.useCallback(() => {
@@ -88,6 +86,7 @@ export function usarAnimacaoDado({
       { x: 0, y: 0, z: 0 },
       { x: 0, y: 0, z: 0 },
     ];
+    scaleRefs.current = [{ s: 1 }, { s: 1 }];
     aplicar();
   }, [matar, aplicar]);
 
@@ -107,11 +106,16 @@ export function usarAnimacaoDado({
 
     matar();
 
-    // Posicao inicial: dentro do copo. Forca as refs antes da timeline.
-    rotRefs.current[0] = { x: 0, y: 0, z: 0 };
-    rotRefs.current[1] = { x: 0.3, y: 0.2, z: 0.1 };
-    posRefs.current[0] = { ...POS_DENTRO_COPO };
-    posRefs.current[1] = { ...POS_DENTRO_COPO };
+    // Estado inicial dos dados: posicionados onde estava o copo
+    // (centro-baixo da tela), com escala 1.6x para "estourarem" na cena
+    // quando o copo sai. Rotacao inicial aleatoria para nao parecer
+    // estatico.
+    rotRefs.current[0] = { x: Math.random() * 1.5, y: Math.random() * 1.5, z: Math.random() * 1.0 };
+    rotRefs.current[1] = { x: Math.random() * 1.5, y: Math.random() * 1.5, z: Math.random() * 1.0 };
+    posRefs.current[0] = { x: -0.4, y: 0.6, z: 0 };
+    posRefs.current[1] = { x: 0.4, y: 0.6, z: 0 };
+    scaleRefs.current[0] = { s: 1.6 };
+    scaleRefs.current[1] = { s: 1.6 };
     aplicar();
 
     const tl = gsap.timeline({
@@ -120,26 +124,30 @@ export function usarAnimacaoDado({
     });
 
     if (reduzir) {
-      // Acessibilidade: vai direto ao alvo
+      // Acessibilidade: vai direto ao alvo, sem giros longos
       rotRefs.current.forEach((ref, i) => {
         tl.to(ref, {
-          x: rxAlvo, y: ryAlvo, z: rzAlvo,
-          duration: 0.4, ease: 'power1.inOut',
+          x: rxAlvo, y: ryAlvo, z: rzAlvo, duration: 0.5, ease: 'power1.inOut',
         }, 0);
         tl.to(posRefs.current[i], {
-          x: i === 0 ? -0.8 : 0.8, y: 0, z: 0,
-          duration: 0.4, ease: 'power1.out',
+          x: i === 0 ? -0.8 : 0.8, y: 0, duration: 0.5, ease: 'power1.inOut',
         }, 0);
+        tl.to(scaleRefs.current[i], { s: 1, duration: 0.5 }, 0);
       });
       tweensRef.current.push(tl);
       return;
     }
 
-    const voltas = 4;
+    // SEQUENCIA PRINCIPAL: 3 segundos exatos de rotacao+giro+zoom-out.
+    // Apos os 3s, ainda ha uma fase curta (~1.2s) de "inclinacao e giro
+    // leve" - dado se acomoda balancando ate parar de fato.
+    const DURACAO_ROLAGEM = 3.0;
+    const voltas = 6; // rotacoes completas em cada eixo durante os 3s
+
     rotRefs.current.forEach((ref, i) => {
       const yMult = i === 0 ? 1 : 1.15;
       const xMult = i === 0 ? 1 : 0.9;
-      const baseX = i === 0 ? -0.8 : 0.8; // posicao final de assento
+      const baseX = i === 0 ? -0.8 : 0.8;
 
       const finalX = ref.x + voltas * Math.PI * 2 * xMult
                      + (((rxAlvo - ref.x) % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
@@ -149,74 +157,40 @@ export function usarAnimacaoDado({
                      + (((rzAlvo - ref.z) % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
 
       const pos = posRefs.current[i];
+      const scl = scaleRefs.current[i];
 
-      // FASE 1 — saida do copo (X vai do copo ate o centro-superior, Y desce um pouco)
-      const meioX1 = i === 0 ? 1.5 : -1.5;  // arco trocado entre os dados
-      tl.to(pos, {
-        x: i === 0 ? 0.5 : -0.5, y: 2.2, z: 0,
-        duration: 0.35, ease: 'power2.out',
-      }, 0);
-      tl.to(ref, {
-        x: ref.x + Math.PI * 1.2 * xMult,
-        y: ref.y + Math.PI * 0.8 * yMult,
-        z: ref.z + Math.PI * 0.4,
-        duration: 0.35, ease: 'power1.out',
-      }, 0);
-
-      // FASE 2 — voo cruzado (cai em arco, X cruza com o outro dado)
-      tl.to(pos, {
-        x: meioX1, y: 0.5, z: 0,
-        duration: 0.5, ease: 'power2.in',
-      }, 0.35);
-      tl.to(ref, {
-        x: ref.x + Math.PI * 1.2 * xMult + Math.PI * 1.8 * xMult,
-        y: ref.y + Math.PI * 0.8 * yMult + Math.PI * 1.5 * yMult,
-        z: ref.z + Math.PI * 0.4 + Math.PI * 0.8,
-        duration: 0.5, ease: 'none',
-      }, 0.35);
-
-      // FASE 3 — COLISAO + ricochete (X muda de direcao bruscamente, rotacao spike)
-      const ricocheteX = i === 0 ? meioX1 - 1.0 : meioX1 + 1.0;
-      tl.to(pos, {
-        x: ricocheteX, y: 0.8, z: 0,
-        duration: 0.18, ease: 'power3.out',
-      }, 0.85);
-      tl.to(ref, {
-        x: '+=' + Math.PI * 0.6 * (i === 0 ? -1 : 1),
-        y: '+=' + Math.PI * 0.5,
-        z: '+=' + Math.PI * 0.4 * (i === 0 ? 1 : -1),
-        duration: 0.18, ease: 'power2.out',
-      }, 0.85);
-
-      // FASE 4 — quica no chao (Y oscila duas vezes)
-      tl.to(pos, {
-        y: 0, duration: 0.2, ease: 'power2.in',
-      }, 1.03);
-      tl.to(pos, {
-        y: 0.4, duration: 0.15, ease: 'power2.out',
-      }, 1.23);
-      tl.to(pos, {
-        y: 0, duration: 0.15, ease: 'power2.in',
-      }, 1.38);
-      tl.to(pos, {
-        y: 0.15, duration: 0.1, ease: 'power2.out',
-      }, 1.53);
-      tl.to(pos, {
-        y: 0, duration: 0.1, ease: 'power2.in',
-      }, 1.63);
-
-      // FASE 5 — assenta + rotacao final na face alvo + posicao base
-      tl.to(pos, {
-        x: baseX, z: 0, duration: 0.8, ease: 'power2.out',
-      }, 1.5);
+      // FASE 1 (3s): rotacao + giro + zoom-out gradual + acomodacao na posicao final
       tl.to(ref, {
         x: finalX, y: finalY, z: finalZ,
-        duration: 1.2, ease: 'power3.out',
-      }, 1.5);
+        duration: DURACAO_ROLAGEM,
+        ease: 'power2.out',
+      }, 0);
+      tl.to(pos, {
+        x: baseX, y: 0, z: 0,
+        duration: DURACAO_ROLAGEM,
+        ease: 'power2.out',
+      }, 0);
+      tl.to(scl, {
+        s: 1.0,
+        duration: DURACAO_ROLAGEM,
+        ease: 'power1.out',
+      }, 0);
+
+      // FASE 2 (1.2s apos 3s): inclinacao leve + giro suave para o
+      // dado se acomodar visualmente (small wobble) sem deixar a
+      // face alvo. Termina no estado final estavel.
+      tl.to(ref, {
+        x: '+=' + 0.18 * (i === 0 ? 1 : -1),
+        z: '+=' + 0.12 * (i === 0 ? -1 : 1),
+        duration: 0.4,
+        ease: 'sine.inOut',
+        yoyo: true,
+        repeat: 1,
+      }, DURACAO_ROLAGEM);
     });
 
     tweensRef.current.push(tl);
-  }, [premios, onConcluir, reduzir, aplicar, matar, POS_DENTRO_COPO]);
+  }, [premios, onConcluir, reduzir, aplicar, matar]);
 
   const iniciar = React.useCallback(() => {
     if (animandoRef.current) return;
@@ -237,5 +211,5 @@ export function usarAnimacaoDado({
     if (!premioVencedorId) reset();
   }, [premioVencedorId, reset]);
 
-  return { rotations, positions, iniciar, reset };
+  return { rotations, positions, scales, iniciar, reset };
 }
