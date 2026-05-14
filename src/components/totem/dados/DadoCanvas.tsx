@@ -1,8 +1,15 @@
 'use client';
 import * as React from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
+import { RoundedBox, ContactShadows, Environment } from '@react-three/drei';
 import * as THREE from 'three';
 
+/**
+ * Convencao das faces:
+ *   1 -> +Y (cima)    6 -> -Y (baixo)
+ *   2 -> +Z (frente)  5 -> -Z (tras)
+ *   3 -> +X (direita) 4 -> -X (esquerda)
+ */
 export const ROTACOES_FACES: Record<number, [number, number, number]> = {
   1: [0, 0, 0],
   2: [-Math.PI / 2, 0, 0],
@@ -25,6 +32,12 @@ function pipsPorFace(valor: number): Array<[number, number]> {
   }
 }
 
+/**
+ * Pip 3D: pequena esfera escura "embutida" na face, com material
+ * lustroso (baixa rugosidade, leve metalness) para parecer cavidade
+ * polida no dado de cassino real. Usa half-sphere posicionada
+ * ligeiramente fora da face — refletida pela iluminacao.
+ */
 function FacePips({ valor, normal, rotation }: {
   valor: number;
   normal: [number, number, number];
@@ -35,22 +48,35 @@ function FacePips({ valor, normal, rotation }: {
   return (
     <group rotation={rotation} position={[normal[0] * offset, normal[1] * offset, normal[2] * offset]}>
       {pips.map(([x, y], i) => (
-        <mesh key={i} position={[x, y, 0]}>
-          <circleGeometry args={[0.07, 24]} />
-          <meshStandardMaterial color="#0f1d24" roughness={0.6} />
+        <mesh key={i} position={[x, y, -0.012]}>
+          <sphereGeometry args={[0.075, 24, 24]} />
+          <meshStandardMaterial
+            color="#0a1518"
+            roughness={0.25}
+            metalness={0.55}
+            envMapIntensity={0.6}
+          />
         </mesh>
       ))}
     </group>
   );
 }
 
+/**
+ * Cubo dado com cantos arredondados (RoundedBox da drei), material
+ * marfim levemente reflexivo. Pips em todas as 6 faces.
+ */
 function CuboDado() {
   return (
     <>
-      <mesh castShadow>
-        <boxGeometry args={[1, 1, 1]} />
-        <meshStandardMaterial color="#fafafa" roughness={0.4} metalness={0.05} />
-      </mesh>
+      <RoundedBox args={[1, 1, 1]} radius={0.085} smoothness={6} bevelSegments={6} creaseAngle={0.4}>
+        <meshStandardMaterial
+          color="#f8f5ef"
+          roughness={0.42}
+          metalness={0.08}
+          envMapIntensity={0.55}
+        />
+      </RoundedBox>
       <FacePips valor={1} normal={[0, 1, 0]}  rotation={[-Math.PI / 2, 0, 0]} />
       <FacePips valor={6} normal={[0, -1, 0]} rotation={[Math.PI / 2, 0, 0]} />
       <FacePips valor={2} normal={[0, 0, 1]}  rotation={[0, 0, 0]} />
@@ -75,7 +101,7 @@ function Dado({ rotation, position, scale = 1 }: {
   }, [rotation, position, scale]);
 
   return (
-    <group ref={groupRef}>
+    <group ref={groupRef} castShadow>
       <CuboDado />
     </group>
   );
@@ -93,7 +119,6 @@ function DadoAutoRotate({ position, speedScale = 1, hover = false }: {
     groupRef.current.rotation.x += delta * 0.5 * speedScale;
     groupRef.current.rotation.y += delta * 0.7 * speedScale;
     if (hover) {
-      // Pequeno bobbing vertical — sensacao de "flutuando na mao"
       t.current += delta;
       groupRef.current.position.y = position[1] + Math.sin(t.current * 1.8) * 0.08;
     } else {
@@ -104,60 +129,31 @@ function DadoAutoRotate({ position, speedScale = 1, hover = false }: {
   });
 
   return (
-    <group ref={groupRef}>
+    <group ref={groupRef} castShadow>
       <CuboDado />
     </group>
   );
 }
 
-/**
- * Sombra plana no chao (cinza translucido). Acompanha o dado em X/Z
- * mas fica fixa em Y=0 — quando o dado pula, a sombra encolhe um
- * pouco (efeito de altura). Visualmente reforca a sensacao de fisica.
- */
-function SombraDado({ dadoX, dadoY, dadoZ, baseX, baseZ }: {
-  dadoX: number; dadoY: number; dadoZ: number;
-  baseX: number; baseZ: number;
-}) {
-  // Esconde a sombra se o dado esta fora da area visivel (ex: dentro do
-  // copo antes do lance). |x| > 2.5 ou y > 2.5 sao posicoes "fora de cena".
-  const foraCena = Math.abs(dadoX) > 2.5 || dadoY > 2.5;
-  if (foraCena) return null;
-
-  const altura = Math.max(0, dadoY);
-  const escala = Math.max(0.4, 1 - altura * 0.35);
-  const opacidade = Math.max(0.15, 0.45 - altura * 0.15);
-  return (
-    <mesh
-      rotation={[-Math.PI / 2, 0, 0]}
-      position={[baseX + dadoX, -0.55, baseZ + dadoZ]}
-      scale={[escala, escala, escala]}
-    >
-      <circleGeometry args={[0.55, 32]} />
-      <meshBasicMaterial color="#000000" transparent opacity={opacidade} />
-    </mesh>
-  );
-}
-
 interface Props {
-  /** Rotacoes de cada dado. */
   rotations?: Array<[number, number, number]>;
-  /** Posicoes (offsets) de cada dado em relacao a sua base. */
   positions?: Array<[number, number, number]>;
-  /** Escala de cada dado (1=normal, >1=maior, <1=menor). Default todos 1. */
   scales?: number[];
-  /** Quando true, dados giram em loop sem destino. */
   autoRotate?: boolean;
-  /** Quantos dados renderizar (1 ou 2). Default 2. */
   count?: 1 | 2;
-  /** Zoom da camera ortografica. */
   zoom?: number;
-  /** Velocidade relativa do auto-rotate (1=normal). */
   autoRotateSpeed?: number;
-  /** Quando true, dados flutuam levemente em Y (visual "na mao"). */
   hover?: boolean;
 }
 
+/**
+ * Renderiza ate 2 dados em cena com:
+ *  - RoundedBox geometria (cantos suaves estilo dado de cassino)
+ *  - MeshStandardMaterial + Environment "city" para reflexos sutis
+ *  - ContactShadows (sombra projetada realista no chao)
+ *  - Iluminacao em 3 pontos: key (directional), fill (ambient warm),
+ *    rim (point primary turquesa para acento Altis)
+ */
 export function DadoCanvas({
   rotations,
   positions,
@@ -168,9 +164,8 @@ export function DadoCanvas({
   autoRotateSpeed = 1,
   hover = false,
 }: Props) {
-  // Posicoes base: 1 centrado, 2 lado a lado
   const basePositions: Array<[number, number, number]> =
-    count === 1 ? [[0, 0, 0]] : [[-0.8, 0, 0], [0.8, 0, 0]];
+    count === 1 ? [[0, 0, 0]] : [[-0.9, 0, 0], [0.9, 0, 0]];
 
   const rots = rotations ?? basePositions.map(() => [0, 0, 0] as [number, number, number]);
   const offs = positions ?? basePositions.map(() => [0, 0, 0] as [number, number, number]);
@@ -179,16 +174,43 @@ export function DadoCanvas({
     <div style={{ position: 'relative', width: '100%', height: '100%', minHeight: 0, minWidth: 0 }}>
       <Canvas
         orthographic
-        camera={{ position: [2.4, 2.4, 2.4], zoom }}
+        shadows
+        camera={{ position: [2.6, 2.4, 2.6], zoom }}
         style={{
           position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', display: 'block',
         }}
-        gl={{ antialias: true }}
+        gl={{ antialias: true, toneMapping: THREE.ACESFilmicToneMapping, toneMappingExposure: 1.0 }}
       >
-        <ambientLight intensity={0.55} />
-        <directionalLight position={[3, 5, 4]} intensity={0.9} />
-        <directionalLight position={[-3, -2, -4]} intensity={0.3} />
-        <pointLight position={[0, 0, 3]} intensity={0.4} color="#4afad4" />
+        {/* Iluminacao em 3 pontos para volume + acento de marca */}
+        <ambientLight intensity={0.35} color="#fff5e6" />
+        <directionalLight
+          position={[4, 6, 4]}
+          intensity={1.2}
+          color="#ffffff"
+          castShadow
+          shadow-mapSize-width={1024}
+          shadow-mapSize-height={1024}
+          shadow-camera-left={-4}
+          shadow-camera-right={4}
+          shadow-camera-top={4}
+          shadow-camera-bottom={-4}
+        />
+        <directionalLight position={[-3, 2, -3]} intensity={0.35} color="#dbe6ff" />
+        <pointLight position={[0, 1.2, 2.5]} intensity={0.6} color="#4afad4" distance={6} />
+
+        {/* Reflexos sutis no dado (HDRI generico) */}
+        <Environment preset="city" />
+
+        {/* Sombra de contato no "chao" — Y = -0.6 onde os dados pousam */}
+        <ContactShadows
+          position={[0, -0.6, 0]}
+          opacity={0.55}
+          scale={6}
+          blur={2.4}
+          far={2}
+          resolution={512}
+          color="#0a1d1c"
+        />
 
         {basePositions.map((base, i) => {
           const finalPos: [number, number, number] = [
@@ -198,13 +220,6 @@ export function DadoCanvas({
           ];
           return (
             <React.Fragment key={i}>
-              <SombraDado
-                dadoX={offs[i]?.[0] ?? 0}
-                dadoY={offs[i]?.[1] ?? 0}
-                dadoZ={offs[i]?.[2] ?? 0}
-                baseX={base[0]}
-                baseZ={base[2]}
-              />
               {autoRotate ? (
                 <DadoAutoRotate
                   position={finalPos}
@@ -212,7 +227,11 @@ export function DadoCanvas({
                   hover={hover}
                 />
               ) : (
-                <Dado rotation={rots[i] ?? [0, 0, 0]} position={finalPos} scale={scales?.[i] ?? 1} />
+                <Dado
+                  rotation={rots[i] ?? [0, 0, 0]}
+                  position={finalPos}
+                  scale={scales?.[i] ?? 1}
+                />
               )}
             </React.Fragment>
           );

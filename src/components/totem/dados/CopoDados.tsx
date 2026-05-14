@@ -22,7 +22,7 @@ interface Props {
 export function CopoDados({ estado, habilitado, onClick }: Props) {
   const animacaoClass =
     estado === 'tremor'  ? 'animate-[copo-tremor_600ms_ease-in-out]' :
-    estado === 'saindo'  ? 'animate-[copo-saindo_400ms_ease-in_forwards]' :
+    estado === 'saindo'  ? 'animate-[copo-saindo_550ms_cubic-bezier(0.4,0,0.2,1)_forwards]' :
     estado === 'oculto'  ? 'opacity-0 pointer-events-none' :
     habilitado           ? 'animate-[copo-bobbing_2.4s_ease-in-out_infinite]' :
     '';

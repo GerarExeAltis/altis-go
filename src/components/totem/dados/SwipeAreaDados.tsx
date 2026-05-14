@@ -41,18 +41,24 @@ export function SwipeAreaDados({
   const habilitado = aguardandoToque && !iniciando;
 
   const TREMOR_MS = 600;
-  const SAIDA_MS = 400;
+  const SAIDA_MS = 550; // copo tomba e sai (cubic-bezier suave)
+  // Overlap: dados comecam a "florescer" do ponto do copo um pouco
+  // ANTES do copo sumir totalmente — sensacao de continuidade fluida
+  // em vez de corte abrupto entre as 2 animacoes.
+  const OVERLAP_MS = 220;
 
   const lancar = () => {
     if (!habilitado || estadoCopo !== 'idle') return;
     setEstadoCopo('tremor');
-    // Apos o tremor, dispara saida do copo
     window.setTimeout(() => setEstadoCopo('saindo'), TREMOR_MS);
-    // Apos saida, oculta copo e chama onLancar (que dispara backend
-    // + animacao dos dados)
+    // Dispara dados ANTES do copo sumir completamente — eles surgem
+    // ja na fase final da saida do copo, dando overlap fluido.
+    window.setTimeout(() => {
+      onLancar();
+    }, TREMOR_MS + SAIDA_MS - OVERLAP_MS);
+    // Quando o copo termina, oculta totalmente
     window.setTimeout(() => {
       setEstadoCopo('oculto');
-      onLancar();
     }, TREMOR_MS + SAIDA_MS);
   };
 
@@ -64,7 +70,9 @@ export function SwipeAreaDados({
   }, [habilitado, estadoCopo]);
 
   const copoVisivel = habilitado && estadoCopo !== 'oculto';
-  const dadosVisiveis = !habilitado || estadoCopo === 'oculto';
+  // Dados ficam visiveis quando NAO estamos em idle/tremor — comecam
+  // a surgir junto com a saida do copo (overlap fluido).
+  const dadosVisiveis = !habilitado || estadoCopo === 'saindo' || estadoCopo === 'oculto';
 
   return (
     <div

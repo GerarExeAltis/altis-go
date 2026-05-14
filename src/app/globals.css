@@ -112,11 +112,15 @@
   100% { transform: rotate(0deg); }
 }
 
-/* Saida do copo: encolhe + desce + fade. */
+/* Saida do copo: TOMBA pra frente entornando os dados, depois
+   continua girando e some pra baixo. Curva cubic-bezier custom
+   para movimento natural de "despejar" + saida. */
 @keyframes copo-saindo {
-  0%   { transform: translateY(0) scale(1);    opacity: 1; }
-  40%  { transform: translateY(40px) scale(0.7); opacity: 0.8; }
-  100% { transform: translateY(120px) scale(0.3); opacity: 0; }
+  0%   { transform: rotate(0deg) translate(0, 0) scale(1); opacity: 1; }
+  35%  { transform: rotate(-65deg) translate(-12px, 5px) scale(0.95); opacity: 1; }
+  60%  { transform: rotate(-110deg) translate(-20px, 30px) scale(0.85); opacity: 0.9; }
+  85%  { transform: rotate(-160deg) translate(-30px, 80px) scale(0.55); opacity: 0.4; }
+  100% { transform: rotate(-180deg) translate(-40px, 140px) scale(0.2); opacity: 0; }
 }
 
 @keyframes modal-pop-in {

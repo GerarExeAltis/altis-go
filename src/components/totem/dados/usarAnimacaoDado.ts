@@ -19,14 +19,29 @@ interface RotState { x: number; y: number; z: number; }
 interface PosState { x: number; y: number; z: number; }
 
 /**
- * Sequencia da animacao apos o copo sair de cena (controlada por
- * SwipeAreaDados): exatamente 3 SEGUNDOS de rotacao+giro com os dados
- * encolhendo de scale=1.6 -> 1.0 (efeito zoom-out enquanto rolam).
- * Apos os 3s, dados param na face do premio com leve inclinacao e
- * giro suave continuo (bobbing).
+ * Coreografia da fase pos-copo, 3 segundos exatos:
  *
- * O hook retorna rotations[], positions[] e scales[] que o
- * DadoCanvas aplica.
+ * SAIDA DO COPO (0-300ms):
+ *   Dados partem do PONTO ONDE O COPO ESTAVA (centro-baixo da tela)
+ *   com escala 0.05 e "florescem" para escala 1.6 com leve translacao
+ *   pra fora (sensacao de "saindo de dentro do copo"). Cada dado tem
+ *   ~80ms de delay entre si para nao parecerem espelhados.
+ *
+ * ROLAGEM DINAMICA (300-2700ms = 2.4s):
+ *   Rotacao + giro com:
+ *     - Velocidades diferentes em cada eixo (X faster, Z slower)
+ *     - Easings diferentes por eixo (X power3.out, Y expo.out, Z power2.out)
+ *       — simula momentum nao uniforme de um cubo real rolando.
+ *     - Scale diminui de 1.6 -> 1.0 (zoom-out gradual).
+ *     - Posicao migra do centro pras laterais (lateral spread).
+ *
+ * ASSENTAMENTO (2700-3000ms = 300ms):
+ *   Rotacao final converge na face do premio + escala final 1.0.
+ *
+ * WOBBLE FINAL (3000-4400ms = 1.4s):
+ *   Apos 3s exatos, dados ja estao na face certa. Aplica um pequeno
+ *   wobble (yoyo) na rotacao X/Z e bobbing leve em Y — efeito de
+ *   "se inclinando e girando levemente" como pedido.
  */
 export function usarAnimacaoDado({
   premios, premioVencedorId, reduzir, onConcluir,
@@ -43,7 +58,7 @@ export function usarAnimacaoDado({
   const [positions, setPositions] = React.useState<Array<[number, number, number]>>([
     [0, 0, 0], [0, 0, 0],
   ]);
-  const [scales, setScales] = React.useState<number[]>([1, 1]);
+  const [scales, setScales] = React.useState<number[]>([0.05, 0.05]);
 
   const rotRefs = React.useRef<[RotState, RotState]>([
     { x: 0, y: 0, z: 0 },
@@ -54,7 +69,7 @@ export function usarAnimacaoDado({
     { x: 0, y: 0, z: 0 },
   ]);
   const scaleRefs = React.useRef<[{ s: number }, { s: number }]>([
-    { s: 1 }, { s: 1 },
+    { s: 0.05 }, { s: 0.05 },
   ]);
   const tweensRef = React.useRef<Array<gsap.core.Tween | gsap.core.Timeline>>([]);
   const animandoRef = React.useRef(false);
@@ -86,7 +101,7 @@ export function usarAnimacaoDado({
       { x: 0, y: 0, z: 0 },
       { x: 0, y: 0, z: 0 },
     ];
-    scaleRefs.current = [{ s: 1 }, { s: 1 }];
+    scaleRefs.current = [{ s: 0.05 }, { s: 0.05 }];
     aplicar();
   }, [matar, aplicar]);
 
@@ -106,16 +121,14 @@ export function usarAnimacaoDado({
 
     matar();
 
-    // Estado inicial dos dados: posicionados onde estava o copo
-    // (centro-baixo da tela), com escala 1.6x para "estourarem" na cena
-    // quando o copo sai. Rotacao inicial aleatoria para nao parecer
-    // estatico.
-    rotRefs.current[0] = { x: Math.random() * 1.5, y: Math.random() * 1.5, z: Math.random() * 1.0 };
-    rotRefs.current[1] = { x: Math.random() * 1.5, y: Math.random() * 1.5, z: Math.random() * 1.0 };
-    posRefs.current[0] = { x: -0.4, y: 0.6, z: 0 };
-    posRefs.current[1] = { x: 0.4, y: 0.6, z: 0 };
-    scaleRefs.current[0] = { s: 1.6 };
-    scaleRefs.current[1] = { s: 1.6 };
+    // Estado inicial: dados onde o copo estava, com escala minuscula
+    // (vao "florescer" a partir dali).
+    rotRefs.current[0] = { x: Math.random() * 0.8, y: Math.random() * 0.8, z: Math.random() * 0.5 };
+    rotRefs.current[1] = { x: Math.random() * 0.8, y: Math.random() * 0.8, z: Math.random() * 0.5 };
+    posRefs.current[0] = { x: -0.1, y: 0.2, z: 0 };
+    posRefs.current[1] = { x: 0.1, y: 0.2, z: 0 };
+    scaleRefs.current[0] = { s: 0.05 };
+    scaleRefs.current[1] = { s: 0.05 };
     aplicar();
 
     const tl = gsap.timeline({
@@ -124,13 +137,10 @@ export function usarAnimacaoDado({
     });
 
     if (reduzir) {
-      // Acessibilidade: vai direto ao alvo, sem giros longos
       rotRefs.current.forEach((ref, i) => {
-        tl.to(ref, {
-          x: rxAlvo, y: ryAlvo, z: rzAlvo, duration: 0.5, ease: 'power1.inOut',
-        }, 0);
+        tl.to(ref, { x: rxAlvo, y: ryAlvo, z: rzAlvo, duration: 0.5, ease: 'power1.inOut' }, 0);
         tl.to(posRefs.current[i], {
-          x: i === 0 ? -0.8 : 0.8, y: 0, duration: 0.5, ease: 'power1.inOut',
+          x: i === 0 ? -0.9 : 0.9, y: 0, z: 0, duration: 0.5,
         }, 0);
         tl.to(scaleRefs.current[i], { s: 1, duration: 0.5 }, 0);
       });
@@ -138,55 +148,81 @@ export function usarAnimacaoDado({
       return;
     }
 
-    // SEQUENCIA PRINCIPAL: 3 segundos exatos de rotacao+giro+zoom-out.
-    // Apos os 3s, ainda ha uma fase curta (~1.2s) de "inclinacao e giro
-    // leve" - dado se acomoda balancando ate parar de fato.
-    const DURACAO_ROLAGEM = 3.0;
-    const voltas = 6; // rotacoes completas em cada eixo durante os 3s
+    const DURACAO = 3.0;        // tempo total ate a face alvo
+    const SAIDA_DUR = 0.32;     // florescimento inicial
+    const SAIDA_STAGGER = 0.08; // delay entre os 2 dados
+    const ROLAGEM_DUR = DURACAO - SAIDA_DUR; // 2.68s de rolagem ate parar
+    const voltas = 5;
 
     rotRefs.current.forEach((ref, i) => {
       const yMult = i === 0 ? 1 : 1.15;
       const xMult = i === 0 ? 1 : 0.9;
-      const baseX = i === 0 ? -0.8 : 0.8;
+      const baseX = i === 0 ? -0.9 : 0.9;
+      const inicio = i * SAIDA_STAGGER; // stagger entre os 2 dados
 
       const finalX = ref.x + voltas * Math.PI * 2 * xMult
                      + (((rxAlvo - ref.x) % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
       const finalY = ref.y + voltas * Math.PI * 2 * yMult
                      + (((ryAlvo - ref.y) % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
-      const finalZ = ref.z + voltas * Math.PI * 2
+      const finalZ = ref.z + (voltas - 1) * Math.PI * 2
                      + (((rzAlvo - ref.z) % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
 
       const pos = posRefs.current[i];
       const scl = scaleRefs.current[i];
 
-      // FASE 1 (3s): rotacao + giro + zoom-out gradual + acomodacao na posicao final
-      tl.to(ref, {
-        x: finalX, y: finalY, z: finalZ,
-        duration: DURACAO_ROLAGEM,
-        ease: 'power2.out',
-      }, 0);
+      // SAIDA DO COPO (florescimento + leve subida)
+      tl.to(scl, { s: 1.6, duration: SAIDA_DUR, ease: 'back.out(1.6)' }, inicio);
       tl.to(pos, {
-        x: baseX, y: 0, z: 0,
-        duration: DURACAO_ROLAGEM,
+        x: (i === 0 ? -0.6 : 0.6),
+        y: 0.7,
+        z: 0,
+        duration: SAIDA_DUR,
         ease: 'power2.out',
-      }, 0);
-      tl.to(scl, {
-        s: 1.0,
-        duration: DURACAO_ROLAGEM,
+      }, inicio);
+      // Spin inicial energico (medio giro durante a saida)
+      tl.to(ref, {
+        x: '+=' + Math.PI * 1.0 * xMult,
+        y: '+=' + Math.PI * 1.4 * yMult,
+        z: '+=' + Math.PI * 0.6,
+        duration: SAIDA_DUR,
         ease: 'power1.out',
-      }, 0);
+      }, inicio);
 
-      // FASE 2 (1.2s apos 3s): inclinacao leve + giro suave para o
-      // dado se acomodar visualmente (small wobble) sem deixar a
-      // face alvo. Termina no estado final estavel.
+      // ROLAGEM DINAMICA — easings diferentes por eixo dao
+      // sensacao de momentum nao uniforme (cubo real nao gira
+      // simetricamente em todos os eixos).
+      const apos = inicio + SAIDA_DUR;
+      tl.to(ref, { x: finalX, duration: ROLAGEM_DUR, ease: 'power3.out' }, apos);
+      tl.to(ref, { y: finalY, duration: ROLAGEM_DUR, ease: 'expo.out'  }, apos);
+      tl.to(ref, { z: finalZ, duration: ROLAGEM_DUR, ease: 'power2.out' }, apos);
+
+      // Posicao migra pro spot final (lateral) com leve quica
+      tl.to(pos, {
+        x: baseX,
+        y: 0,
+        z: 0,
+        duration: ROLAGEM_DUR,
+        ease: 'power2.out',
+      }, apos);
+
+      // Escala diminui ate 1.0 (zoom-out)
+      tl.to(scl, { s: 1.0, duration: ROLAGEM_DUR, ease: 'power1.inOut' }, apos);
+    });
+
+    // WOBBLE pos-3s (1.4s): pequena inclinacao + giro continuo leve
+    const inicioWobble = DURACAO;
+    rotRefs.current.forEach((ref, i) => {
       tl.to(ref, {
         x: '+=' + 0.18 * (i === 0 ? 1 : -1),
-        z: '+=' + 0.12 * (i === 0 ? -1 : 1),
-        duration: 0.4,
+        z: '+=' + 0.14 * (i === 0 ? -1 : 1),
+        duration: 0.5,
         ease: 'sine.inOut',
         yoyo: true,
         repeat: 1,
-      }, DURACAO_ROLAGEM);
+      }, inicioWobble);
+      tl.to(posRefs.current[i], {
+        y: 0.05, duration: 0.5, ease: 'sine.inOut', yoyo: true, repeat: 1,
+      }, inicioWobble);
     });
 
     tweensRef.current.push(tl);
