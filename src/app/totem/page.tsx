@@ -181,10 +181,15 @@ function TotemFlow() {
     if (state.tipo === 'girando') iniciar();
   }, [state.tipo, iniciar]);
 
+  // URL do QR precisa incluir basePath (em prod = /altis-go) e
+  // trailing slash (next.config tem trailingSlash:true). Sem isso o
+  // celular abre uma URL fora do escopo do site e o GitHub Pages
+  // responde 404.
   const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
+  const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? '';
   const qrUrl =
     state.tipo === 'aguardando_celular' || state.tipo === 'aguardando_dados'
-      ? `${baseUrl}/jogar?s=${state.sessaoId}&t=${state.token}`
+      ? `${baseUrl}${basePath}/jogar/?s=${state.sessaoId}&t=${state.token}`
       : '';
 
   const [premioSorteado, setPremioSorteado] = React.useState<
