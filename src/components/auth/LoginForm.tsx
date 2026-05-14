@@ -3,8 +3,9 @@ import * as React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
+import { getSupabaseBrowserClient } from '@/lib/supabase/browser';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -16,10 +17,19 @@ const schema = z.object({
 });
 type FormValues = z.infer<typeof schema>;
 
+const ERRO_GENERICO = 'Credenciais inválidas.';
+
 export function LoginForm() {
-  const { signIn } = useAuth();
+  const { signIn, signOut } = useAuth();
   const router = useRouter();
-  const [erro, setErro] = React.useState<string | null>(null);
+  const searchParams = useSearchParams();
+  // Mensagem inicial: se o AuthGuard nos mandou de volta com ?erro=credenciais
+  // (sessao valida no Auth mas sem perfil ativo no app), mostra a mesma
+  // mensagem generica de "Credenciais inválidas" — nao vazamos o motivo
+  // real para evitar dar dica a um atacante.
+  const [erro, setErro] = React.useState<string | null>(
+    searchParams?.get('erro') === 'credenciais' ? ERRO_GENERICO : null,
+  );
 
   const [mostrarSenha, setMostrarSenha] = React.useState(false);
 
@@ -32,10 +42,35 @@ export function LoginForm() {
     setErro(null);
     try {
       await signIn(data.email, data.senha);
+      // Apos signIn, valida que existe perfil_operadores ativo. Sem
+      // isso, encerra a sessao e mostra erro generico — evita flash
+      // de tela autenticada e nao diferencia "senha errada" de "sem
+      // perfil" / "perfil inativo".
+      const sb = getSupabaseBrowserClient();
+      const { data: userResp } = await sb.auth.getUser();
+      const uid = userResp.user?.id;
+      if (!uid) {
+        setErro(ERRO_GENERICO);
+        return;
+      }
+      const { data: perfil } = await sb
+        .from('perfis_operadores')
+        .select('ativo')
+        .eq('id', uid)
+        .maybeSingle();
+      if (!perfil?.ativo) {
+        await signOut();
+        setErro(ERRO_GENERICO);
+        return;
+      }
       router.replace('/');
     } catch (e) {
       const msg = e instanceof Error ? e.message : 'Falha no login';
-      setErro(/invalid.*credential/i.test(msg) ? 'Credenciais inválidas.' : msg);
+      // Qualquer erro do supabase auth (invalid credentials, rate limit,
+      // user not found, etc.) vira a mesma mensagem.
+      setErro(/invalid.*credential|invalid_grant|email|password|user/i.test(msg)
+        ? ERRO_GENERICO
+        : msg);
     }
   };
 

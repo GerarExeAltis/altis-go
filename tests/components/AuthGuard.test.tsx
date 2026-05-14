@@ -69,34 +69,43 @@ describe('AuthGuard', () => {
     }, { timeout: 4000 });
   });
 
-  it('mostra "Acesso negado" quando sem perfil', async () => {
+  it('faz signOut e redireciona para /login quando sem perfil', async () => {
     vi.useRealTimers();
+    replaceMock.mockClear();
+    const signOutMock = vi.fn();
     maybeSingleMock.mockResolvedValueOnce({ data: null, error: null });
     useAuthMock.mockReturnValue({
       loading: false,
       user: { id: '1', email: 'a@b' },
       session: { access_token: 't', user: { id: '1', email: 'a@b' } },
-      signOut: vi.fn(),
+      signOut: signOutMock,
     });
     render(<AuthGuard><div>protegido</div></AuthGuard>);
     await waitFor(() => {
-      expect(screen.getByText(/acesso negado/i)).toBeInTheDocument();
+      expect(signOutMock).toHaveBeenCalled();
+      expect(replaceMock).toHaveBeenCalledWith('/login?erro=credenciais');
     }, { timeout: 4000 });
+    // Nao revela informacao sobre o motivo
+    expect(screen.queryByText(/acesso negado/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/perfil/i)).not.toBeInTheDocument();
     expect(screen.queryByText('protegido')).not.toBeInTheDocument();
   });
 
-  it('mostra "Acesso negado" quando perfil inativo', async () => {
+  it('faz signOut e redireciona quando perfil inativo', async () => {
     vi.useRealTimers();
+    replaceMock.mockClear();
+    const signOutMock = vi.fn();
     maybeSingleMock.mockResolvedValueOnce({ data: { ativo: false }, error: null });
     useAuthMock.mockReturnValue({
       loading: false,
       user: { id: '1', email: 'a@b' },
       session: { access_token: 't', user: { id: '1', email: 'a@b' } },
-      signOut: vi.fn(),
+      signOut: signOutMock,
     });
     render(<AuthGuard><div>protegido</div></AuthGuard>);
     await waitFor(() => {
-      expect(screen.getByText(/inativo/i)).toBeInTheDocument();
+      expect(signOutMock).toHaveBeenCalled();
+      expect(replaceMock).toHaveBeenCalledWith('/login?erro=credenciais');
     }, { timeout: 4000 });
   });
 
