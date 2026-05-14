@@ -1,5 +1,5 @@
 const isProd = process.env.NODE_ENV === 'production';
-const repo = 'altis-bet';
+const repo = 'altis-go';
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
