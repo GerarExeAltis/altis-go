@@ -1,105 +1,75 @@
 'use client';
 import * as React from 'react';
 import { DadoCanvas } from './DadoCanvas';
+import { CopoDados } from './CopoDados';
 
 interface Props {
   aguardandoToque: boolean;
   iniciando: boolean;
-  /** Disparado quando o usuario faz um swipe valido (ou toca simples). */
+  /** Disparado quando o usuario clica no copo (ou pressiona Enter/Espaco). */
   onLancar: () => void;
-  /** Rotacoes finais durante a fase de lance/revelacao. */
+  /** Rotacoes durante a fase de lance/revelacao. */
   rotations: Array<[number, number, number]>;
-  /** Offsets de posicao durante o lance (sobe, voa, quica). */
+  /** Posicoes durante o lance (saida do copo, voo, colisao, assentamento). */
   positions: Array<[number, number, number]>;
 }
 
 /**
- * Area de "lance dos dados" com detecao de gesture:
- *  - Durante "aguardandoToque" os dados flutuam em auto-rotate (hover).
- *  - O usuario pode TOCAR (tap) OU ARRASTAR para lancar — ambos
- *    chamam onLancar(). O swipe da mais "feel" pq o usuario sente
- *    que jogou de verdade; o tap e fallback para mouse-rapido.
- *  - Threshold: pointer-down + move >= 30px em <= 800ms = swipe.
- *  - Apos onLancar(), o estado externo muda (state.tipo='girando')
- *    e DadoCanvas usa rotations/positions controlados pelo hook
- *    usarAnimacaoDado (que simula o pulo+voo+bounce+assento).
+ * Area do jogo de dados estilo Yahtzee/"Duelo de Dados":
+ *  - Copo SVG no canto superior esquerdo, com pequena agitacao
+ *    enquanto idle (dica visual que e clicavel).
+ *  - Clicar no copo (ou Enter/Espaco) dispara onLancar e tomba o
+ *    copo visualmente. Em seguida, o hook usarAnimacaoDado anima
+ *    os dois dados saindo do copo, voando em arcos cruzados,
+ *    colidindo no meio e assentando no centro com a face do premio.
  */
 export function SwipeAreaDados({
   aguardandoToque, iniciando, onLancar, rotations, positions,
 }: Props) {
-  const inicioRef = React.useRef<{ x: number; y: number; t: number } | null>(null);
-  const [arrastando, setArrastando] = React.useState(false);
-  const [offset, setOffset] = React.useState<{ x: number; y: number }>({ x: 0, y: 0 });
+  const [copoTombou, setCopoTombou] = React.useState(false);
+  const habilitado = aguardandoToque && !iniciando;
 
-  const ativo = aguardandoToque && !iniciando;
-
-  const onDown = (e: React.PointerEvent) => {
-    if (!ativo) return;
-    inicioRef.current = { x: e.clientX, y: e.clientY, t: Date.now() };
-    setArrastando(true);
-    setOffset({ x: 0, y: 0 });
-    (e.target as Element).setPointerCapture?.(e.pointerId);
+  const lancar = () => {
+    if (!habilitado) return;
+    setCopoTombou(true);
+    onLancar();
+    // Reseta visual do copo apos animacao terminar
+    window.setTimeout(() => setCopoTombou(false), 900);
   };
-
-  const onMove = (e: React.PointerEvent) => {
-    if (!ativo || !inicioRef.current) return;
-    const dx = e.clientX - inicioRef.current.x;
-    const dy = e.clientY - inicioRef.current.y;
-    // Limita drag visual para nao "voar" demais antes de soltar
-    setOffset({
-      x: Math.max(-80, Math.min(80, dx)),
-      y: Math.max(-80, Math.min(80, dy)),
-    });
-  };
-
-  const onUp = (e: React.PointerEvent) => {
-    if (!ativo || !inicioRef.current) return;
-    const dx = e.clientX - inicioRef.current.x;
-    const dy = e.clientY - inicioRef.current.y;
-    const dt = Date.now() - inicioRef.current.t;
-    const dist = Math.hypot(dx, dy);
-    inicioRef.current = null;
-    setArrastando(false);
-    setOffset({ x: 0, y: 0 });
-
-    // Tap simples (sem movimento) OU swipe valido => lancar
-    const ehSwipe = dist >= 30 && dt <= 800;
-    const ehTap = dist < 6 && dt <= 500;
-    if (ehSwipe || ehTap) {
-      onLancar();
-    }
-  };
-
-  // Durante arrasto, aplicar offset visual a TODOS os dados (pegou na mao)
-  const dragPositions = arrastando
-    ? rotations.map(() => [offset.x / 80, -offset.y / 80, 0] as [number, number, number])
-    : positions;
 
   return (
     <div
-      className={`relative h-full w-full select-none touch-none ${
-        ativo ? (arrastando ? 'cursor-grabbing' : 'cursor-grab') : ''
-      }`}
-      role={ativo ? 'button' : undefined}
-      tabIndex={ativo ? 0 : undefined}
-      aria-label={ativo ? 'Arraste para lancar os dados' : undefined}
-      onPointerDown={onDown}
-      onPointerMove={onMove}
-      onPointerUp={onUp}
-      onPointerCancel={onUp}
+      className="relative h-full w-full select-none"
       onKeyDown={(e) => {
-        if (ativo && (e.key === ' ' || e.key === 'Enter')) {
+        if (habilitado && (e.key === ' ' || e.key === 'Enter')) {
           e.preventDefault();
-          onLancar();
+          lancar();
         }
       }}
+      tabIndex={habilitado ? 0 : undefined}
     >
-      {aguardandoToque && !iniciando && !arrastando ? (
-        // Dados "esperando ser pegos": flutuando + giro suave
-        <DadoCanvas autoRotate count={2} zoom={120} autoRotateSpeed={0.5} hover />
+      {/* Copo no canto superior esquerdo */}
+      <div className="absolute left-8 top-4 z-10">
+        <CopoDados inclinado={copoTombou} habilitado={habilitado} onClick={lancar} />
+      </div>
+
+      {/* Canvas 3D ocupando a area inteira */}
+      {habilitado && !copoTombou ? (
+        // Idle: dados nao aparecem na cena ainda — estao "dentro do copo"
+        <DadoCanvas
+          positions={[[-3.5, 3, 0], [-3.5, 3, 0]]}
+          rotations={[[0, 0, 0], [0, 0, 0]]}
+          count={2}
+          zoom={120}
+        />
       ) : (
-        // Arrastando OU já lançou: dados controlados (rotations + positions)
-        <DadoCanvas rotations={rotations} positions={dragPositions} count={2} zoom={120} />
+        // Lancou ou já está em animacao final: usa posicoes/rotacoes controladas
+        <DadoCanvas
+          rotations={rotations}
+          positions={positions}
+          count={2}
+          zoom={120}
+        />
       )}
     </div>
   );

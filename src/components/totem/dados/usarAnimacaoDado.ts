@@ -19,15 +19,19 @@ interface RotState { x: number; y: number; z: number; }
 interface PosState { x: number; y: number; z: number; }
 
 /**
- * Anima 2 dados num **arremesso fisico simulado**:
+ * Animacao estilo "Duelo de Dados" / Yahtzee:
  *
- *   FASE 1 (PULO 350ms)  — dados sobem rapido (Y +1.6), giram meia volta.
- *   FASE 2 (VOO 1.2s)    — tumbleando no ar com ease.in pra cair de volta.
- *   FASE 3 (BOUNCE 350ms)- pequeno quique ao tocar o "chao" (Y volta a 0).
- *   FASE 4 (ASSENTA 1s)  — desacelera as rotacoes ate a face do premio.
- *
- * Cada dado tem deslocamento horizontal aleatorio durante o voo (vai e
- * volta para a base) para sensacao de movimento livre.
+ *   FASE 1 — Saida do copo (350ms): dados saem voando pra cima do
+ *            canto superior esquerdo (posicao do copo) ate o centro
+ *            superior da area, com bastante rotacao inicial.
+ *   FASE 2 — Queda parabolica (500ms): dados caem em arcos cruzados
+ *            (um vai pela direita, outro pela esquerda — eles SE
+ *            CRUZAM no meio do arco, dando o efeito de colisao).
+ *   FASE 3 — Colisao + ricochete (250ms): no ponto de cruzamento,
+ *            cada dado ganha uma deflexao lateral oposta + rotacao
+ *            extra (sensacao de "bateu e quicou").
+ *   FASE 4 — Quica no chao (400ms): Y oscila 2x diminuindo.
+ *   FASE 5 — Assenta (1.2s): rotacao final converge na face do premio.
  */
 export function usarAnimacaoDado({
   premios, premioVencedorId, reduzir, onConcluir,
@@ -38,13 +42,15 @@ export function usarAnimacaoDado({
   reset: () => void;
 } {
   const [rotations, setRotations] = React.useState<Array<[number, number, number]>>([
-    [0, 0, 0],
-    [0, 0, 0],
+    [0, 0, 0], [0, 0, 0],
   ]);
   const [positions, setPositions] = React.useState<Array<[number, number, number]>>([
-    [0, 0, 0],
-    [0, 0, 0],
+    [0, 0, 0], [0, 0, 0],
   ]);
+
+  // Posicoes "dentro do copo": canto superior esquerdo do canvas
+  // (Y alto, X negativo). Quando o lance comeca, partem dali.
+  const POS_DENTRO_COPO: PosState = { x: -3.5, y: 3, z: 0 };
 
   const rotRefs = React.useRef<[RotState, RotState]>([
     { x: 0, y: 0, z: 0 },
@@ -101,32 +107,40 @@ export function usarAnimacaoDado({
 
     matar();
 
+    // Posicao inicial: dentro do copo. Forca as refs antes da timeline.
+    rotRefs.current[0] = { x: 0, y: 0, z: 0 };
+    rotRefs.current[1] = { x: 0.3, y: 0.2, z: 0.1 };
+    posRefs.current[0] = { ...POS_DENTRO_COPO };
+    posRefs.current[1] = { ...POS_DENTRO_COPO };
+    aplicar();
+
     const tl = gsap.timeline({
       onUpdate: aplicar,
       onComplete: onConcluir,
     });
 
     if (reduzir) {
-      // Modo prefere-motion-reduzido: animacao curta e direta
+      // Acessibilidade: vai direto ao alvo
       rotRefs.current.forEach((ref, i) => {
         tl.to(ref, {
           x: rxAlvo, y: ryAlvo, z: rzAlvo,
-          duration: 0.5, ease: 'power1.inOut',
+          duration: 0.4, ease: 'power1.inOut',
         }, 0);
-        tl.to(posRefs.current[i], { y: 0, duration: 0.3 }, 0);
+        tl.to(posRefs.current[i], {
+          x: i === 0 ? -0.8 : 0.8, y: 0, z: 0,
+          duration: 0.4, ease: 'power1.out',
+        }, 0);
       });
       tweensRef.current.push(tl);
       return;
     }
 
-    // Voltas finais — cada dado gira N voltas extras pra parar na face alvo
     const voltas = 4;
-    const lancamentoX = (Math.random() - 0.5) * 1.2; // deslocamento horizontal aleatorio
-    const lancamentoZ = (Math.random() - 0.5) * 0.6;
-
     rotRefs.current.forEach((ref, i) => {
       const yMult = i === 0 ? 1 : 1.15;
       const xMult = i === 0 ? 1 : 0.9;
+      const baseX = i === 0 ? -0.8 : 0.8; // posicao final de assento
+
       const finalX = ref.x + voltas * Math.PI * 2 * xMult
                      + (((rxAlvo - ref.x) % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
       const finalY = ref.y + voltas * Math.PI * 2 * yMult
@@ -135,72 +149,84 @@ export function usarAnimacaoDado({
                      + (((rzAlvo - ref.z) % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
 
       const pos = posRefs.current[i];
-      const direcaoX = (i === 0 ? -1 : 1) * lancamentoX;
 
-      // FASE 1: pulo (sobe + meia volta)
+      // FASE 1 — saida do copo (X vai do copo ate o centro-superior, Y desce um pouco)
+      const meioX1 = i === 0 ? 1.5 : -1.5;  // arco trocado entre os dados
       tl.to(pos, {
-        y: 1.8, x: direcaoX * 0.4, z: lancamentoZ * 0.3,
-        duration: 0.32, ease: 'power2.out',
+        x: i === 0 ? 0.5 : -0.5, y: 2.2, z: 0,
+        duration: 0.35, ease: 'power2.out',
       }, 0);
       tl.to(ref, {
-        x: ref.x + Math.PI * 0.7 * xMult,
-        y: ref.y + Math.PI * 0.5 * yMult,
-        z: ref.z + Math.PI * 0.3,
-        duration: 0.32, ease: 'power1.out',
+        x: ref.x + Math.PI * 1.2 * xMult,
+        y: ref.y + Math.PI * 0.8 * yMult,
+        z: ref.z + Math.PI * 0.4,
+        duration: 0.35, ease: 'power1.out',
       }, 0);
 
-      // FASE 2: voo (cai com gravidade simulada + tumble forte)
+      // FASE 2 — voo cruzado (cai em arco, X cruza com o outro dado)
       tl.to(pos, {
-        y: 0.3, x: direcaoX, z: lancamentoZ,
-        duration: 0.6, ease: 'power2.in',
-      }, 0.32);
+        x: meioX1, y: 0.5, z: 0,
+        duration: 0.5, ease: 'power2.in',
+      }, 0.35);
       tl.to(ref, {
-        x: ref.x + Math.PI * 0.7 * xMult + (finalX - ref.x) * 0.55,
-        y: ref.y + Math.PI * 0.5 * yMult + (finalY - ref.y) * 0.55,
-        z: ref.z + Math.PI * 0.3 + (finalZ - ref.z) * 0.55,
-        duration: 0.6, ease: 'none',
-      }, 0.32);
+        x: ref.x + Math.PI * 1.2 * xMult + Math.PI * 1.8 * xMult,
+        y: ref.y + Math.PI * 0.8 * yMult + Math.PI * 1.5 * yMult,
+        z: ref.z + Math.PI * 0.4 + Math.PI * 0.8,
+        duration: 0.5, ease: 'none',
+      }, 0.35);
 
-      // FASE 3: bounce (toca o chao e quica)
+      // FASE 3 — COLISAO + ricochete (X muda de direcao bruscamente, rotacao spike)
+      const ricocheteX = i === 0 ? meioX1 - 1.0 : meioX1 + 1.0;
       tl.to(pos, {
-        y: 0.5, duration: 0.18, ease: 'power2.out',
-      }, 0.92);
-      tl.to(pos, {
-        y: 0.1, duration: 0.18, ease: 'power2.in',
-      }, 1.10);
-      tl.to(pos, {
-        y: 0.25, duration: 0.12, ease: 'power2.out',
-      }, 1.28);
-      tl.to(pos, {
-        y: 0, duration: 0.12, ease: 'power2.in',
-      }, 1.40);
+        x: ricocheteX, y: 0.8, z: 0,
+        duration: 0.18, ease: 'power3.out',
+      }, 0.85);
+      tl.to(ref, {
+        x: '+=' + Math.PI * 0.6 * (i === 0 ? -1 : 1),
+        y: '+=' + Math.PI * 0.5,
+        z: '+=' + Math.PI * 0.4 * (i === 0 ? 1 : -1),
+        duration: 0.18, ease: 'power2.out',
+      }, 0.85);
 
-      // FASE 4: assenta — gira o restante das rotacoes ate a face alvo
+      // FASE 4 — quica no chao (Y oscila duas vezes)
       tl.to(pos, {
-        x: 0, z: 0, duration: 1.2, ease: 'power2.out',
-      }, 1.0);
+        y: 0, duration: 0.2, ease: 'power2.in',
+      }, 1.03);
+      tl.to(pos, {
+        y: 0.4, duration: 0.15, ease: 'power2.out',
+      }, 1.23);
+      tl.to(pos, {
+        y: 0, duration: 0.15, ease: 'power2.in',
+      }, 1.38);
+      tl.to(pos, {
+        y: 0.15, duration: 0.1, ease: 'power2.out',
+      }, 1.53);
+      tl.to(pos, {
+        y: 0, duration: 0.1, ease: 'power2.in',
+      }, 1.63);
+
+      // FASE 5 — assenta + rotacao final na face alvo + posicao base
+      tl.to(pos, {
+        x: baseX, z: 0, duration: 0.8, ease: 'power2.out',
+      }, 1.5);
       tl.to(ref, {
         x: finalX, y: finalY, z: finalZ,
-        duration: 1.5, ease: 'power3.out',
-      }, 1.0);
+        duration: 1.2, ease: 'power3.out',
+      }, 1.5);
     });
 
     tweensRef.current.push(tl);
-  }, [premios, onConcluir, reduzir, aplicar, matar]);
+  }, [premios, onConcluir, reduzir, aplicar, matar, POS_DENTRO_COPO]);
 
   const iniciar = React.useCallback(() => {
     if (animandoRef.current) return;
     if (!premioVencedorId) {
-      // Sem vencedor ainda — entra em "suspense" leve (auto-rotate visivel
-      // fica a cargo do componente em modo autoRotate; aqui so marcamos)
       animandoRef.current = true;
       return;
     }
-    // Tem vencedor — lanca direto
     lancar(premioVencedorId);
   }, [premioVencedorId, lancar]);
 
-  // Vencedor chegou via Realtime depois do iniciar — dispara lance
   React.useEffect(() => {
     if (animandoRef.current && premioVencedorId && !reveladoRef.current) {
       lancar(premioVencedorId);

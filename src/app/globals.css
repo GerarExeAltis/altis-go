@@ -94,6 +94,22 @@
   to   { opacity: 1; }
 }
 
+@keyframes copo-shake {
+  0%, 100% { transform: rotate(0deg) translateX(0); }
+  20%      { transform: rotate(-3deg) translateX(-2px); }
+  40%      { transform: rotate(3deg) translateX(2px); }
+  60%      { transform: rotate(-2deg) translateX(-1px); }
+  80%      { transform: rotate(2deg) translateX(1px); }
+}
+
+@keyframes copo-tomba {
+  0%   { transform: rotate(0deg) translateX(0); }
+  30%  { transform: rotate(-70deg) translateX(-20px); }
+  55%  { transform: rotate(-90deg) translateX(-30px); }
+  80%  { transform: rotate(-40deg) translateX(-10px); }
+  100% { transform: rotate(0deg) translateX(0); }
+}
+
 @keyframes modal-pop-in {
   0%   { opacity: 0; transform: scale(0.85) translateY(20px); }
   60%  { opacity: 1; transform: scale(1.03) translateY(0); }
