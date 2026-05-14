@@ -235,11 +235,17 @@ function TotemDadosFlow() {
     state.tipo === 'finalizada'
   ) {
     const aguardandoToque = state.tipo === 'pronta_para_girar';
+    // Durante o lance, ocultamos header + footer e deixamos so o canvas
+    // dos dados ocupando a tela inteira — "modo imersivo" estilo Dice So
+    // Nice.
+    const imersivo = state.tipo === 'girando';
     conteudo = (
       <div className="grid min-h-screen grid-rows-[auto_1fr_auto] bg-background">
-        <h2 className="p-6 text-center text-4xl font-bold tracking-tight">
-          {jogadorNome ? `Boa sorte, ${jogadorNome}!` : 'Boa sorte!'}
-        </h2>
+        {!imersivo && (
+          <h2 className="p-6 text-center text-4xl font-bold tracking-tight">
+            {jogadorNome ? `Boa sorte, ${jogadorNome}!` : 'Boa sorte!'}
+          </h2>
+        )}
         <SwipeAreaDados
           aguardandoToque={aguardandoToque}
           iniciando={iniciando}
@@ -248,13 +254,15 @@ function TotemDadosFlow() {
           positions={positions}
           scales={scales}
         />
-        <div className="flex items-center justify-center p-6">
-          {aguardandoToque && (
-            <p className="text-lg font-medium text-muted-foreground animate-[attract-glow_2.4s_ease-in-out_infinite]">
-              {iniciando ? 'Rolando...' : '🎲 Arraste os dados para lançar'}
-            </p>
-          )}
-        </div>
+        {!imersivo && (
+          <div className="flex items-center justify-center p-6">
+            {aguardandoToque && (
+              <p className="text-lg font-medium text-muted-foreground animate-[attract-glow_2.4s_ease-in-out_infinite]">
+                {iniciando ? 'Rolando...' : '🎲 Arraste os dados para lançar'}
+              </p>
+            )}
+          </div>
+        )}
 
         {state.tipo === 'finalizada' && premioSorteado && (
           <ModalResultadoPremio
