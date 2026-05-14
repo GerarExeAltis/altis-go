@@ -46,7 +46,7 @@ function PreviewDados({ premios }: PreviewJogoProps) {
 
   const onConcluir = React.useCallback(() => setGirando(false), []);
 
-  const { rotacao, iniciar } = usarAnimacaoDado({
+  const { rotations, iniciar } = usarAnimacaoDado({
     premios: premiosTotem,
     premioVencedorId,
     reduzir,
@@ -102,7 +102,7 @@ function PreviewDados({ premios }: PreviewJogoProps) {
           style={{ width: 480, height: 480, maxWidth: '100%', flexShrink: 0 }}
         >
           {montarCanvas ? (
-            <DadoCanvas rotation={rotacao} zoom={110} />
+            <DadoCanvas rotations={rotations} count={2} zoom={100} />
           ) : (
             <span className="text-sm text-muted-foreground">Carregando dado...</span>
           )}

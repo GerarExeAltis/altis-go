@@ -11,42 +11,65 @@ interface Args {
   onConcluir: () => void;
 }
 
-/**
- * Mapeia premio -> face do dado (1-6). Convencao: face = ordem_roleta + 1,
- * clampado em 1..6 caso o operador tenha cadastrado mais de 6 premios
- * (premios com ordem >= 6 reutilizam faces — visual nao bate perfeito,
- * mas o sorteio do backend permanece correto e o premio mostrado no
- * modal final e o que vale).
- */
 function faceDoPremio(premio: PremioDb): number {
   return Math.min(6, Math.max(1, premio.ordem_roleta + 1));
 }
 
+interface RotState { x: number; y: number; z: number; }
+
 /**
- * Animacao do dado em 2 fases (espelha usarAnimacaoRoleta):
+ * Anima 2 dados que terminam na mesma face (face do premio). O hook
+ * retorna as rotacoes correntes em formato array para alimentar
+ * DadoCanvas (uma por dado).
  *
- * 1) SUSPENSE: tumblings continuos em loop assim que iniciar() e chamado,
- *    sem face alvo definida. Garante movimento imediato ao tocar GIRAR.
+ * 2 fases:
+ *  1) suspense — tumble continuo em loop quando iniciar() e chamado.
+ *  2) revelacao — aplica voltas extras + assenta na rotacao alvo da
+ *     face que corresponde ao premio escolhido pelo backend.
  *
- * 2) REVELACAO: quando premioVencedorId esta disponivel, interrompe o
- *    suspense e roda mais N voltas extras + ajuste fino na rotacao
- *    pre-calculada que coloca a face do premio voltada para cima (+Y).
+ * Cada dado recebe valores ligeiramente diferentes (multiplicadores
+ * 1.0 e 1.15) para nao parecerem espelhados — sensacao de dois objetos
+ * independentes balancando, mas ambos chegam na mesma face.
  */
 export function usarAnimacaoDado({
   premios, premioVencedorId, reduzir, onConcluir,
 }: Args): {
-  rotacao: [number, number, number];
+  rotations: Array<[number, number, number]>;
   iniciar: () => void;
+  reset: () => void;
 } {
-  const [rotacao, setRotacao] = React.useState<[number, number, number]>([0, 0, 0]);
-  const rotRef = React.useRef<{ x: number; y: number; z: number }>({ x: 0, y: 0, z: 0 });
-  const tweenSuspenseRef = React.useRef<gsap.core.Tween | null>(null);
+  const [rotations, setRotations] = React.useState<Array<[number, number, number]>>([
+    [0, 0, 0],
+    [0, 0, 0],
+  ]);
+  const rotRefs = React.useRef<[RotState, RotState]>([
+    { x: 0, y: 0, z: 0 },
+    { x: 0.3, y: 0.2, z: 0.1 },
+  ]);
+  const tweensRef = React.useRef<gsap.core.Tween[]>([]);
   const animandoRef = React.useRef(false);
   const reveladoRef = React.useRef(false);
 
-  const aplicarRot = React.useCallback(() => {
-    setRotacao([rotRef.current.x, rotRef.current.y, rotRef.current.z]);
+  const aplicar = React.useCallback(() => {
+    const [a, b] = rotRefs.current;
+    setRotations([[a.x, a.y, a.z], [b.x, b.y, b.z]]);
   }, []);
+
+  const matar = React.useCallback(() => {
+    tweensRef.current.forEach((t) => t.kill());
+    tweensRef.current = [];
+  }, []);
+
+  const reset = React.useCallback(() => {
+    matar();
+    animandoRef.current = false;
+    reveladoRef.current = false;
+    rotRefs.current = [
+      { x: 0, y: 0, z: 0 },
+      { x: 0.3, y: 0.2, z: 0.1 },
+    ];
+    aplicar();
+  }, [matar, aplicar]);
 
   const revelar = React.useCallback((vencedorId: string) => {
     if (reveladoRef.current) return;
@@ -54,84 +77,82 @@ export function usarAnimacaoDado({
 
     const premio = premios.find((p) => p.id === vencedorId);
     if (!premio) {
-      tweenSuspenseRef.current?.kill();
+      matar();
       onConcluir();
       return;
     }
-
     const face = faceDoPremio(premio);
     const [rx, ry, rz] = ROTACOES_FACES[face] ?? [0, 0, 0];
 
-    // Acrescenta N voltas em cada eixo antes de assentar — efeito de
-    // "tombo final" antes de assentar. Voltas tem que ser inteiras
-    // pra terminar exatamente na rotacao pre-calculada.
-    const voltas = 4;
-    const finalX = rx + voltas * Math.PI * 2;
-    const finalY = ry + (voltas + 1) * Math.PI * 2;
-    const finalZ = rz + voltas * Math.PI * 2;
+    // Voltas extras a partir da rotacao ATUAL — preserva fluidez sem
+    // jump. Cada dado tem multiplicador diferente em Y para nao parecer
+    // espelhado.
+    const voltas = 3;
+    const dur = reduzir ? 0.5 : 3.2;
+    const ease = reduzir ? 'power1.inOut' : 'power3.out';
 
-    tweenSuspenseRef.current?.kill();
+    matar();
+    rotRefs.current.forEach((ref, i) => {
+      const yMult = i === 0 ? 1 : 1.15;
+      // Ajusta rotacao atual para multiplo de 2PI mais proximo + alvo
+      const finalX = ref.x + voltas * Math.PI * 2
+                     + (((rx - ref.x) % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
+      const finalY = ref.y + voltas * Math.PI * 2 * yMult
+                     + (((ry - ref.y) % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
+      const finalZ = ref.z + voltas * Math.PI * 2
+                     + (((rz - ref.z) % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
 
-    if (reduzir) {
-      gsap.to(rotRef.current, {
-        x: rx, y: ry, z: rz,
-        duration: 0.4,
-        ease: 'power1.inOut',
-        onUpdate: aplicarRot,
-        onComplete: onConcluir,
+      const tw = gsap.to(ref, {
+        x: finalX, y: finalY, z: finalZ,
+        duration: dur,
+        ease,
+        onUpdate: aplicar,
+        onComplete: i === 0 ? onConcluir : undefined,
       });
-      return;
-    }
-
-    gsap.to(rotRef.current, {
-      x: finalX,
-      y: finalY,
-      z: finalZ,
-      duration: 4.5,
-      ease: 'expo.out',
-      onUpdate: aplicarRot,
-      onComplete: onConcluir,
+      tweensRef.current.push(tw);
     });
-  }, [premios, onConcluir, reduzir, aplicarRot]);
+  }, [premios, onConcluir, reduzir, aplicar, matar]);
 
   const iniciar = React.useCallback(() => {
     if (animandoRef.current) return;
     animandoRef.current = true;
     reveladoRef.current = false;
 
-    // Fase suspense: tumble continuo
-    tweenSuspenseRef.current?.kill();
-    tweenSuspenseRef.current = gsap.to(rotRef.current, {
-      x: '+=' + Math.PI * 2,
-      y: '+=' + Math.PI * 2 * 1.3,
-      z: '+=' + Math.PI * 2 * 0.7,
-      duration: 1.0,
-      ease: 'none',
-      repeat: -1,
-      onUpdate: aplicarRot,
+    // Suspense — tumble continuo. Os 2 dados giram em velocidades
+    // ligeiramente diferentes para sensacao de naturalidade.
+    matar();
+    rotRefs.current.forEach((ref, i) => {
+      const mult = i === 0 ? 1 : 1.2;
+      const tw = gsap.to(ref, {
+        x: '+=' + Math.PI * 2 * mult,
+        y: '+=' + Math.PI * 2 * 1.3 * mult,
+        z: '+=' + Math.PI * 2 * 0.7 * mult,
+        duration: 1.0,
+        ease: 'none',
+        repeat: -1,
+        onUpdate: aplicar,
+      });
+      tweensRef.current.push(tw);
     });
 
     if (premioVencedorId) {
       revelar(premioVencedorId);
     }
-  }, [premioVencedorId, revelar, aplicarRot]);
+  }, [premioVencedorId, revelar, aplicar, matar]);
 
-  // Premio chega via Realtime durante o suspense -> dispara revelacao.
+  // Detecta vencedor durante suspense — dispara revelacao.
   React.useEffect(() => {
     if (animandoRef.current && premioVencedorId && !reveladoRef.current) {
       revelar(premioVencedorId);
     }
   }, [premioVencedorId, revelar]);
 
-  // Reset quando o premio sai (volta para attract).
+  // Reset automatico quando volta pra attract.
   React.useEffect(() => {
     if (!premioVencedorId) {
-      animandoRef.current = false;
-      reveladoRef.current = false;
-      tweenSuspenseRef.current?.kill();
-      tweenSuspenseRef.current = null;
+      reset();
     }
-  }, [premioVencedorId]);
+  }, [premioVencedorId, reset]);
 
-  return { rotacao, iniciar };
+  return { rotations, iniciar, reset };
 }
