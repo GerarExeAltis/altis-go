@@ -113,15 +113,22 @@ function DadoAutoRotate({ position, speedScale = 1, hover = false }: {
  * mas fica fixa em Y=0 — quando o dado pula, a sombra encolhe um
  * pouco (efeito de altura). Visualmente reforca a sensacao de fisica.
  */
-function SombraDado({ dadoY, baseX, baseZ }: { dadoY: number; baseX: number; baseZ: number }) {
-  // escala da sombra: 1 quando dadoY=0, menor quando dadoY>0
+function SombraDado({ dadoX, dadoY, dadoZ, baseX, baseZ }: {
+  dadoX: number; dadoY: number; dadoZ: number;
+  baseX: number; baseZ: number;
+}) {
+  // Esconde a sombra se o dado esta fora da area visivel (ex: dentro do
+  // copo antes do lance). |x| > 2.5 ou y > 2.5 sao posicoes "fora de cena".
+  const foraCena = Math.abs(dadoX) > 2.5 || dadoY > 2.5;
+  if (foraCena) return null;
+
   const altura = Math.max(0, dadoY);
   const escala = Math.max(0.4, 1 - altura * 0.35);
   const opacidade = Math.max(0.15, 0.45 - altura * 0.15);
   return (
     <mesh
       rotation={[-Math.PI / 2, 0, 0]}
-      position={[baseX, -0.55, baseZ]}
+      position={[baseX + dadoX, -0.55, baseZ + dadoZ]}
       scale={[escala, escala, escala]}
     >
       <circleGeometry args={[0.55, 32]} />
@@ -186,7 +193,13 @@ export function DadoCanvas({
           ];
           return (
             <React.Fragment key={i}>
-              <SombraDado dadoY={finalPos[1]} baseX={base[0]} baseZ={base[2]} />
+              <SombraDado
+                dadoX={offs[i]?.[0] ?? 0}
+                dadoY={offs[i]?.[1] ?? 0}
+                dadoZ={offs[i]?.[2] ?? 0}
+                baseX={base[0]}
+                baseZ={base[2]}
+              />
               {autoRotate ? (
                 <DadoAutoRotate
                   position={finalPos}

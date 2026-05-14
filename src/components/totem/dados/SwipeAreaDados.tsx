@@ -53,17 +53,10 @@ export function SwipeAreaDados({
         <CopoDados inclinado={copoTombou} habilitado={habilitado} onClick={lancar} />
       </div>
 
-      {/* Canvas 3D ocupando a area inteira */}
-      {habilitado && !copoTombou ? (
-        // Idle: dados nao aparecem na cena ainda — estao "dentro do copo"
-        <DadoCanvas
-          positions={[[-3.5, 3, 0], [-3.5, 3, 0]]}
-          rotations={[[0, 0, 0], [0, 0, 0]]}
-          count={2}
-          zoom={120}
-        />
-      ) : (
-        // Lancou ou já está em animacao final: usa posicoes/rotacoes controladas
+      {/* Canvas 3D so renderiza quando os dados estao em cena (lancando
+          ou ja assentaram). Em idle, so o copo aparece — os dados
+          ficam "guardados" dentro dele visualmente. */}
+      {(!habilitado || copoTombou) && (
         <DadoCanvas
           rotations={rotations}
           positions={positions}
