@@ -32,11 +32,15 @@ function FacePips({ valor, normal, rotation }: {
   rotation: [number, number, number];
 }) {
   const pips = pipsPorFace(valor);
-  const offset = 0.501;
+  // Offset maior (0.515) afasta os pips da face do cubo o suficiente
+  // pra eliminar risco de z-fighting em angulos oblicuos. Combinado
+  // com polygonOffset no material da face (abaixo), garante separacao
+  // robusta no depth buffer.
+  const offset = 0.515;
   return (
     <group rotation={rotation} position={[normal[0] * offset, normal[1] * offset, normal[2] * offset]}>
       {pips.map(([x, y], i) => (
-        <mesh key={i} position={[x, y, -0.012]}>
+        <mesh key={i} position={[x, y, 0]}>
           <sphereGeometry args={[0.075, 24, 24]} />
           <meshStandardMaterial
             color="#0a1518"
@@ -59,6 +63,9 @@ function CuboDado() {
           roughness={0.42}
           metalness={0.08}
           envMapIntensity={0.55}
+          polygonOffset
+          polygonOffsetFactor={1}
+          polygonOffsetUnits={1}
         />
       </RoundedBox>
       <FacePips valor={1} normal={[0, 1, 0]}  rotation={[-Math.PI / 2, 0, 0]} />
@@ -174,7 +181,7 @@ export function DadoCanvas({
       <Canvas
         orthographic
         shadows
-        camera={{ position: [2.6, 2.4, 2.6], zoom }}
+        camera={{ position: [2.6, 2.4, 2.6], zoom, near: 0.1, far: 100 }}
         style={{
           position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', display: 'block',
         }}
