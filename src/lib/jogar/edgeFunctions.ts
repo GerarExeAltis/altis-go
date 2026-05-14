@@ -1,10 +1,23 @@
 import { env } from '@/lib/env';
 import type { ObterSessaoResp, SubmeterDadosResp } from './types';
 
+// Headers padrao para chamadas anonimas as Edge Functions: alem de
+// Content-Type, o Supabase Functions exige Authorization (anon key)
+// como verificacao basica do gateway antes mesmo da Edge Function
+// rodar. Em dev `functions:serve --no-verify-jwt` libera, mas em prod
+// (deploy.supabase.com) sem o header retorna 401 UNAUTHORIZED_NO_AUTH_HEADER.
+function authHeaders(): HeadersInit {
+  return {
+    'Content-Type': 'application/json',
+    apikey: env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+    Authorization: `Bearer ${env.NEXT_PUBLIC_SUPABASE_ANON_KEY}`,
+  };
+}
+
 export async function obterSessao(s: string, t: string): Promise<ObterSessaoResp> {
   const res = await fetch(`${env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/obter-sessao`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: authHeaders(),
     body: JSON.stringify({ s, t }),
   });
   if (!res.ok) {
@@ -30,7 +43,7 @@ export async function submeterDados(
 ): Promise<SubmeterDadosResp> {
   const res = await fetch(`${env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/submeter-dados`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: authHeaders(),
     body: JSON.stringify({ s, t, dados, fingerprint }),
   });
   const body = await res.json().catch(() => ({}));
@@ -55,7 +68,7 @@ export interface StatusSessao {
 export async function obterStatus(s: string, t: string): Promise<StatusSessao> {
   const res = await fetch(`${env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/obter-status`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: authHeaders(),
     body: JSON.stringify({ s, t }),
   });
   if (!res.ok) {
@@ -69,7 +82,7 @@ export async function obterStatus(s: string, t: string): Promise<StatusSessao> {
 export async function iniciarAnimacaoJogador(s: string, t: string): Promise<void> {
   const res = await fetch(`${env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/iniciar-animacao`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: authHeaders(),
     body: JSON.stringify({ s, t }),
   });
   if (!res.ok) {
