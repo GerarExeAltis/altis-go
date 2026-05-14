@@ -8,9 +8,15 @@ interface GameCardProps {
   subtitulo: string;
   disabled?: boolean;
   badge?: string;
+  /** Texto exibido no botao quando o card NAO esta disabled. Default: "Iniciar". */
+  textoBotao?: string;
+  /** Mensagem mostrada no lugar do botao quando disabled (ex: "Sem evento ativo"). */
+  motivoDisabled?: string;
 }
 
-export function GameCard({ href, icone, titulo, subtitulo, disabled, badge }: GameCardProps) {
+export function GameCard({
+  href, icone, titulo, subtitulo, disabled, badge, textoBotao = 'Iniciar', motivoDisabled,
+}: GameCardProps) {
   const content = (
     <div
       className={cn(
@@ -41,9 +47,15 @@ export function GameCard({ href, icone, titulo, subtitulo, disabled, badge }: Ga
       </div>
       <h2 className="mt-4 text-2xl font-bold tracking-tight">{titulo}</h2>
       <p className="mt-2 text-sm text-muted-foreground">{subtitulo}</p>
-      {!disabled && (
+      {disabled ? (
+        motivoDisabled ? (
+          <span className="mt-6 rounded-md bg-muted px-4 py-2 text-xs font-medium text-muted-foreground ring-1 ring-border/60">
+            {motivoDisabled}
+          </span>
+        ) : null
+      ) : (
         <span className="mt-6 rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-sm transition-shadow group-hover:shadow-md">
-          Abrir Totem
+          {textoBotao}
         </span>
       )}
     </div>

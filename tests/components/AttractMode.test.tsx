@@ -2,8 +2,6 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import { AttractMode } from '@/components/totem/AttractMode';
 
-// AttractMode usa RoletaCanvas (Three.js), pesado em ambiente happy-dom.
-// Mock simples evita ter de simular WebGL/Canvas.
 vi.mock('@/components/totem/roleta/RoletaCanvas', () => ({
   RoletaCanvas: () => null,
 }));

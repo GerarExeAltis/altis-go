@@ -11,12 +11,6 @@ interface Props {
   premios: PremioDb[];
 }
 
-/**
- * Tela inicial do totem com a RoletaCanvas girando em loop no centro,
- * textos abaixo, GIF da marca a esquerda. Toda a area e clicavel
- * (botao wrapper) para iniciar a jogada — barra de espaco / Enter
- * tambem disparam.
- */
 export function AttractMode({ onTocar, disabled, premios }: Props) {
   React.useEffect(() => {
     const handler = (e: KeyboardEvent) => {
