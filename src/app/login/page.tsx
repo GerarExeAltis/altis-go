@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import { LogoAltis } from '@/components/LogoAltis';
 import { LoginForm } from '@/components/auth/LoginForm';
 import { ThemeToggle } from '@/components/theme/ThemeToggle';
@@ -14,7 +15,10 @@ export default function LoginPage() {
           <h1 className="text-2xl font-bold tracking-tight">AltisGo</h1>
           <p className="text-sm text-muted-foreground">Entre com sua conta de operador</p>
         </div>
-        <LoginForm />
+        {/* useSearchParams() do LoginForm exige Suspense em static export */}
+        <Suspense fallback={null}>
+          <LoginForm />
+        </Suspense>
       </div>
     </main>
   );
