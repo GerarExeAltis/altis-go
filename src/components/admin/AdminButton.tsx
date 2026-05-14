@@ -13,13 +13,16 @@ export function AdminButton() {
   const { session } = useAuth();
   if (!session) return null;
 
-  if (modoAdmin) return <AdminBadge />;
   return (
     <>
-      <Button variant="ghost" size="sm" onClick={() => setOpen(true)} aria-label="Modo admin">
-        <Shield className="mr-1 h-4 w-4" />
-        Admin
-      </Button>
+      {modoAdmin ? (
+        <AdminBadge />
+      ) : (
+        <Button variant="ghost" size="sm" onClick={() => setOpen(true)} aria-label="Modo admin">
+          <Shield className="mr-1 h-4 w-4" />
+          Admin
+        </Button>
+      )}
       <AdminModal open={open} onOpenChange={setOpen} accessToken={session.access_token} />
     </>
   );

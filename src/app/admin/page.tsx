@@ -14,7 +14,6 @@ import { PremiosTab } from './tabs/PremiosTab';
 import { OperadoresTab } from './tabs/OperadoresTab';
 import { GanhadoresTab } from './tabs/GanhadoresTab';
 import { AuditoriaTab } from './tabs/AuditoriaTab';
-import { ConfigTab } from './tabs/ConfigTab';
 
 export default function AdminPage() {
   return (
@@ -57,7 +56,9 @@ function AdminGate() {
 
   return (
     <>
-      <Header rightSlot={<AdminButton />} />
+      {/* Sem AdminButton aqui — o controle do modo admin (timer + sair)
+          fica no rodape da AdminSidebar, junto da info do usuario. */}
+      <Header />
       <AdminLayout abaAtiva={aba} onAbaChange={setAba}>
         {aba === 'dashboard' && <DashboardTab />}
         {aba === 'eventos' && <EventosTab />}
@@ -65,7 +66,6 @@ function AdminGate() {
         {aba === 'operadores' && <OperadoresTab />}
         {aba === 'ganhadores' && <GanhadoresTab />}
         {aba === 'auditoria' && <AuditoriaTab />}
-        {aba === 'config' && <ConfigTab />}
       </AdminLayout>
     </>
   );

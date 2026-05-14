@@ -41,16 +41,15 @@ export function AdminModal({
         } else {
           setErro('Senha inválida.');
         }
+        setEnviando(false); // libera o botao para nova tentativa
         return;
       }
       const { token, exp } = (await res.json()) as { token: string; exp: number };
       ativar(token, exp);
       setSenha('');
-      onOpenChange(false);
       router.push('/admin');
     } catch {
       setErro('Falha de rede. Tente novamente.');
-    } finally {
       setEnviando(false);
     }
   };
@@ -103,7 +102,7 @@ export function AdminModal({
               Cancelar
             </Button>
             <Button type="submit" disabled={enviando || senha.length === 0}>
-              {enviando ? 'Verificando...' : 'Desbloquear'}
+              {enviando ? 'Acessando painel...' : 'Desbloquear'}
             </Button>
           </div>
         </form>

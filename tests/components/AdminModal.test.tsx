@@ -10,6 +10,11 @@ vi.mock('@/contexts/AdminContext', () => ({
   }),
 }));
 
+const pushMock = vi.fn();
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({ push: pushMock, replace: vi.fn() }),
+}));
+
 // env precisa de stub para o módulo @/lib/env não bombar com zod
 vi.mock('@/lib/env', () => ({
   env: {
@@ -50,7 +55,8 @@ describe('AdminModal', () => {
     expect(JSON.parse(call[1].body)).toEqual({ senha: 'admin123' });
   });
 
-  it('ao sucesso chama ativar(jwt, exp) e fecha modal', async () => {
+  it('ao sucesso chama ativar(jwt, exp) e navega para /admin', async () => {
+    pushMock.mockReset();
     const onOpenChange = vi.fn();
     fetchMock.mockResolvedValue({
       ok: true,
@@ -62,8 +68,12 @@ describe('AdminModal', () => {
     await user.click(screen.getByRole('button', { name: /desbloquear/i }));
     await waitFor(() => {
       expect(ativarMock).toHaveBeenCalledWith('admin-jwt', 9999999999);
-      expect(onOpenChange).toHaveBeenCalledWith(false);
+      expect(pushMock).toHaveBeenCalledWith('/admin');
     });
+    // NAO devemos fechar o modal manualmente — deixa o router.push
+    // desmontar o componente, evitando flash entre "modal fechado" e
+    // "loading do painel".
+    expect(onOpenChange).not.toHaveBeenCalled();
   });
 
   it('senha inválida exibe mensagem genérica', async () => {

@@ -18,8 +18,9 @@ import {
 } from '@/components/ui/dialog';
 import { PremioForm, type PremioFormPayload } from '@/components/admin/PremioForm';
 import { PreviewJogoModal } from '@/components/admin/PreviewJogoModal';
+import { DistribuicaoPesoModal } from '@/components/admin/DistribuicaoPesoModal';
 import { uploadFotoPremio } from '@/lib/admin/uploadFoto';
-import { Plus, Edit, GripVertical, Trash2, Eye } from 'lucide-react';
+import { Plus, Edit, GripVertical, Trash2, Eye, BarChart3 } from 'lucide-react';
 
 interface ItemProps {
   premio: PremioDb;
@@ -83,6 +84,7 @@ export function PremiosTab() {
   const [erro, setErro] = React.useState<string | null>(null);
   const [enviando, setEnviando] = React.useState(false);
   const [previewAberto, setPreviewAberto] = React.useState(false);
+  const [distribuicaoAberto, setDistribuicaoAberto] = React.useState(false);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -103,9 +105,6 @@ export function PremiosTab() {
       .select('*').eq('evento_id', evt.id).order('ordem_roleta');
     setPremios((data as PremioDb[]) ?? []);
 
-    // Conta ganhadores reais por premio — fonte da verdade para 'sorteados',
-    // independente do estoque_atual (que pode estar dessincronizado por
-    // edicoes do estoque_inicial).
     const { data: gs } = await adminClient
       .from('ganhadores')
       .select('premio_id')
@@ -140,10 +139,6 @@ export function PremiosTab() {
       let premioId = editando?.id;
 
       if (editando) {
-        // Preserva ganhadores existentes ao mudar o estoque_inicial.
-        // 'consumidos' = quantos ja sairam (fonte: tabela ganhadores,
-        // mais confiavel que estoque_inicial_antigo - estoque_atual_antigo
-        // caso ja exista divergencia).
         const consumidos = ganhadoresPorPremio[editando.id] ?? 0;
         const novoAtual = Math.max(0, form.estoque_inicial - consumidos);
         const { error } = await adminClient.from('premios')
@@ -209,7 +204,15 @@ export function PremiosTab() {
           <h2 className="text-2xl font-bold tracking-tight">Prêmios</h2>
           <p className="text-muted-foreground">Arraste para reordenar na roleta.</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <Button
+            variant="outline"
+            onClick={() => setDistribuicaoAberto(true)}
+            disabled={premios.length === 0}
+            title="Gráfico de barras + tabela com chance de cada prêmio"
+          >
+            <BarChart3 className="mr-1 h-4 w-4" />Distribuição de peso
+          </Button>
           <Button
             variant="outline"
             onClick={() => setPreviewAberto(true)}
@@ -245,6 +248,11 @@ export function PremiosTab() {
         open={previewAberto}
         onOpenChange={setPreviewAberto}
       />
+      <DistribuicaoPesoModal
+        premios={premios}
+        open={distribuicaoAberto}
+        onOpenChange={setDistribuicaoAberto}
+      />
 
       <Dialog open={modalAberto} onOpenChange={setModalAberto}>
         <DialogContent onClose={() => setModalAberto(false)} className="max-w-lg">
@@ -255,6 +263,7 @@ export function PremiosTab() {
           <PremioForm
             onSubmit={salvar}
             enviando={enviando}
+            fotoPathAtual={editando?.foto_path ?? null}
             valoresIniciais={editando ? {
               nome: editando.nome,
               descricao: editando.descricao ?? '',
