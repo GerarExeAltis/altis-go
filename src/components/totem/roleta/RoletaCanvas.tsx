@@ -1,7 +1,7 @@
 'use client';
 import * as React from 'react';
-import { Canvas } from '@react-three/fiber';
-import type * as THREE from 'three';
+import { Canvas, useFrame } from '@react-three/fiber';
+import * as THREE from 'three';
 import type { PremioDb } from '@/lib/totem/types';
 import { Roda } from './Roda';
 import { Ponteiro } from './Ponteiro';
@@ -9,7 +9,8 @@ import { EixoCentro } from './EixoCentro';
 
 interface Props {
   premios: PremioDb[];
-  rodaRef: React.MutableRefObject<THREE.Group | null>;
+  /** Ref externa para controle de animacao (gsap). Quando autoRotate=true, e opcional. */
+  rodaRef?: React.MutableRefObject<THREE.Group | null>;
   /**
    * Zoom da camera ortografica. Default 110 (totem fullscreen).
    * Para containers menores use valores menores — regra empirica:
@@ -19,9 +20,22 @@ interface Props {
    * Calculo: zoom ~ container_px / 6.5
    */
   zoom?: number;
+  /**
+   * Quando true, a roda gira automaticamente em loop infinito (uso na
+   * tela inicial / AttractMode). Ignora rodaRef externa.
+   */
+  autoRotate?: boolean;
 }
 
-export function RoletaCanvas({ premios, rodaRef, zoom = 110 }: Props) {
+function RodaAutoRotate({ premios }: { premios: PremioDb[] }) {
+  const ref = React.useRef<THREE.Group | null>(null);
+  useFrame((_, delta) => {
+    if (ref.current) ref.current.rotation.z += delta * 0.6;
+  });
+  return <Roda ref={ref} premios={premios} />;
+}
+
+export function RoletaCanvas({ premios, rodaRef, zoom = 110, autoRotate = false }: Props) {
   // Wrapper com tamanho explicito + position:relative garante que o R3F
   // (que mede o parent via ResizeObserver) capture as dimensoes corretas
   // mesmo quando renderizado dentro de portal/modal com animacao de zoom.
@@ -59,9 +73,15 @@ export function RoletaCanvas({ premios, rodaRef, zoom = 110 }: Props) {
         <directionalLight position={[-3, -2, 4]} intensity={0.35} />
         <pointLight position={[0, 0, 3]} intensity={0.6} color="#4afad4" />
 
-        <Roda ref={rodaRef} premios={premios} />
+        {autoRotate ? (
+          <RodaAutoRotate premios={premios} />
+        ) : (
+          <Roda ref={rodaRef} premios={premios} />
+        )}
         <EixoCentro />
-        <Ponteiro rodaRef={rodaRef} totalFatias={premios.length} />
+        {!autoRotate && rodaRef && (
+          <Ponteiro rodaRef={rodaRef} totalFatias={premios.length} />
+        )}
       </Canvas>
     </div>
   );

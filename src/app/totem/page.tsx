@@ -1,16 +1,20 @@
 'use client';
+
 import * as React from 'react';
 import { AuthGuard } from '@/components/auth/AuthGuard';
 import { useAuth } from '@/contexts/AuthContext';
 import { totemReducer, ESTADO_INICIAL } from '@/lib/totem/stateMachine';
+import { useRouter } from 'next/navigation';
 import { useSessaoRealtime } from '@/hooks/useSessaoRealtime';
 import { usePreferredMotion } from '@/hooks/usePreferredMotion';
+import { useBloqueioSaidaTotem } from '@/hooks/useBloqueioSaidaTotem';
+import { ModalSaidaTotem } from '@/components/totem/ModalSaidaTotem';
 import { liberarJogada, iniciarAnimacao, concluirAnimacao } from '@/lib/totem/edgeFunctions';
 import { getSupabaseBrowserClient } from '@/lib/supabase/browser';
 import type { PremioDb } from '@/lib/totem/types';
 import { AttractMode } from '@/components/totem/AttractMode';
 import { QrCodeScreen } from '@/components/totem/QrCodeScreen';
-import { BannerGanhador } from '@/components/totem/BannerGanhador';
+import { ModalResultadoPremio } from '@/components/jogos/ModalResultadoPremio';
 import { RoletaCanvas } from '@/components/totem/roleta/RoletaCanvas';
 import { usarAnimacaoRoleta } from '@/components/totem/roleta/usarAnimacaoRoleta';
 import { ErroOverlay } from '@/components/totem/ErroOverlay';
@@ -25,9 +29,15 @@ export default function TotemPage() {
 
 function TotemFlow() {
   const { session } = useAuth();
+  const router = useRouter();
   const accessToken = session?.access_token ?? '';
   const [state, dispatch] = React.useReducer(totemReducer, ESTADO_INICIAL);
   const { reduzir } = usePreferredMotion();
+
+  // Bloqueio sempre ativo enquanto a pagina /totem esta aberta —
+  // inclusive na tela inicial (AttractMode). O totem funciona como
+  // quiosque: sair so com senha admin ou senha do operador.
+  const bloqueio = useBloqueioSaidaTotem(true);
 
   React.useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -38,13 +48,6 @@ function TotemFlow() {
   const [premios, setPremios] = React.useState<PremioDb[]>([]);
   const [jogadorNome, setJogadorNome] = React.useState<string | null>(null);
 
-  // Carrega premios do evento ativo. Re-executa SEMPRE que o totem
-  // entra em 'criando_sessao' (cliente acabou de tocar e vai gerar QR),
-  // alem do load inicial. Isso garante que se o admin reordenou,
-  // editou, adicionou ou removeu premios entre uma jogada e outra, a
-  // roleta visual fica sincronizada com o que o backend vai sortear.
-  // Sem isso, IDs/ordem ficavam stale e a fatia visual nao batia com
-  // o premio_sorteado_id retornado do sortear() do banco.
   React.useEffect(() => {
     if (state.tipo !== 'attract' && state.tipo !== 'criando_sessao') return;
     const sb = getSupabaseBrowserClient();
@@ -73,6 +76,17 @@ function TotemFlow() {
       : null;
 
   const { payload, conectado } = useSessaoRealtime(sessaoId);
+
+  const [graceInicial, setGraceInicial] = React.useState(true);
+  React.useEffect(() => {
+    if (state.tipo !== 'aguardando_celular' && state.tipo !== 'aguardando_dados') {
+      setGraceInicial(true); // re-arma para a proxima entrada
+      return;
+    }
+    setGraceInicial(true);
+    const id = window.setTimeout(() => setGraceInicial(false), 3000);
+    return () => window.clearTimeout(id);
+  }, [state.tipo]);
 
   React.useEffect(() => {
     if (!payload) return;
@@ -108,12 +122,21 @@ function TotemFlow() {
       });
   }, [state.tipo, state]);
 
-  // Cliente (pessoa em frente ao totem) inicia a roleta tocando no botao
-  // GIRAR — sem auto-disparo. O botao aparece embaixo da roleta no estado
-  // 'pronta_para_girar'. iniciarAnimacao muda status para 'girando' no banco,
-  // useSessaoRealtime atualiza state e o useEffect abaixo dispara iniciar().
   const iniciouRef = React.useRef<string | null>(null);
   const [iniciando, setIniciando] = React.useState(false);
+
+  React.useEffect(() => {
+    if (
+      state.tipo === 'attract' ||
+      state.tipo === 'criando_sessao' ||
+      state.tipo === 'aguardando_celular' ||
+      state.tipo === 'aguardando_dados'
+    ) {
+      iniciouRef.current = null;
+      setIniciando(false);
+    }
+  }, [state.tipo]);
+
   const dispararRoleta = React.useCallback(async () => {
     if (state.tipo !== 'pronta_para_girar') return;
     if (iniciouRef.current === state.sessaoId) return;
@@ -164,11 +187,6 @@ function TotemFlow() {
       ? `${baseUrl}/jogar?s=${state.sessaoId}&t=${state.token}`
       : '';
 
-  // Busca o nome do premio sorteado DIRETO DO BANCO (fonte da verdade)
-  // quando entramos em 'finalizada'. Antes usavamos premios.find(...) no
-  // array carregado uma vez no mount, mas se o admin renomear premios
-  // enquanto o totem esta aberto, o totem mostrava o nome antigo —
-  // divergindo do que o celular ve via obter-sessao (que busca a cada QR).
   const [premioSorteado, setPremioSorteado] = React.useState<
     { nome: string; e_premio_real: boolean; foto_path: string | null } | null
   >(null);
@@ -193,30 +211,35 @@ function TotemFlow() {
     return () => { alive = false; };
   }, [state]);
 
+  let conteudo: React.ReactNode = null;
+
   if (state.tipo === 'erro') {
-    return <ErroOverlay mensagem={state.mensagem} />;
-  }
-
-  if (state.tipo === 'attract' || state.tipo === 'criando_sessao') {
-    return <AttractMode onTocar={tocar} disabled={state.tipo === 'criando_sessao'} />;
-  }
-
-  if (state.tipo === 'aguardando_celular' || state.tipo === 'aguardando_dados') {
-    if (!conectado) {
-      return <ErroOverlay mensagem="Aguardando conexão com servidor..." />;
-    }
-    return (
-      <QrCodeScreen
-        url={qrUrl}
-        expiraEm={state.expiraEm}
-        aguardandoDados={state.tipo === 'aguardando_dados'}
+    conteudo = <ErroOverlay mensagem={state.mensagem} />;
+  } else if (state.tipo === 'attract' || state.tipo === 'criando_sessao') {
+    conteudo = (
+      <AttractMode
+        onTocar={tocar}
+        disabled={state.tipo === 'criando_sessao'}
+        premios={premios}
       />
     );
-  }
-
-  if (state.tipo === 'pronta_para_girar' || state.tipo === 'girando') {
+  } else if (state.tipo === 'aguardando_celular' || state.tipo === 'aguardando_dados') {
+    conteudo = (!conectado && !graceInicial)
+      ? <ErroOverlay mensagem="Aguardando conexão com servidor..." />
+      : (
+        <QrCodeScreen
+          url={qrUrl}
+          expiraEm={state.expiraEm}
+          aguardandoDados={state.tipo === 'aguardando_dados'}
+        />
+      );
+  } else if (
+    state.tipo === 'pronta_para_girar' ||
+    state.tipo === 'girando' ||
+    state.tipo === 'finalizada'
+  ) {
     const aguardandoToque = state.tipo === 'pronta_para_girar';
-    return (
+    conteudo = (
       <div className="grid min-h-screen grid-rows-[auto_1fr_auto] bg-background">
         <h2 className="p-6 text-center text-4xl font-bold tracking-tight">
           {jogadorNome ? `Boa sorte, ${jogadorNome}!` : 'Boa sorte!'}
@@ -225,7 +248,7 @@ function TotemFlow() {
           <RoletaCanvas premios={premios} rodaRef={rodaRef} />
         </div>
         <div className="flex items-center justify-center p-6">
-          {aguardandoToque ? (
+          {aguardandoToque && (
             <button
               type="button"
               onClick={dispararRoleta}
@@ -233,30 +256,35 @@ function TotemFlow() {
               className="inline-flex h-20 items-center justify-center gap-3 rounded-2xl bg-primary px-16 text-3xl font-bold text-primary-foreground shadow-2xl shadow-primary/40 ring-2 ring-primary/40 transition-all hover:scale-105 active:scale-100 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:scale-100"
               aria-label="Girar a roleta"
             >
-              {iniciando ? 'GIRANDO...' : 'GIRAR'}
+              GIRAR
             </button>
-          ) : (
-            <p className="animate-pulse text-2xl font-semibold text-primary">Girando...</p>
           )}
         </div>
+
+        {state.tipo === 'finalizada' && premioSorteado && (
+          <ModalResultadoPremio
+            premioNome={premioSorteado.nome}
+            ePremioReal={premioSorteado.e_premio_real}
+            premioFotoPath={premioSorteado.foto_path}
+            jogadorNome={jogadorNome}
+            onFinalizar={() => {
+              setJogadorNome(null);
+              dispatch({ tipo: 'AUTO_RETORNO' });
+            }}
+          />
+        )}
       </div>
     );
   }
 
-  if (state.tipo === 'finalizada' && premioSorteado) {
-    return (
-      <BannerGanhador
-        premioNome={premioSorteado.nome}
-        ePremioReal={premioSorteado.e_premio_real}
-        premioFotoPath={premioSorteado.foto_path}
-        jogadorNome={jogadorNome}
-        onVoltar={() => {
-          setJogadorNome(null);
-          dispatch({ tipo: 'AUTO_RETORNO' });
-        }}
+  return (
+    <>
+      {conteudo}
+      <ModalSaidaTotem
+        open={bloqueio.modalAberto}
+        onCancelar={bloqueio.fecharModal}
+        onLiberar={() => bloqueio.liberar(() => router.push('/'))}
       />
-    );
-  }
-
-  return null;
+    </>
+  );
 }

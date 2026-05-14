@@ -1,14 +1,23 @@
 'use client';
 import * as React from 'react';
 import Image from 'next/image';
-import { LogoAltis } from '@/components/LogoAltis';
+import { RoletaCanvas } from '@/components/totem/roleta/RoletaCanvas';
+import type { PremioDb } from '@/lib/totem/types';
 
 interface Props {
   onTocar: () => void;
   disabled?: boolean;
+  /** Premios do evento ativo para popular a roleta giratoria de fundo. */
+  premios: PremioDb[];
 }
 
-export function AttractMode({ onTocar, disabled }: Props) {
+/**
+ * Tela inicial do totem com a RoletaCanvas girando em loop no centro,
+ * textos abaixo, GIF da marca a esquerda. Toda a area e clicavel
+ * (botao wrapper) para iniciar a jogada — barra de espaco / Enter
+ * tambem disparam.
+ */
+export function AttractMode({ onTocar, disabled, premios }: Props) {
   React.useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if ((e.key === ' ' || e.key === 'Enter') && !disabled) {
@@ -25,7 +34,7 @@ export function AttractMode({ onTocar, disabled }: Props) {
       type="button"
       onClick={onTocar}
       disabled={disabled}
-      className="relative flex min-h-screen w-full flex-col items-center justify-center gap-8 overflow-hidden bg-background text-center transition-opacity disabled:opacity-50"
+      className="relative flex min-h-screen w-full flex-col items-center justify-center overflow-hidden bg-background text-center transition-opacity disabled:opacity-50"
       aria-label="Toque para participar da Roleta de Prêmios"
     >
       {/* Glow radial sutil ao fundo */}
@@ -38,26 +47,35 @@ export function AttractMode({ onTocar, disabled }: Props) {
         }}
       />
 
-      {/* GIF Altis (animacao da marca) em loop ao fundo, opacidade baixa */}
-      <div className="pointer-events-none absolute right-12 top-12 h-40 w-40 opacity-30">
+      {/* GIF Altis (animacao da marca) no topo esquerdo */}
+      <div className="pointer-events-none absolute left-8 top-8 h-32 w-32 opacity-60">
         <Image
           src="/altis-animacao.gif"
           alt=""
-          width={160}
-          height={160}
+          width={128}
+          height={128}
           unoptimized
           priority
           aria-hidden
         />
       </div>
 
-      <div className="relative z-10 flex flex-col items-center gap-8">
-        <LogoAltis size={128} />
-        <h1 className="text-7xl font-extrabold tracking-tight">ROLETA DE PRÊMIOS</h1>
-        <p className="text-3xl font-bold text-primary animate-[attract-glow_1.8s_ease-in-out_infinite]">
-          TOQUE PARA PARTICIPAR
-        </p>
-        {disabled && <p className="text-sm text-muted-foreground">Gerando sessão...</p>}
+      {/* Roleta 3D girando em loop, centralizada (mais compacta) */}
+      <div className="relative z-10 flex flex-col items-center gap-6">
+        <div className="pointer-events-none h-[42vh] w-[42vh] max-h-[440px] max-w-[440px]">
+          {premios.length > 0 ? (
+            <RoletaCanvas premios={premios} autoRotate zoom={70} />
+          ) : null}
+        </div>
+
+        {/* Letras embaixo da roleta, mais compactas */}
+        <div className="flex flex-col items-center gap-2">
+          <h1 className="text-3xl font-extrabold tracking-tight">ROLETA DE PRÊMIOS</h1>
+          <p className="text-base font-bold tracking-wide text-primary animate-[attract-glow_1.8s_ease-in-out_infinite]">
+            TOQUE PARA INICIAR
+          </p>
+          {disabled && <p className="text-xs text-muted-foreground">Gerando sessão...</p>}
+        </div>
       </div>
     </button>
   );

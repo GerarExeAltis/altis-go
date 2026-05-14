@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { ThemeProvider } from '@/components/theme/ThemeProvider';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { AdminProvider } from '@/contexts/AdminContext';
+import { TotemKioskGuard } from '@/components/totem/TotemKioskGuard';
 import '@/sentry.client.config';
 import './globals.css';
 
@@ -16,7 +17,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="min-h-screen antialiased">
         <ThemeProvider>
           <AuthProvider>
-            <AdminProvider>{children}</AdminProvider>
+            <AdminProvider>
+              <TotemKioskGuard />
+              {children}
+            </AdminProvider>
           </AuthProvider>
         </ThemeProvider>
       </body>
