@@ -1,4 +1,4 @@
-# Altis Bet — Guia de Deploy em Produção
+# AltisGo — Guia de Deploy em Produção
 
 ## 1. Criar projeto Supabase
 
@@ -21,14 +21,59 @@ No repo, **Settings → Secrets and variables → Actions** → adicionar:
 
 ## 3. Configurar segredos das Edge Functions
 
-Em runtime, as Edge Functions precisam dos segredos JWT:
+As Edge Functions usam dois segredos em runtime:
+
+| Secret | Origem | Função |
+|---|---|---|
+| `JWT_AUTH_SECRET` | **Legacy JWT Secret** do Supabase | Assinar o JWT-Admin elevado (30 min após senha admin) que passa pelo `auth.jwt()` do Postgres |
+| `SESSAO_JWT_SECRET` | Gerado por você (random 48 bytes) | Assinar o token da sessão que vai no QR code do totem (`?t=...`) |
+
+### 3.1 — Obter o `JWT_AUTH_SECRET` (Legacy JWT Secret)
+
+Desde 2025 o Supabase migrou de "JWT Secret" único (HS256) para "Signing Keys" assimétricas (ES256). O **JWT do operador logado** já é validado via JWKS automaticamente pelo código deste projeto — não precisa setar nada para isso funcionar.
+
+O que ainda precisamos do legacy secret: assinar o **JWT-Admin elevado** internamente. Mesmo após a migração, o Supabase preserva o legacy secret para verificação.
+
+1. Dashboard → **Settings → API** (ou **Settings → JWT Keys**)
+2. Procure a seção **"Legacy JWT Settings"** / **"JWT Secret (legacy)"**
+3. Clique em `Reveal` no campo do secret e copie o valor
+
+> Se o legacy secret um dia for revogado pelo Supabase, será preciso migrar `signAdminToken` em `supabase/functions/_shared/jwt.ts` para usar Signing Keys (RS256/ES256). Por ora, o legacy continua suportado.
+
+### 3.2 — Gerar o `SESSAO_JWT_SECRET`
+
+Esse é um segredo próprio do app — qualquer string aleatória forte serve.
 
 ```bash
-supabase secrets set JWT_AUTH_SECRET="$(openssl rand -base64 48)" --project-ref XXX
-supabase secrets set SESSAO_JWT_SECRET="$(openssl rand -base64 48)" --project-ref XXX
+# Git Bash / Linux / macOS
+openssl rand -base64 48
 ```
 
-`JWT_AUTH_SECRET` deve corresponder ao "JWT Secret" do Supabase Auth (Settings → API → JWT Secret). Use o mesmo valor.
+```powershell
+# PowerShell
+[Convert]::ToBase64String((1..48 | ForEach-Object { Get-Random -Maximum 256 }))
+```
+
+### 3.3 — Setar os 2 segredos no Supabase Cloud
+
+Via CLI:
+
+```bash
+npx supabase secrets set JWT_AUTH_SECRET="cole-o-legacy-jwt-secret" --project-ref XXX
+npx supabase secrets set SESSAO_JWT_SECRET="cole-o-aleatorio-gerado" --project-ref XXX
+```
+
+Ou via Dashboard → **Edge Functions → Manage secrets**:
+- Add `JWT_AUTH_SECRET` = (valor do passo 3.1)
+- Add `SESSAO_JWT_SECRET` = (valor do passo 3.2)
+
+### 3.4 — Verificar
+
+```bash
+npx supabase secrets list --project-ref XXX
+```
+
+Deve listar `JWT_AUTH_SECRET` e `SESSAO_JWT_SECRET` (mascarados). Outros (`SUPABASE_URL`, `SUPABASE_ANON_KEY`, etc.) são preenchidos automaticamente pelo Supabase.
 
 ## 4. Configurar GitHub Pages
 
