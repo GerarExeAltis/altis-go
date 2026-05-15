@@ -158,11 +158,21 @@ function TotemDadosFlow() {
       ? state.sessaoId
       : null;
 
+  // Flag local "dados acabaram de pousar". Eh setada imediatamente
+  // no onConcluir do MotorFisicaDados; aciona o highlight do card
+  // vencedor no carrossel. Reseta quando o totem volta para attract.
+  const [dadosPousaram, setDadosPousaram] = React.useState(false);
+
   const onAnimacaoConcluir = React.useCallback(() => {
-    // Aguarda 2.5s apos os dados pousarem antes de abrir o modal
-    // de premio — o jogador precisa de tempo para LER as faces que
-    // cairam e conferir contra o carrossel. Sem essa pausa o modal
-    // dispara imediatamente e cobre os dados mid-fade.
+    // Marca imediatamente que os dados pousaram — o carrossel
+    // reage centralizando + destacando o card do premio vencedor.
+    setDadosPousaram(true);
+
+    // Aguarda 2.5s antes de abrir o modal. Nesse intervalo o jogador:
+    //   1. ve os dados parados nas faces finais
+    //   2. ve o carrossel rolar suavemente e parar no SEU premio
+    //   3. ve o glow pulsante no card vencedor
+    // SO ENTAO o modal final aparece.
     const TEMPO_VITRINE_MS = 2500;
     window.setTimeout(() => {
       dispatch({ tipo: 'ANIMACAO_TERMINOU' });
@@ -171,6 +181,20 @@ function TotemDadosFlow() {
       }
     }, TEMPO_VITRINE_MS);
   }, [sessaoIdEstado, accessToken]);
+
+  // Reset do "dadosPousaram" ao sair da finalizacao — proximo round
+  // comeca limpo, com carrossel rolando normalmente.
+  React.useEffect(() => {
+    if (
+      state.tipo === 'attract' ||
+      state.tipo === 'criando_sessao' ||
+      state.tipo === 'aguardando_celular' ||
+      state.tipo === 'aguardando_dados' ||
+      state.tipo === 'pronta_para_girar'
+    ) {
+      setDadosPousaram(false);
+    }
+  }, [state.tipo]);
 
   const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
   const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? '';
@@ -240,7 +264,15 @@ function TotemDadosFlow() {
             compacto. Comunica ao jogador exatamente que combinacao
             de dados ganha cada premio. */}
         <div className="min-w-0 overflow-hidden pb-2">
-          <CarrosselPremios premios={premios} velocidade={50} alturaCard={140} visiveis={5} />
+          <CarrosselPremios
+            premios={premios}
+            velocidade={50}
+            alturaCard={100}
+            visiveis={5}
+            // Highlight do vencedor: SO quando os dados ja pousaram.
+            // Antes disso, vencedorId=null e o carrossel rola normal.
+            vencedorId={dadosPousaram ? premioVencedorId : null}
+          />
         </div>
         <SwipeAreaDados
           aguardandoToque={aguardandoToque}

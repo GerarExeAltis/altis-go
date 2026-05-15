@@ -29,16 +29,60 @@ interface Props {
   revolucoes?: [number, number, number];
 }
 
-const DUR_LANCE_S = 2.1;
+const DUR_LANCE_S = 2.4;
 const DUR_LANCE_REDUZIDO_S = 0.55;
-// Altura do arco da trajetoria. Maior = queda mais dramatica e
-// visivel. 2.6 unidades equivale a ~aresta-do-cubo * 5 — o dado
-// se afasta bem da posicao idle antes de descer ate o chao,
-// fazendo a queda ser claramente percebida.
+// Altura do arco principal. O dado sobe ate startY + APICE_Y, desce
+// ate o chao, e quica 2x decrescente. APICE_Y=2.6 deixa o pico bem
+// acima do idle, dando sensacao clara de "arremesso".
 const APICE_Y = 2.6;
+
+// Fases da trajetoria (fracoes do tempo total):
+const T_ARCO_FIM = 0.62;      // 0..0.62: arco principal -> primeiro impacto
+const T_BOUNCE1_FIM = 0.86;   // 0.62..0.86: primeiro quique
+// 0.86..1.0: segundo quique pequeno + repouso
+const ALT_BOUNCE1 = 0.32;     // altura do 1o bounce relativa ao apice
+const ALT_BOUNCE2 = 0.10;     // altura do 2o bounce
 
 function easeOutCubic(t: number) {
   return 1 - Math.pow(1 - t, 3);
+}
+
+/**
+ * Altura do dado SOBRE O CHAO (y=0 = chao) em funcao do progresso
+ * t in [0..1]. Modela 3 fases:
+ *   Fase 1: lancamento + arco ate o chao (primeiro impacto)
+ *   Fase 2: bounce decrescente (~32% da altura)
+ *   Fase 3: bounce minimo (~10%) + assentamento
+ *
+ * Em cada fase o pico segue 4u(1-u) — uma parabola normalizada que
+ * pico=1 no meio. startY na fase 1 eh a altura inicial do dado em
+ * relacao ao chao; reduz linearmente para 0 ao impactar.
+ *
+ * Visualmente o usuario percebe IMPACTO porque o dado:
+ *   - desce, atinge o chao
+ *   - volta a subir (pulando)
+ *   - desce de novo, atinge o chao
+ *   - pequeno saltinho final
+ *   - repousa
+ *
+ * Sem isso o dado parava no ar, sem cue de impacto.
+ */
+function alturaSobrePiso(t: number, startY: number, apex: number): number {
+  if (t < T_ARCO_FIM) {
+    const u = t / T_ARCO_FIM;
+    // base linear startY -> 0  (perde altura ao longo do tempo)
+    // arco acima de base com apex de altura
+    return startY * (1 - u) + 4 * u * (1 - u) * apex;
+  }
+  if (t < T_BOUNCE1_FIM) {
+    const u = (t - T_ARCO_FIM) / (T_BOUNCE1_FIM - T_ARCO_FIM);
+    return 4 * u * (1 - u) * apex * ALT_BOUNCE1;
+  }
+  if (t < 1) {
+    const u = (t - T_BOUNCE1_FIM) / (1 - T_BOUNCE1_FIM);
+    return 4 * u * (1 - u) * apex * ALT_BOUNCE2;
+  }
+  return 0;
 }
 
 /**
@@ -159,27 +203,30 @@ export function DadoFisico({
       const start = startPosRef.current;
       const end = endPosRef.current;
 
-      // X e Z: interpolacao ease-out cubic. Aceleracao no inicio
-      // (subida + lateralizacao rapida), desaceleracao no fim
-      // (assenta gentilmente).
+      // X e Z: ease-out cubic — aceleracao no inicio, desaceleracao
+      // no fim (assenta gentilmente na posicao final).
       g.position.x = start.x + (end.x - start.x) * tEase;
       g.position.z = start.z + (end.z - start.z) * tEase;
 
-      // Y: arco parabolico. Linear de start -> end no eixo "base"
-      // + um arco extra (apice) cujo pico esta em t=0.5.
-      const linearY = start.y + (end.y - start.y) * tEase;
-      const arco = 4 * t * (1 - t) * APICE_Y;
-      g.position.y = linearY + arco;
+      // Y: trajetoria em 3 fases. O dado SOBE no inicio (acima do
+      // idle), depois DESCE ate o chao (impacto), quica 2x e repousa.
+      // Estas multiplas batidas no chao comunicam IMPACTO FISICO
+      // claramente — sem isso o dado parava no ar sem cue visual
+      // de que tocou em algo solido.
+      const startYRelativa = start.y - end.y;
+      g.position.y = end.y + alturaSobrePiso(t, startYRelativa, APICE_Y);
 
-      // Rotacao: interpolacao LINEAR de start -> end_com_revolucoes.
-      // Linear (nao ease) porque queremos giro de velocidade
-      // constante durante a queda — looks more natural for a dice.
-      // No fim, t=1, rotacao = end_com_revolucoes ≡ alvo (mod 2pi).
+      // Rotacao: easeOutCubic — gira rapido no inicio (durante o
+      // arco), desacelera nas batidas. Atinge exatamente o alvo em
+      // t=1 (o alvo eh ang_alvo + N*2pi voltas inteiras, entao mod
+      // 2pi a face correta fica para cima). Sem easing parecia
+      // mecanico/teleporte; com easing parece um dado real perdendo
+      // momento angular pelo atrito do impacto.
       const startE = startEulerRef.current;
       const endE = endEulerComRevolucoesRef.current;
-      g.rotation.x = startE.x + (endE.x - startE.x) * t;
-      g.rotation.y = startE.y + (endE.y - startE.y) * t;
-      g.rotation.z = startE.z + (endE.z - startE.z) * t;
+      g.rotation.x = startE.x + (endE.x - startE.x) * tEase;
+      g.rotation.y = startE.y + (endE.y - startE.y) * tEase;
+      g.rotation.z = startE.z + (endE.z - startE.z) * tEase;
 
       if (t >= 1) {
         // Garantir posicao + rotacao EXATAS ao terminar — qualquer
