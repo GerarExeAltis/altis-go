@@ -2,14 +2,18 @@
 import * as React from 'react';
 import { useTotem } from '@/contexts/TotemContext';
 import { usePreferredMotion } from '@/hooks/usePreferredMotion';
-import { ErroOverlay } from '@/components/totem/ErroOverlay';
 import { SwipeAreaDados } from '@/components/totem/dados/SwipeAreaDados';
 import { CarrosselPremios } from '@/components/totem/dados/CarrosselPremios';
 import { ModalResultadoPremio } from '@/components/jogos/ModalResultadoPremio';
 import { parDoPremio } from '@/lib/jogos/dadosMapeamento';
 import { DieFace } from '@/components/ui/DieFace';
 
-export default function TotemDadosJogarPage() {
+/**
+ * Conteudo da tela /totem/dados/jogar — dados 3D + carrossel +
+ * banner de resultado. Espelha JogoRoletaContent mas com a UI
+ * especifica do jogo de dados.
+ */
+export function JogoDadosContent() {
   const {
     state,
     dispatch,
@@ -24,9 +28,6 @@ export default function TotemDadosJogarPage() {
   } = useTotem();
   const { reduzir } = usePreferredMotion();
 
-  // Flag local de "dados pousaram" — usada pra trocar o texto do
-  // rodape de "Rolando..." para o banner "Voce tirou X+Y" durante
-  // a vitrine de 2.5s antes do modal de premio abrir.
   const [dadosPousaram, setDadosPousaram] = React.useState(false);
   React.useEffect(() => {
     if (state.tipo !== 'pronta_para_girar' && state.tipo !== 'girando' && state.tipo !== 'finalizada') {
@@ -38,10 +39,6 @@ export default function TotemDadosJogarPage() {
     setDadosPousaram(true);
     onAnimacaoConcluir();
   }, [onAnimacaoConcluir]);
-
-  if (state.tipo === 'erro') {
-    return <ErroOverlay mensagem={state.mensagem} />;
-  }
 
   if (
     state.tipo !== 'pronta_para_girar' &&

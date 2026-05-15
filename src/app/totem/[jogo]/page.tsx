@@ -1,34 +1,36 @@
 'use client';
 import * as React from 'react';
+import { useRouter, useParams } from 'next/navigation';
 import { useTotem } from '@/contexts/TotemContext';
 import { AttractMode } from '@/components/totem/AttractMode';
+import { AttractModeDados } from '@/components/totem/AttractModeDados';
 import { ErroOverlay } from '@/components/totem/ErroOverlay';
 import { useBloqueioSaidaTotem } from '@/hooks/useBloqueioSaidaTotem';
 import { ModalSaidaTotem } from '@/components/totem/ModalSaidaTotem';
-import { useRouter } from 'next/navigation';
 
 /**
- * Rota raiz da roleta = ATTRACT. So aqui o bloqueio com SENHA ADMIN
- * eh armado — voltar daqui sairia pra fora do totem (/, /login),
- * o que exige autorizacao explicita. As outras sub-rotas (qrcode,
- * jogar) tem back natural que vai pra rota anterior do funil — sem
- * senha. Logo, o usuario sempre desce o funil normalmente; so quem
- * tenta efetivamente SAIR do funil precisa de senha.
+ * Rota raiz do totem = ATTRACT. Renderiza o componente certo
+ * baseado no [jogo] da URL (roleta ou dados). Voltar daqui sai do
+ * totem (/, /login) — protegido por senha admin via
+ * useBloqueioSaidaTotem + ModalSaidaTotem.
  */
-export default function TotemRoletaAttractPage() {
+export default function TotemAttractPage() {
+  const params = useParams();
+  const jogo = (params?.jogo as 'roleta' | 'dados') ?? 'roleta';
   const { state, tocar, premios } = useTotem();
   const router = useRouter();
 
-  // Senha admin para sair do totem (so na raiz do funil).
   const bloqueio = useBloqueioSaidaTotem(true);
 
   if (state.tipo === 'erro') {
     return <ErroOverlay mensagem={state.mensagem} />;
   }
 
+  const Attract = jogo === 'dados' ? AttractModeDados : AttractMode;
+
   return (
     <>
-      <AttractMode
+      <Attract
         onTocar={tocar}
         disabled={state.tipo === 'criando_sessao'}
         premios={premios}

@@ -105,7 +105,7 @@ export const DADOS_DEF: JogoDef = {
   nome: 'DADOS DA SORTE',
   subtitulo: 'Rolagem 3D com sorteio ponderado',
   icone: '🎲',
-  hrefTotem: '/totem-dados',
+  hrefTotem: '/totem/dados',
   status: 'ativo',
   Preview: PreviewDados,
 };

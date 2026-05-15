@@ -16,7 +16,7 @@ test('login valido leva ao welcome page', async ({ page }) => {
 
 test('rotas protegidas redirecionam para /login quando deslogado', async ({ page }) => {
   await page.context().clearCookies();
-  await page.goto('/totem-roleta');
+  await page.goto('/totem/roleta');
   await page.waitForURL('**/login*', { timeout: 10_000 });
   expect(page.url()).toContain('/login');
 });

@@ -18,8 +18,8 @@ import { usePathname, useRouter } from 'next/navigation';
  * A flag e o pathname sao setados/limpos pelo useBloqueioSaidaTotem.
  */
 
-const ROTAS_TOTEM = ['/totem-roleta', '/totem-dados'];
-const ROTA_FALLBACK = '/totem-roleta';
+const ROTAS_TOTEM = ['/totem/'];
+const ROTA_FALLBACK = '/totem/roleta';
 
 export function TotemKioskGuard() {
   const pathname = usePathname();

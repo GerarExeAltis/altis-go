@@ -2,17 +2,16 @@
 import * as React from 'react';
 import { useTotem } from '@/contexts/TotemContext';
 import { usePreferredMotion } from '@/hooks/usePreferredMotion';
-import { ErroOverlay } from '@/components/totem/ErroOverlay';
 import { RoletaCanvas } from '@/components/totem/roleta/RoletaCanvas';
 import { usarAnimacaoRoleta } from '@/components/totem/roleta/usarAnimacaoRoleta';
 import { ModalResultadoPremio } from '@/components/jogos/ModalResultadoPremio';
 
 /**
- * Sub-rota /totem-roleta/jogar — anima a roleta e exibe o modal de
- * resultado quando termina. Voltar daqui vai pra /totem-roleta/qrcode
- * (rota anterior do funil) automaticamente.
+ * Conteudo da tela /totem/roleta/jogar — animacao da roleta + modal
+ * de resultado. Extraido em componente pra que /totem/[jogo]/jogar/
+ * page.tsx faca apenas o switch entre roleta/dados.
  */
-export default function TotemRoletaJogarPage() {
+export function JogoRoletaContent() {
   const {
     state,
     dispatch,
@@ -38,12 +37,6 @@ export default function TotemRoletaJogarPage() {
     if (state.tipo === 'girando') iniciar();
   }, [state.tipo, iniciar]);
 
-  if (state.tipo === 'erro') {
-    return <ErroOverlay mensagem={state.mensagem} />;
-  }
-
-  // Renderiza so quando estado bate. Caso contrario o provider ja
-  // vai redirecionar via router.replace.
   if (
     state.tipo !== 'pronta_para_girar' &&
     state.tipo !== 'girando' &&

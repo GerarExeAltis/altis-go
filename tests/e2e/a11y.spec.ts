@@ -28,7 +28,7 @@ test.describe('a11y autenticado', () => {
 
   test('a11y /totem sem violations AA', async ({ page }) => {
     await loginOperador(page);
-    await page.goto('/totem-roleta');
+    await page.goto('/totem/roleta');
     await page.waitForLoadState('networkidle');
     const results = await new AxeBuilder({ page })
       .withTags(['wcag2a', 'wcag2aa'])
