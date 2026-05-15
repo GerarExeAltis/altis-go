@@ -4,12 +4,11 @@ import * as React from 'react';
 import { AuthGuard } from '@/components/auth/AuthGuard';
 import { useAuth } from '@/contexts/AuthContext';
 import { totemReducer, ESTADO_INICIAL, bloqueiaSaidaTotem } from '@/lib/totem/stateMachine';
-import { useRouter } from 'next/navigation';
 import { useSessaoRealtime } from '@/hooks/useSessaoRealtime';
 import { usePreferredMotion } from '@/hooks/usePreferredMotion';
 import { useBloqueioSaidaTotem } from '@/hooks/useBloqueioSaidaTotem';
 import { useVoltarParaAttract } from '@/hooks/useVoltarParaAttract';
-import { ModalSaidaTotem } from '@/components/totem/ModalSaidaTotem';
+import { ModalConfirmacaoVoltar } from '@/components/totem/ModalConfirmacaoVoltar';
 import { liberarJogada, iniciarAnimacao, concluirAnimacao } from '@/lib/totem/edgeFunctions';
 import { getSupabaseBrowserClient } from '@/lib/supabase/browser';
 import type { PremioDb } from '@/lib/totem/types';
@@ -32,7 +31,6 @@ export default function TotemDadosPage() {
 
 function TotemDadosFlow() {
   const { session } = useAuth();
-  const router = useRouter();
   const accessToken = session?.access_token ?? '';
   const [state, dispatch] = React.useReducer(totemReducer, ESTADO_INICIAL);
   const { reduzir } = usePreferredMotion();
@@ -365,10 +363,13 @@ function TotemDadosFlow() {
   return (
     <>
       {conteudo}
-      <ModalSaidaTotem
+      <ModalConfirmacaoVoltar
         open={bloqueio.modalAberto}
         onCancelar={bloqueio.fecharModal}
-        onLiberar={() => bloqueio.liberar(() => router.push('/'))}
+        // "Sim, voltar" cancela a sessao em andamento e devolve o
+        // totem pra attract. Nao saimos da rota /totem-dados — apenas
+        // resetamos o state machine. O proximo jogador comeca limpo.
+        onConfirmar={() => bloqueio.liberar(() => dispatch({ tipo: 'RESET' }))}
       />
     </>
   );
