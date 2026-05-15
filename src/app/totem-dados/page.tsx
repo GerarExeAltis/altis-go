@@ -8,6 +8,7 @@ import { useRouter } from 'next/navigation';
 import { useSessaoRealtime } from '@/hooks/useSessaoRealtime';
 import { usePreferredMotion } from '@/hooks/usePreferredMotion';
 import { useBloqueioSaidaTotem } from '@/hooks/useBloqueioSaidaTotem';
+import { useVoltarParaAttract } from '@/hooks/useVoltarParaAttract';
 import { ModalSaidaTotem } from '@/components/totem/ModalSaidaTotem';
 import { liberarJogada, iniciarAnimacao, concluirAnimacao } from '@/lib/totem/edgeFunctions';
 import { getSupabaseBrowserClient } from '@/lib/supabase/browser';
@@ -36,13 +37,18 @@ function TotemDadosFlow() {
   const [state, dispatch] = React.useReducer(totemReducer, ESTADO_INICIAL);
   const { reduzir } = usePreferredMotion();
 
-  // Bloqueio de saida com senha SO ativa a partir de
-  // `pronta_para_girar` — quando o jogador efetivamente investiu
-  // (enviou os dados pelo celular) e esta esperando o jogo. Em
-  // attract, QR Code, e ate enquanto o jogador preenche dados, o
-  // operador volta livremente. Ver bloqueiaSaidaTotem() para a
-  // regra detalhada.
+  // Bloqueio com senha admin durante o jogo (pronta_para_girar+).
   const bloqueio = useBloqueioSaidaTotem(bloqueiaSaidaTotem(state));
+
+  // Em QR Code (aguardando_celular/aguardando_dados): voltar do
+  // browser nao sai do totem — volta pra ATTRACT (cancela a sessao
+  // pendente). Isto da ao operador o feedback de "voltei pra tela
+  // anterior" em vez de cair em /login ou /. As fases formam um
+  // funil: attract -> qr -> jogo. Voltar respeita esse funil.
+  useVoltarParaAttract(
+    state.tipo === 'aguardando_celular' || state.tipo === 'aguardando_dados',
+    React.useCallback(() => dispatch({ tipo: 'RESET' }), []),
+  );
 
   React.useEffect(() => {
     if (typeof window !== 'undefined') {
