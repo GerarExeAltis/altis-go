@@ -147,32 +147,28 @@ export function DadoFisico({
     // de aresta 1 com base em y=-0.5).
     endPosRef.current.set(posicaoFinal[0], posicaoFinal[1], posicaoFinal[2]);
 
-    // Rotacao alvo = euler que poe faceAlvo para cima + jitter Y
-    // pequeno (Y eh o eixo vertical entao girar nele preserva qual
-    // face fica em cima — apenas dah naturalidade).
+    // Rotacao alvo = euler EXATO que poe faceAlvo para cima.
+    // Anteriormente havia um "jitter Y" pequeno para naturalidade
+    // que CAUSAVA BUG: para faces no eixo X (face 5 usa rx=pi/2),
+    // o jitter Y eh aplicado APOS a rotacao X — o que rotaciona em
+    // torno do eixo Y LOCAL (que apos rx=pi/2 aponta para world +Z,
+    // horizontal). Isso inclinava o cubo o suficiente pra mostrar
+    // uma face vizinha (e.g. face 3 ao inves de face 5).
+    // Sem jitter, a face alvo eh exatamente a que o jogador ve.
     const [rx, ry, rz] = ROTACOES_FACES[faceAlvo] ?? [0, 0, 0];
-    const jitterY = (Math.random() - 0.5) * 0.5;
 
-    // Calcular rotacao "com N revolucoes": pegar o angulo alvo e
-    // somar revolucoes*2pi por eixo. Como vamos interpolar
-    // LINEARMENTE de startEuler -> endEulerComRevolucoes, ao chegar
-    // em t=1 a rotacao sera endEulerComRevolucoes — visualmente
-    // equivale (modulo 2pi) ao alvo. Durante a interpolacao, o cubo
-    // gira voltas completas + atinge o alvo.
-    // Importante: somamos as voltas EM RELACAO ao start, nao no
-    // alvo absoluto. Isso garante: angulo_renderizado_em_t1 =
-    // start + (alvo - start) + N*2pi = alvo + N*2pi ≡ alvo (mod 2pi).
-    const start = startEulerRef.current;
-    const targetX = rx + revolucoes[0] * Math.PI * 2 *
-      (Math.random() < 0.5 ? -1 : 1) + (rx >= start.x ? 0 : 0);
-    const targetY = ry + jitterY + revolucoes[1] * Math.PI * 2 *
-      (Math.random() < 0.5 ? -1 : 1);
-    const targetZ = rz + revolucoes[2] * Math.PI * 2 *
-      (Math.random() < 0.5 ? -1 : 1);
+    // Calcular rotacao final com N revolucoes COMPLETAS adicionadas
+    // em cada eixo. Como N*2pi eh identidade visual, no fim
+    // (rx + N*2pi) ≡ rx (mod 2pi) — a face correta fica para cima.
+    // Sinais aleatorios em revolucoes dao variedade de direcao do
+    // giro (alguns dados giram pra um lado, outros pro outro).
+    const signX = Math.random() < 0.5 ? -1 : 1;
+    const signY = Math.random() < 0.5 ? -1 : 1;
+    const signZ = Math.random() < 0.5 ? -1 : 1;
+    const targetX = rx + revolucoes[0] * Math.PI * 2 * signX;
+    const targetY = ry + revolucoes[1] * Math.PI * 2 * signY;
+    const targetZ = rz + revolucoes[2] * Math.PI * 2 * signZ;
 
-    // Aplicar o "atalho" garante destino exato:
-    //   final_renderizado = start + (target - start) = target
-    // E target ≡ alvo (mod 2pi). Logo a face fica certa.
     endEulerComRevolucoesRef.current.set(targetX, targetY, targetZ);
 
     lanceInicioRef.current = performance.now();

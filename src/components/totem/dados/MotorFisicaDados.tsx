@@ -20,8 +20,14 @@ interface Props {
   onConcluir: () => void;
 }
 
-const POS_INICIAL_DADO_A: [number, number, number] = [-0.7, 1.2, 0];
-const POS_INICIAL_DADO_B: [number, number, number] = [0.7, 1.2, 0];
+// Posicao idle dos dados — calibrada para ficarem CENTRALIZADOS na
+// area visivel do canvas. Antes y=1.2 fazia os dados projetarem na
+// borda superior (recortados ou fora da viewport com camera
+// orthografica isometrica). y=0.55 deixa o centro do cubo um pouco
+// acima do chao (y=-0.5 piso + 0.5 meio-cubo = 0 base) — sensacao
+// de levitacao leve, totalmente visivel.
+const POS_INICIAL_DADO_A: [number, number, number] = [-0.7, 0.55, 0];
+const POS_INICIAL_DADO_B: [number, number, number] = [0.7, 0.55, 0];
 
 /**
  * Calcula posicoes finais aleatorias na area visivel, garantindo que
@@ -144,9 +150,13 @@ export function MotorFisicaDados({
           toneMapping: THREE.ACESFilmicToneMapping,
           toneMappingExposure: 1.0,
         }}
-        onCreated={({ gl, scene }) => {
+        onCreated={({ gl, scene, camera }) => {
           gl.setClearColor(0x000000, 0);
           scene.background = null;
+          // R3F nao aplica lookAt automaticamente quando so position
+          // eh passado. Sem isto, a camera isometrica nao mira o
+          // centro da cena e os dados saem do enquadramento visivel.
+          camera.lookAt(0, 0, 0);
         }}
       >
         <ambientLight intensity={0.35} color="#fff5e6" />
