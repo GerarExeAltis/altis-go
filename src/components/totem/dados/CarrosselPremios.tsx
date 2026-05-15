@@ -3,7 +3,7 @@ import * as React from 'react';
 import type { PremioDb } from '@/lib/totem/types';
 import { parDoPremio } from '@/lib/jogos/dadosMapeamento';
 import { DieFace } from '@/components/ui/DieFace';
-import { getSupabaseBrowserClient } from '@/lib/supabase/browser';
+import { urlFotoPremio } from '@/lib/storage/fotoPremio';
 import { Trophy } from 'lucide-react';
 
 interface Props {
@@ -19,17 +19,6 @@ interface Props {
   vencedorId?: string | null;
 }
 
-function urlPublica(path: string | null): string | null {
-  if (!path) return null;
-  try {
-    const sb = getSupabaseBrowserClient();
-    const { data } = sb.storage.from('premios').getPublicUrl(path);
-    return data.publicUrl;
-  } catch {
-    return null;
-  }
-}
-
 function CardPremio({
   premio,
   altura,
@@ -42,8 +31,17 @@ function CardPremio({
   apagado: boolean;
 }) {
   const par = parDoPremio(premio);
-  const fotoUrl = urlPublica(premio.foto_path);
+  // Usa o helper canonico (bucket correto: `fotos_premios`).
+  // Antes este componente tinha url-helper local apontando para
+  // bucket inexistente `premios`, retornando 404 e caindo no
+  // fallback Trophy mesmo quando a foto existia.
+  const fotoUrl = urlFotoPremio(premio.foto_path);
   const [fotoErrou, setFotoErrou] = React.useState(false);
+  // Resetar erro caso a foto_path mude (proximo round, premio
+  // diferente). Sem isto, um erro de carga "gruda" no premio.
+  React.useEffect(() => {
+    setFotoErrou(false);
+  }, [premio.foto_path]);
   const mostrarFoto = fotoUrl && !fotoErrou;
 
   // Estilo "banner de premio" — borda dourada sutil no idle,
