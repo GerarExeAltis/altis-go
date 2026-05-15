@@ -16,6 +16,7 @@ import { AttractModeDados } from '@/components/totem/AttractModeDados';
 import { QrCodeScreen } from '@/components/totem/QrCodeScreen';
 import { ModalResultadoPremio } from '@/components/jogos/ModalResultadoPremio';
 import { SwipeAreaDados } from '@/components/totem/dados/SwipeAreaDados';
+import { CarrosselPremios } from '@/components/totem/dados/CarrosselPremios';
 import { ErroOverlay } from '@/components/totem/ErroOverlay';
 
 export default function TotemDadosPage() {
@@ -224,7 +225,7 @@ function TotemDadosFlow() {
   ) {
     const aguardandoToque = state.tipo === 'pronta_para_girar';
     conteudo = (
-      <div className="grid min-h-screen grid-rows-[auto_1fr_auto] bg-background">
+      <div className="grid min-h-screen grid-rows-[auto_1fr_auto_auto] bg-background">
         <h2 className="p-6 text-center text-4xl font-bold tracking-tight">
           {jogadorNome ? `Boa sorte, ${jogadorNome}!` : 'Boa sorte!'}
         </h2>
@@ -238,12 +239,19 @@ function TotemDadosFlow() {
           reduzirMovimento={reduzir}
           onConcluir={onAnimacaoConcluir}
         />
-        <div className="flex items-center justify-center p-6">
+        <div className="flex items-center justify-center px-6 pt-2 pb-1">
           {aguardandoToque && (
             <p className="text-lg font-medium text-muted-foreground animate-[attract-glow_2.4s_ease-in-out_infinite]">
-              {iniciando ? 'Rolando...' : '🎲 Arraste os dados para lançar'}
+              {iniciando ? 'Rolando...' : '🎲 Toque na tela para lançar'}
             </p>
           )}
+        </div>
+        {/* Carrossel de premios — visivel durante toda a fase de
+            jogo (pronta_para_girar, girando, finalizada). Comunica
+            ao jogador exatamente qual face precisa para cada premio,
+            entregando transparencia sobre o mapeamento. */}
+        <div className="pb-4">
+          <CarrosselPremios premios={premios} velocidade={50} />
         </div>
 
         {state.tipo === 'finalizada' && premioSorteado && (

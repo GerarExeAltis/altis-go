@@ -3,51 +3,85 @@ import * as React from 'react';
 import { Canvas } from '@react-three/fiber';
 import { ContactShadows, Environment } from '@react-three/drei';
 import { EffectComposer, Bloom, SMAA } from '@react-three/postprocessing';
-import { Physics, RigidBody, CuboidCollider } from '@react-three/rapier';
 import * as THREE from 'three';
 import { DadoFisico } from './DadoFisico';
 
 interface Props {
   /** Face que cada dado deve mostrar para cima ao final (1..6). */
   faceAlvo: number;
-  /** Incrementar a cada novo lance para disparar a fisica. */
+  /** Incrementar a cada novo lance para disparar a animacao. */
   lancarTrigger: number;
   reduzirMovimento?: boolean;
-  /** Disparado quando AMBOS os dados terminaram o snap. */
+  /** Disparado quando AMBOS os dados terminam de pousar. */
   onConcluir: () => void;
 }
 
+const POS_INICIAL_DADO_A: [number, number, number] = [-0.7, 1.2, 0];
+const POS_INICIAL_DADO_B: [number, number, number] = [0.7, 1.2, 0];
+
 /**
- * Piso invisivel onde os dados quicam. Posicionado em y=-0.5 (mesma
- * altura da ContactShadows) — assim a sombra cai exatamente onde os
- * dados encostam. Cuboid colossal (40x1x40) para garantir cobertura.
+ * Calcula posicoes finais aleatorias na area visivel, garantindo que
+ * os 2 dados nao se sobreponham (distancia minima 1.6 unidades no
+ * plano XZ).
+ *
+ * Area util — camera ortografica isometrica zoom 120, viewport
+ * +-2.5 unidades. Reservamos margem para o cubo (meio = 0.5) caber.
+ * x: [-1.8, 1.8], z: [-1.2, 1.2] (z mais estreito por causa do
+ * angulo isometrico — dado muito atras some atras de outro).
  */
-function Piso() {
-  return (
-    <RigidBody type="fixed" friction={0.9} restitution={0.2} colliders={false}>
-      <CuboidCollider args={[20, 0.5, 20]} position={[0, -1.0, 0]} />
-    </RigidBody>
-  );
+function sortearPosicoesFinais(): [
+  [number, number, number],
+  [number, number, number],
+] {
+  function rand(min: number, max: number) {
+    return min + Math.random() * (max - min);
+  }
+
+  const X_MIN = -1.6;
+  const X_MAX = 1.6;
+  const Z_MIN = -0.8;
+  const Z_MAX = 0.8;
+  const MIN_DIST = 1.6;
+
+  const a: [number, number, number] = [rand(X_MIN, X_MAX), 0, rand(Z_MIN, Z_MAX)];
+  let b: [number, number, number] = [rand(X_MIN, X_MAX), 0, rand(Z_MIN, Z_MAX)];
+
+  // Repulsao: se muito perto, separar
+  for (let i = 0; i < 6; i++) {
+    const dx = a[0] - b[0];
+    const dz = a[2] - b[2];
+    const d = Math.hypot(dx, dz);
+    if (d >= MIN_DIST) break;
+    const ux = d > 0.001 ? dx / d : 1;
+    const uz = d > 0.001 ? dz / d : 0;
+    b[0] = a[0] - ux * MIN_DIST;
+    b[2] = a[2] - uz * MIN_DIST;
+    // Clampar dentro dos limites
+    b[0] = Math.max(X_MIN, Math.min(X_MAX, b[0]));
+    b[2] = Math.max(Z_MIN, Math.min(Z_MAX, b[2]));
+  }
+
+  return [a, b];
 }
 
 /**
- * 4 paredes invisiveis em volta da camera para conter os dados na
- * area visivel. Camera ortografica zoom ~120 com FOV em [-3, 3] no
- * plano XZ — paredes em ±3 com altura 4 cobrem o viewport.
+ * Cena 3D dos 2 dados — animacao puramente DETERMINISTICA via
+ * Three.js (useFrame). Sem motor de fisica, sem snap pos-queda.
+ *
+ * Por que abandonamos a fisica?
+ *   Em sistemas como Dice So Nice (Foundry VTT), o desafio do
+ *   "resultado predeterminado" eh resolvido com pre-simulacao
+ *   (tenta varios impulsos ate cair na face certa). Implementacoes
+ *   mais simples — incluindo a primeira versao deste codigo — usam
+ *   fisica real + snap pos-assentamento. O snap eh visualmente
+ *   identificavel e da sensacao de "manipulacao".
+ *
+ *   Aqui usamos animacao determinista: a trajetoria eh calculada
+ *   no momento do lance para terminar EXATAMENTE na face correta.
+ *   Sem ajuste posterior. O usuario ve o dado cair, girar
+ *   continuamente, e parar na face. Nao ha "salto" porque nao ha
+ *   correcao — o destino sempre foi aquele.
  */
-function Paredes() {
-  return (
-    <RigidBody type="fixed" friction={0.6} restitution={0.5} colliders={false}>
-      <CuboidCollider args={[0.5, 3, 4]} position={[3.5, 1.5, 0]} />
-      <CuboidCollider args={[0.5, 3, 4]} position={[-3.5, 1.5, 0]} />
-      <CuboidCollider args={[4, 3, 0.5]} position={[0, 1.5, 3.0]} />
-      <CuboidCollider args={[4, 3, 0.5]} position={[0, 1.5, -3.0]} />
-      {/* Teto pra impedir voos infinitos */}
-      <CuboidCollider args={[4, 0.5, 4]} position={[0, 5.5, 0]} />
-    </RigidBody>
-  );
-}
-
 export function MotorFisicaDados({
   faceAlvo,
   lancarTrigger,
@@ -56,12 +90,18 @@ export function MotorFisicaDados({
 }: Props) {
   // Conta quantos dados terminaram. Quando bate 2, dispara onConcluir.
   const prontosRef = React.useRef(0);
-  // Reset do contador quando um novo lance dispara
+  // Posicoes finais sorteadas no momento de cada lance
+  const [posicoesFinais, setPosicoesFinais] = React.useState<[
+    [number, number, number],
+    [number, number, number],
+  ]>(() => sortearPosicoesFinais());
+
   const ultimoTriggerRef = React.useRef(lancarTrigger);
   React.useEffect(() => {
-    if (lancarTrigger !== ultimoTriggerRef.current) {
+    if (lancarTrigger !== ultimoTriggerRef.current && lancarTrigger > 0) {
       ultimoTriggerRef.current = lancarTrigger;
       prontosRef.current = 0;
+      setPosicoesFinais(sortearPosicoesFinais());
     }
   }, [lancarTrigger]);
 
@@ -71,6 +111,16 @@ export function MotorFisicaDados({
       onConcluir();
     }
   }, [onConcluir]);
+
+  // Revolucoes diferentes por dado para naturalidade visual
+  const revolucoesA: [number, number, number] = React.useMemo(
+    () => [3 + Math.random() * 1, 3.5 + Math.random() * 1.5, 2 + Math.random() * 0.8],
+    [lancarTrigger],
+  );
+  const revolucoesB: [number, number, number] = React.useMemo(
+    () => [3.5 + Math.random() * 1, 3 + Math.random() * 1.5, 2.2 + Math.random() * 0.8],
+    [lancarTrigger],
+  );
 
   return (
     <div style={{ position: 'relative', width: '100%', height: '100%' }}>
@@ -121,29 +171,26 @@ export function MotorFisicaDados({
           color="#0a1d1c"
         />
 
-        {/* Gravidade calibrada um pouco acima de real (-15 vs -9.8)
-            para queda mais "snappy" — usuario percebe mais agil que
-            a fisica real, mantendo aparencia natural. */}
-        <Physics gravity={[0, -15, 0]} timeStep="vary">
-          <Piso />
-          <Paredes />
-          <DadoFisico
-            posicaoInicial={[-0.7, 1.2, 0]}
-            faceAlvo={faceAlvo}
-            lancarTrigger={lancarTrigger}
-            reduzido={reduzirMovimento}
-            onProntoEsteDado={onProntoUnico}
-            idleSpin={[0.5, 0.7]}
-          />
-          <DadoFisico
-            posicaoInicial={[0.7, 1.2, 0]}
-            faceAlvo={faceAlvo}
-            lancarTrigger={lancarTrigger}
-            reduzido={reduzirMovimento}
-            onProntoEsteDado={onProntoUnico}
-            idleSpin={[0.6, 0.55]}
-          />
-        </Physics>
+        <DadoFisico
+          posicaoInicial={POS_INICIAL_DADO_A}
+          posicaoFinal={posicoesFinais[0]}
+          faceAlvo={faceAlvo}
+          lancarTrigger={lancarTrigger}
+          reduzido={reduzirMovimento}
+          onProntoEsteDado={onProntoUnico}
+          idleSpin={[0.5, 0.7]}
+          revolucoes={revolucoesA}
+        />
+        <DadoFisico
+          posicaoInicial={POS_INICIAL_DADO_B}
+          posicaoFinal={posicoesFinais[1]}
+          faceAlvo={faceAlvo}
+          lancarTrigger={lancarTrigger}
+          reduzido={reduzirMovimento}
+          onProntoEsteDado={onProntoUnico}
+          idleSpin={[0.6, 0.55]}
+          revolucoes={revolucoesB}
+        />
 
         {!reduzirMovimento && (
           <EffectComposer multisampling={0}>
