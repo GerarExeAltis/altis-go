@@ -39,7 +39,7 @@ test('happy path: totem + celular dual context', async ({ browser }: { browser: 
   const totem = await ctxTotem.newPage();
   await loginOperador(totem);
 
-  await totem.goto('/totem');
+  await totem.goto('/totem-roleta');
   await expect(totem.getByText(/TOQUE PARA PARTICIPAR/i)).toBeVisible({ timeout: 15_000 });
   await totem.getByRole('button').first().click();
 

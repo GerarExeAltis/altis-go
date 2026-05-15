@@ -126,7 +126,7 @@ export const ROLETA_DEF: JogoDef = {
   nome: 'ROLETA DE PRÊMIOS',
   subtitulo: 'Sorteio ponderado em tempo real',
   icone: '🎰',
-  hrefTotem: '/totem',
+  hrefTotem: '/totem-roleta',
   status: 'ativo',
   Preview: PreviewRoleta,
 };

@@ -36,7 +36,12 @@ function TotemDadosFlow() {
   const [state, dispatch] = React.useReducer(totemReducer, ESTADO_INICIAL);
   const { reduzir } = usePreferredMotion();
 
-  const bloqueio = useBloqueioSaidaTotem(true);
+  // Bloqueio de saida com senha SO eh ativado depois que o jogador
+  // toca para iniciar (state.tipo deixa de ser 'attract'). Em
+  // attract o operador pode sair livremente — afinal nao ha jogador
+  // ativo a proteger. Sem isso o admin precisava digitar senha pra
+  // sair mesmo na tela parada do totem.
+  const bloqueio = useBloqueioSaidaTotem(state.tipo !== 'attract');
 
   React.useEffect(() => {
     if (typeof window !== 'undefined') {

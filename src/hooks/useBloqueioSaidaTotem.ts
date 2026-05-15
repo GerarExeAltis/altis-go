@@ -30,14 +30,16 @@ export function useBloqueioSaidaTotem(ativo: boolean): {
     if (!ativo) {
       liberadoRef.current = false;
       sessionStorage.removeItem('altis_totem_kiosk');
+      sessionStorage.removeItem('altis_totem_kiosk_path');
       return;
     }
 
-    // Marca em sessionStorage que o totem esta em modo kiosk. Lido pelo
-    // TotemKioskGuard montado no layout raiz: se o usuario tentar trocar
-    // a URL na barra (ex: localhost:3000/login) o reload da pagina perde
-    // o JS lock, mas o guard ve a flag e redireciona de volta para /totem.
+    // Marca em sessionStorage que o totem esta em modo kiosk + grava
+    // a ROTA atual. Sem o pathname, o guard redirecionava sempre pra
+    // /totem (roleta) mesmo quando o operador estava em /totem-dados,
+    // causando "voltar pra outra tela de jogo" depois do reload.
     sessionStorage.setItem('altis_totem_kiosk', '1');
+    sessionStorage.setItem('altis_totem_kiosk_path', window.location.pathname);
 
     // Empurra uma entrada "amortecedora" no history. Quando o user
     // clica Voltar, esse pop nos coloca de volta na mesma URL — sem

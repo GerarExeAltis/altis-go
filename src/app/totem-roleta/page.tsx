@@ -34,10 +34,11 @@ function TotemFlow() {
   const [state, dispatch] = React.useReducer(totemReducer, ESTADO_INICIAL);
   const { reduzir } = usePreferredMotion();
 
-  // Bloqueio sempre ativo enquanto a pagina /totem esta aberta —
-  // inclusive na tela inicial (AttractMode). O totem funciona como
-  // quiosque: sair so com senha admin ou senha do operador.
-  const bloqueio = useBloqueioSaidaTotem(true);
+  // Bloqueio de saida com senha SO eh ativado depois que o jogador
+  // toca para iniciar (state.tipo deixa de ser 'attract'). Em
+  // attract o operador pode sair livremente — afinal nao ha jogador
+  // ativo a proteger.
+  const bloqueio = useBloqueioSaidaTotem(state.tipo !== 'attract');
 
   React.useEffect(() => {
     if (typeof window !== 'undefined') {

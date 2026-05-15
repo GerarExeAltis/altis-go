@@ -29,7 +29,7 @@ async function jogar(browser: Browser, telefone: string, nome: string, email: st
   const ctxTotem = await browser.newContext();
   const totem = await ctxTotem.newPage();
   await loginOperador(totem);
-  await totem.goto('/totem');
+  await totem.goto('/totem-roleta');
   await totem.getByRole('button').first().click();
   const url = await pegarUrlDoTotem(totem);
 
@@ -52,7 +52,7 @@ async function jogarEsperandoErro(browser: Browser, telefone: string): Promise<s
   const ctxTotem = await browser.newContext();
   const totem = await ctxTotem.newPage();
   await loginOperador(totem);
-  await totem.goto('/totem');
+  await totem.goto('/totem-roleta');
   await totem.getByRole('button').first().click();
   const url = await pegarUrlDoTotem(totem);
 
