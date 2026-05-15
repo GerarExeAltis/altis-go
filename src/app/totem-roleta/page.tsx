@@ -3,7 +3,7 @@
 import * as React from 'react';
 import { AuthGuard } from '@/components/auth/AuthGuard';
 import { useAuth } from '@/contexts/AuthContext';
-import { totemReducer, ESTADO_INICIAL } from '@/lib/totem/stateMachine';
+import { totemReducer, ESTADO_INICIAL, bloqueiaSaidaTotem } from '@/lib/totem/stateMachine';
 import { useRouter } from 'next/navigation';
 import { useSessaoRealtime } from '@/hooks/useSessaoRealtime';
 import { usePreferredMotion } from '@/hooks/usePreferredMotion';
@@ -34,11 +34,12 @@ function TotemFlow() {
   const [state, dispatch] = React.useReducer(totemReducer, ESTADO_INICIAL);
   const { reduzir } = usePreferredMotion();
 
-  // Bloqueio de saida com senha SO eh ativado depois que o jogador
-  // toca para iniciar (state.tipo deixa de ser 'attract'). Em
-  // attract o operador pode sair livremente — afinal nao ha jogador
-  // ativo a proteger.
-  const bloqueio = useBloqueioSaidaTotem(state.tipo !== 'attract');
+  // Bloqueio de saida com senha SO ativa a partir de
+  // `pronta_para_girar` — quando o jogador efetivamente investiu
+  // (enviou os dados pelo celular). Em attract, QR Code, e enquanto
+  // o jogador preenche dados, voltar eh livre. Ver bloqueiaSaidaTotem()
+  // para a regra detalhada.
+  const bloqueio = useBloqueioSaidaTotem(bloqueiaSaidaTotem(state));
 
   React.useEffect(() => {
     if (typeof window !== 'undefined') {

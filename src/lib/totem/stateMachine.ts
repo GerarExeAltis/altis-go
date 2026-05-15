@@ -21,6 +21,31 @@ export type TotemAction =
 
 const INICIAL: TotemState = { tipo: 'attract' };
 
+/**
+ * Indica se este estado deve BLOQUEAR a saida do totem (exigir senha
+ * admin pra voltar). True so a partir de `pronta_para_girar` — quando
+ * o jogador efetivamente submeteu dados pelo celular e esta esperando
+ * o jogo acontecer.
+ *
+ * Estados onde NAO bloqueia (operador pode voltar livremente):
+ *   - attract:           totem parado esperando
+ *   - criando_sessao:    limbo breve criando sessao
+ *   - aguardando_celular: QR exposto mas sem comprometimento
+ *   - aguardando_dados:  jogador escaneou mas ainda nao enviou dados
+ *   - erro:              recuperacao
+ *
+ * A regra: voltar de QR ou de tela de espera de dados eh ok — apenas
+ * cancela a sessao "vazia". Voltar de jogo em andamento eh que
+ * precisa de senha (pra nao perder uma sessao com jogador investido).
+ */
+export function bloqueiaSaidaTotem(state: TotemState): boolean {
+  return (
+    state.tipo === 'pronta_para_girar' ||
+    state.tipo === 'girando' ||
+    state.tipo === 'finalizada'
+  );
+}
+
 export function totemReducer(state: TotemState, action: TotemAction): TotemState {
   if (action.tipo === 'ERRO_REDE') return { tipo: 'erro', mensagem: action.mensagem };
   if (action.tipo === 'RESET') return INICIAL;
