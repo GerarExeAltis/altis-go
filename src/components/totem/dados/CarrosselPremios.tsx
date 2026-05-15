@@ -209,12 +209,12 @@ export function CarrosselPremios({
 
   return (
     <div
-      // Painel da sidebar — gradient sutil + ring primary discreto.
-      // SEM shadow-lg pra ficar clean. Flex column garante que o
-      // header fica fixo no topo e o conteudo de scroll fica abaixo.
+      // Painel da sidebar — gradient sutil, SEM ring/border externo
+      // (era turquesa primary e poluia o limite). Flex column.
+      // p-3 (vs p-2) para dar mais espaco interno aos cards.
       className="flex h-full min-h-0 w-full flex-col overflow-hidden
         rounded-2xl bg-gradient-to-b from-secondary/40 to-secondary/10
-        ring-1 ring-primary/15 p-2 gap-2"
+        p-3 gap-2"
       aria-label="Lista de prêmios disponíveis e suas combinações"
     >
       {/* Cabecalho fixo no topo do flex */}
@@ -227,10 +227,12 @@ export function CarrosselPremios({
       </div>
 
       {/* Container do scroll — flex-1 toma o espaco restante.
-          ResizeObserver vai pegar o tamanho deste div. */}
+          px-1 dah pequena folga interna para o box-shadow (glow)
+          do card destacado nao ser cortado lateralmente pelo
+          overflow-hidden. ResizeObserver pega tamanho deste div. */}
       <div
         ref={containerRef}
-        className="relative min-h-0 flex-1 overflow-hidden"
+        className="relative min-h-0 flex-1 overflow-hidden px-1"
       >
         {/* Vinhetas fade nas extremidades */}
         <div

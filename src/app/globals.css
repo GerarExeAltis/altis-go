@@ -113,22 +113,25 @@
   to   { transform: translate3d(0, calc(-1 * var(--carrossel-scroll-dist)), 0); }
 }
 
-/* Glow pulsante aplicado ao card do premio vencedor — sinaliza
-   visualmente "este eh o premio que voce ganhou" apos o lance.
-   Versao mais sutil: ring primary + glow leve, sem sombras
-   exageradas que poluiam o fundo. */
+/* Glow pulsante do card vencedor — versao compacta para o glow
+   caber dentro do overflow-hidden do scroll container.
+   - ring inner: 2-3px de cor primary solida (borda destacando)
+   - glow exterior: 8-14px de raio (antes era 20px+) — alcance
+     menor para nao ser cortado pelas bordas do painel.
+   Scale leve 1.03-1.05 (antes 1.04-1.07) — menos overshoot
+   horizontal. */
 @keyframes carrossel-destacar {
   0%, 100% {
     box-shadow:
       0 0 0 2px hsl(var(--primary)),
-      0 0 12px hsl(var(--primary) / 0.35);
-    transform: scale(1.04);
+      0 0 8px hsl(var(--primary) / 0.35);
+    transform: scale(1.03);
   }
   50% {
     box-shadow:
       0 0 0 3px hsl(var(--primary)),
-      0 0 20px hsl(var(--primary) / 0.55);
-    transform: scale(1.07);
+      0 0 14px hsl(var(--primary) / 0.55);
+    transform: scale(1.05);
   }
 }
 

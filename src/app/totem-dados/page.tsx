@@ -258,7 +258,7 @@ function TotemDadosFlow() {
   ) {
     const aguardandoToque = state.tipo === 'pronta_para_girar';
     conteudo = (
-      <div className="grid h-screen w-full min-w-0 grid-cols-[280px_1fr] gap-3 overflow-hidden bg-background p-3">
+      <div className="grid h-screen w-full min-w-0 grid-cols-[320px_1fr] gap-3 overflow-hidden bg-background p-3">
         {/* SIDEBAR ESQUERDA — Carrossel vertical de premios. Sempre
             visivel durante pronta_para_girar / girando / finalizada,
             comunicando ao jogador as combinacoes em jogo. */}
