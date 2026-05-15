@@ -15,10 +15,18 @@ interface Props {
 export function AttractMode({ onTocar, disabled, premios }: Props) {
   React.useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      if ((e.key === ' ' || e.key === 'Enter') && !disabled) {
-        e.preventDefault();
-        onTocar();
-      }
+      if (disabled) return;
+      if (e.key !== ' ' && e.key !== 'Enter') return;
+      // Ignora se o foco esta num input/textarea/select OU se ha um
+      // dialog aberto (Radix renderiza role=dialog so quando aberto).
+      // Sem esta guarda, digitar a senha admin no ModalSaidaTotem e
+      // apertar Enter para submeter ALSO disparava onTocar(), iniciando
+      // o jogo por tras do modal.
+      const ativo = document.activeElement as HTMLElement | null;
+      if (ativo && /^(INPUT|TEXTAREA|SELECT)$/.test(ativo.tagName)) return;
+      if (document.querySelector('[role="dialog"]')) return;
+      e.preventDefault();
+      onTocar();
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
