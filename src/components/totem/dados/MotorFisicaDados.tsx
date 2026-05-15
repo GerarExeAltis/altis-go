@@ -177,8 +177,15 @@ export function MotorFisicaDados({
 
         <Environment preset="city" />
 
+        {/* ContactShadows ligeiramente abaixo da base do cubo (que
+            descansa em y=-0.5 quando o centro esta em y=0). Sem o
+            offset, a sombra renderiza no MESMO plano da base do
+            cubo, dando impressao de que o dado esta encaixado/embedado
+            no chao. -0.501 cria 1mm de gap visual — invisivel como
+            distancia mas o suficiente pra eliminar a sensacao de
+            "atravessou o chao". */}
         <ContactShadows
-          position={[0, -0.5, 0]}
+          position={[0, -0.501, 0]}
           opacity={0.55}
           scale={14}
           blur={2.0}

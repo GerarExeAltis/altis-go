@@ -210,7 +210,12 @@ export function DadoFisico({
       // claramente — sem isso o dado parava no ar sem cue visual
       // de que tocou em algo solido.
       const startYRelativa = start.y - end.y;
-      g.position.y = end.y + alturaSobrePiso(t, startYRelativa, APICE_Y);
+      // Clamp >= 0 garante que NUNCA passe abaixo do chao (end.y).
+      // alturaSobrePiso ja retorna >= 0 por construcao, mas o clamp
+      // serve de safety-net contra erros de ponto-flutuante e
+      // garante invariante para o caso de futuras alteracoes.
+      const altura = Math.max(0, alturaSobrePiso(t, startYRelativa, APICE_Y));
+      g.position.y = end.y + altura;
 
       // Rotacao: easeOutCubic — gira rapido no inicio (durante o
       // arco), desacelera nas batidas. Atinge exatamente o alvo em

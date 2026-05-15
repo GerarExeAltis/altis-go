@@ -143,7 +143,15 @@ export function CarrosselPremios({
     return () => ro.disconnect();
   }, []);
 
-  const lista = premios.length > 0 ? premios : [];
+  // Esconde "Nao foi dessa vez" (e_premio_real=false) do carrossel.
+  // Mostrar um card "tire X+Y => Nao ganhou" eh anticlimatico e
+  // alem disso comunica "este resultado eh ruim" antes do lance.
+  // O premio continua participando do sorteio do backend; apenas
+  // nao aparece no display.
+  const lista = React.useMemo(
+    () => premios.filter((p) => p.e_premio_real),
+    [premios],
+  );
   const itens = React.useMemo(() => [...lista, ...lista], [lista]);
   if (lista.length === 0) return null;
 

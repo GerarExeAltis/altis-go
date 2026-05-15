@@ -19,6 +19,7 @@ import { SwipeAreaDados } from '@/components/totem/dados/SwipeAreaDados';
 import { CarrosselPremios } from '@/components/totem/dados/CarrosselPremios';
 import { ErroOverlay } from '@/components/totem/ErroOverlay';
 import { parDoPremio } from '@/lib/jogos/dadosMapeamento';
+import { DieFace } from '@/components/ui/DieFace';
 
 export default function TotemDadosPage() {
   return (
@@ -285,12 +286,40 @@ function TotemDadosFlow() {
           reduzirMovimento={reduzir}
           onConcluir={onAnimacaoConcluir}
         />
-        <div className="flex items-center justify-center px-6 pb-6 pt-2">
-          {aguardandoToque && (
+        <div className="flex min-h-[72px] items-center justify-center px-6 pb-6 pt-2">
+          {/* Tres estados visuais no rodape:
+              - aguardando toque: "Toque na tela para lancar"
+              - rolando (iniciando + nao pousou ainda): "Rolando..."
+              - vitrine (pousou, antes do modal): banner do resultado
+                com os dois dice faces — comunica claramente "voce
+                tirou X+Y" enquanto o carrossel destaca o card. */}
+          {state.tipo === 'pronta_para_girar' && !iniciando && (
             <p className="text-lg font-medium text-muted-foreground animate-[attract-glow_2.4s_ease-in-out_infinite]">
-              {iniciando ? 'Rolando...' : '🎲 Toque na tela para lançar'}
+              🎲 Toque na tela para lançar
             </p>
           )}
+          {iniciando && !dadosPousaram && (
+            <p className="text-lg font-medium text-muted-foreground animate-[attract-glow_2.4s_ease-in-out_infinite]">
+              Rolando...
+            </p>
+          )}
+          {dadosPousaram && (() => {
+            const premioV = premioVencedorId
+              ? premios.find((p) => p.id === premioVencedorId)
+              : null;
+            const par = premioV ? parDoPremio(premioV) : null;
+            if (!par) return null;
+            return (
+              <div className="flex items-center gap-3 rounded-2xl border-2 border-primary bg-card px-6 py-3 shadow-lg shadow-primary/30">
+                <span className="text-xl font-extrabold uppercase tracking-wide text-primary">
+                  Você tirou
+                </span>
+                <DieFace valor={par[0]} tamanho={42} />
+                <span className="text-2xl font-bold text-muted-foreground">+</span>
+                <DieFace valor={par[1]} tamanho={42} />
+              </div>
+            );
+          })()}
         </div>
 
         {state.tipo === 'finalizada' && premioSorteado && (
