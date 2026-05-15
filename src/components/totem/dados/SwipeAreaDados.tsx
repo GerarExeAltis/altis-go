@@ -2,6 +2,7 @@
 import * as React from 'react';
 import { MotorFisicaDados } from './MotorFisicaDados';
 import type { PremioDb } from '@/lib/totem/types';
+import { parDoPremio } from '@/lib/jogos/dadosMapeamento';
 
 interface Props {
   aguardandoToque: boolean;
@@ -13,12 +14,8 @@ interface Props {
   premios: PremioDb[];
   premioVencedorId: string | null;
   reduzirMovimento?: boolean;
-  /** Disparado quando os dados terminam de assentar + snap. */
+  /** Disparado quando os dados terminam de assentar. */
   onConcluir: () => void;
-}
-
-function faceDoPremio(premio: PremioDb): number {
-  return Math.min(6, Math.max(1, premio.ordem_roleta + 1));
 }
 
 /**
@@ -49,10 +46,10 @@ export function SwipeAreaDados({
     if (iniciarLance) setTrigger((t) => t + 1);
   }, [iniciarLance]);
 
-  const faceAlvo = React.useMemo(() => {
-    if (!premioVencedorId) return 1;
+  const parAlvo = React.useMemo<[number, number]>(() => {
+    if (!premioVencedorId) return [1, 1];
     const p = premios.find((x) => x.id === premioVencedorId);
-    return p ? faceDoPremio(p) : 1;
+    return p ? parDoPremio(p) : [1, 1];
   }, [premioVencedorId, premios]);
 
   const lancar = () => {
@@ -76,7 +73,7 @@ export function SwipeAreaDados({
       style={{ cursor: habilitado ? 'pointer' : 'default' }}
     >
       <MotorFisicaDados
-        faceAlvo={faceAlvo}
+        parAlvo={parAlvo}
         lancarTrigger={trigger}
         reduzirMovimento={reduzirMovimento}
         onConcluir={onConcluir}

@@ -225,10 +225,16 @@ function TotemDadosFlow() {
   ) {
     const aguardandoToque = state.tipo === 'pronta_para_girar';
     conteudo = (
-      <div className="grid min-h-screen w-full min-w-0 grid-rows-[auto_1fr_auto_auto] overflow-hidden bg-background">
-        <h2 className="p-6 text-center text-4xl font-bold tracking-tight">
+      <div className="grid min-h-screen w-full min-w-0 grid-rows-[auto_auto_1fr_auto] overflow-hidden bg-background">
+        <h2 className="px-6 pt-6 pb-2 text-center text-4xl font-bold tracking-tight">
           {jogadorNome ? `Boa sorte, ${jogadorNome}!` : 'Boa sorte!'}
         </h2>
+        {/* Carrossel de premios — logo abaixo do nome do jogador,
+            compacto. Comunica ao jogador exatamente que combinacao
+            de dados ganha cada premio. */}
+        <div className="min-w-0 overflow-hidden pb-2">
+          <CarrosselPremios premios={premios} velocidade={50} alturaCard={96} visiveis={5} />
+        </div>
         <SwipeAreaDados
           aguardandoToque={aguardandoToque}
           iniciando={iniciando}
@@ -239,19 +245,12 @@ function TotemDadosFlow() {
           reduzirMovimento={reduzir}
           onConcluir={onAnimacaoConcluir}
         />
-        <div className="flex items-center justify-center px-6 pt-2 pb-1">
+        <div className="flex items-center justify-center px-6 pb-6 pt-2">
           {aguardandoToque && (
             <p className="text-lg font-medium text-muted-foreground animate-[attract-glow_2.4s_ease-in-out_infinite]">
               {iniciando ? 'Rolando...' : '🎲 Toque na tela para lançar'}
             </p>
           )}
-        </div>
-        {/* Carrossel de premios — visivel durante toda a fase de
-            jogo (pronta_para_girar, girando, finalizada). Comunica
-            ao jogador exatamente qual face precisa para cada premio,
-            entregando transparencia sobre o mapeamento. */}
-        <div className="min-w-0 overflow-hidden pb-4">
-          <CarrosselPremios premios={premios} velocidade={50} />
         </div>
 
         {state.tipo === 'finalizada' && premioSorteado && (

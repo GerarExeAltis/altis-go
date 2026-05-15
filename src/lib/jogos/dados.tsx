@@ -3,6 +3,7 @@ import * as React from 'react';
 import type { JogoDef, PreviewJogoProps } from './types';
 import type { PremioDb } from '@/lib/admin/types';
 import { MotorFisicaDados } from '@/components/totem/dados/MotorFisicaDados';
+import { parDoPremio, MAX_PREMIOS_UNICOS } from '@/lib/jogos/dadosMapeamento';
 import { usePreferredMotion } from '@/hooks/usePreferredMotion';
 import { Button } from '@/components/ui/button';
 import { Dices, RotateCcw } from 'lucide-react';
@@ -19,13 +20,9 @@ function sortearPreview(premios: PremioDb[]): PremioDb | null {
   return elegiveis[elegiveis.length - 1];
 }
 
-function faceDoPremio(premio: PremioDb): number {
-  return Math.min(6, Math.max(1, premio.ordem_roleta + 1));
-}
-
 function PreviewDados({ premios }: PreviewJogoProps) {
   const { reduzir } = usePreferredMotion();
-  const [faceAlvo, setFaceAlvo] = React.useState(1);
+  const [parAlvo, setParAlvo] = React.useState<[number, number]>([1, 1]);
   const [trigger, setTrigger] = React.useState(0);
   const [girando, setGirando] = React.useState(false);
   const [montarCanvas, setMontarCanvas] = React.useState(false);
@@ -44,13 +41,13 @@ function PreviewDados({ premios }: PreviewJogoProps) {
       alert('Nenhum premio elegivel (sem peso/estoque)');
       return;
     }
-    setFaceAlvo(faceDoPremio(p));
+    setParAlvo(parDoPremio(p));
     setTrigger((t) => t + 1);
     setGirando(true);
   };
 
   const reset = () => {
-    setFaceAlvo(1);
+    setParAlvo([1, 1]);
     setGirando(false);
   };
 
@@ -64,11 +61,11 @@ function PreviewDados({ premios }: PreviewJogoProps) {
 
   return (
     <div className="space-y-4">
-      {premios.length > 6 && (
+      {premios.length > MAX_PREMIOS_UNICOS && (
         <p className="rounded-md bg-amber-500/10 px-3 py-2 text-xs text-amber-700 ring-1 ring-amber-500/30 dark:text-amber-300">
-          ⚠ Dados tem 6 faces. Você tem {premios.length} prêmios — os
-          prêmios além do 6º vão reutilizar faces visualmente. O sorteio
-          continua correto.
+          ⚠ Existem {MAX_PREMIOS_UNICOS} combinações únicas de 2 dados. Você tem {premios.length} prêmios —
+          os prêmios além do {MAX_PREMIOS_UNICOS}º vão reutilizar combinações visualmente.
+          O sorteio do servidor continua correto.
         </p>
       )}
       <div className="flex items-center justify-center">
@@ -78,7 +75,7 @@ function PreviewDados({ premios }: PreviewJogoProps) {
         >
           {montarCanvas ? (
             <MotorFisicaDados
-              faceAlvo={faceAlvo}
+              parAlvo={parAlvo}
               lancarTrigger={trigger}
               reduzirMovimento={reduzir}
               onConcluir={onConcluir}

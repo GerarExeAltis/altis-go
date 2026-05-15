@@ -7,8 +7,12 @@ import * as THREE from 'three';
 import { DadoFisico } from './DadoFisico';
 
 interface Props {
-  /** Face que cada dado deve mostrar para cima ao final (1..6). */
-  faceAlvo: number;
+  /**
+   * Par de faces alvo — [faceDadoA, faceDadoB], ambas 1..6. Cada
+   * dado anima para a SUA face alvo, podendo ser diferentes entre
+   * si. Isto eh o que permite premios com pares mistos (ex: 3+5).
+   */
+  parAlvo: [number, number];
   /** Incrementar a cada novo lance para disparar a animacao. */
   lancarTrigger: number;
   reduzirMovimento?: boolean;
@@ -83,7 +87,7 @@ function sortearPosicoesFinais(): [
  *   correcao — o destino sempre foi aquele.
  */
 export function MotorFisicaDados({
-  faceAlvo,
+  parAlvo,
   lancarTrigger,
   reduzirMovimento = false,
   onConcluir,
@@ -174,7 +178,7 @@ export function MotorFisicaDados({
         <DadoFisico
           posicaoInicial={POS_INICIAL_DADO_A}
           posicaoFinal={posicoesFinais[0]}
-          faceAlvo={faceAlvo}
+          faceAlvo={parAlvo[0]}
           lancarTrigger={lancarTrigger}
           reduzido={reduzirMovimento}
           onProntoEsteDado={onProntoUnico}
@@ -184,7 +188,7 @@ export function MotorFisicaDados({
         <DadoFisico
           posicaoInicial={POS_INICIAL_DADO_B}
           posicaoFinal={posicoesFinais[1]}
-          faceAlvo={faceAlvo}
+          faceAlvo={parAlvo[1]}
           lancarTrigger={lancarTrigger}
           reduzido={reduzirMovimento}
           onProntoEsteDado={onProntoUnico}
