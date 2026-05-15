@@ -12,7 +12,7 @@ import * as React from 'react';
  *    o navegador mostra o confirm nativo "Tem certeza que quer sair?".
  *
  * Retorna `{ modalAberto, abrirModal, fecharModal, liberar }`:
- *  - modalAberto: estado para o componente renderizar <ModalConfirmacaoVoltar>
+ *  - modalAberto: estado para o componente renderizar <ModalSaidaTotem>
  *  - abrirModal/fecharModal: controle manual (ex: botao "Sair" customizado)
  *  - liberar: chamar apos validar a senha; remove o lock e permite
  *    history.back() ou navegacao programatica subsequente
