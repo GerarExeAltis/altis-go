@@ -5,6 +5,7 @@ import confetti from 'canvas-confetti';
 import { Trophy, Heart, X } from 'lucide-react';
 import { urlFotoPremio } from '@/lib/storage/fotoPremio';
 import { usePreferredMotion } from '@/hooks/usePreferredMotion';
+import { DieFace } from '@/components/ui/DieFace';
 
 interface Props {
   premioNome: string;
@@ -13,6 +14,13 @@ interface Props {
   premioFotoPath?: string | null;
   segundosAteVoltar?: number;
   onFinalizar: () => void;
+  /**
+   * Par de dados que o jogador tirou (1..6 cada). Quando fornecido,
+   * o modal mostra os dois dados visualmente — mesma combinacao
+   * destacada no carrossel. So usado pelo jogo de Dados; Roleta
+   * omite (passa undefined).
+   */
+  parDados?: [number, number];
 }
 
 /**
@@ -30,6 +38,7 @@ export function ModalResultadoPremio({
   premioFotoPath,
   segundosAteVoltar = 25,
   onFinalizar,
+  parDados,
 }: Props) {
   const { reduzir } = usePreferredMotion();
   const [segundos, setSegundos] = React.useState(segundosAteVoltar);
@@ -92,6 +101,22 @@ export function ModalResultadoPremio({
               <h1 className="text-4xl font-extrabold tracking-tight text-foreground animate-[ganhador-glow_2.2s_ease-in-out_infinite]">
                 PARABÉNS{jogadorNome ? `, ${jogadorNome}` : ''}!
               </h1>
+
+              {parDados && (
+                // Mostra os dados que o jogador tirou — mesma
+                // combinacao destacada no carrossel. Reforca a
+                // ligacao "este resultado fisico = este premio".
+                <div className="flex flex-col items-center gap-1">
+                  <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                    Você tirou
+                  </p>
+                  <div className="flex items-center gap-2 rounded-xl border border-[#f4c430]/30 bg-card/60 px-4 py-2 shadow-inner">
+                    <DieFace valor={parDados[0]} tamanho={42} />
+                    <span className="text-lg font-bold text-muted-foreground">+</span>
+                    <DieFace valor={parDados[1]} tamanho={42} />
+                  </div>
+                </div>
+              )}
 
               <p className="text-lg font-semibold text-muted-foreground">Você ganhou:</p>
 
@@ -161,6 +186,20 @@ export function ModalResultadoPremio({
           <h1 className="text-3xl font-bold tracking-tight">
             Não foi dessa vez{jogadorNome ? `, ${jogadorNome}` : ''}!
           </h1>
+
+          {parDados && (
+            <div className="mt-5 flex flex-col items-center gap-1">
+              <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                Você tirou
+              </p>
+              <div className="flex items-center gap-2 rounded-xl border border-border bg-muted/40 px-4 py-2">
+                <DieFace valor={parDados[0]} tamanho={36} />
+                <span className="text-base font-bold text-muted-foreground">+</span>
+                <DieFace valor={parDados[1]} tamanho={36} />
+              </div>
+            </div>
+          )}
+
           <p className="mt-3 text-lg text-muted-foreground">Obrigado por participar.</p>
 
           <div className="mt-8 flex flex-col items-center gap-2">

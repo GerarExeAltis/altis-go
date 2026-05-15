@@ -18,6 +18,7 @@ import { ModalResultadoPremio } from '@/components/jogos/ModalResultadoPremio';
 import { SwipeAreaDados } from '@/components/totem/dados/SwipeAreaDados';
 import { CarrosselPremios } from '@/components/totem/dados/CarrosselPremios';
 import { ErroOverlay } from '@/components/totem/ErroOverlay';
+import { parDoPremio } from '@/lib/jogos/dadosMapeamento';
 
 export default function TotemDadosPage() {
   return (
@@ -298,6 +299,15 @@ function TotemDadosFlow() {
             ePremioReal={premioSorteado.e_premio_real}
             premioFotoPath={premioSorteado.foto_path}
             jogadorNome={jogadorNome}
+            // Mesma combinacao destacada no carrossel — vinculo
+            // visual entre o resultado fisico, o highlight no
+            // carrossel e o modal final.
+            parDados={(() => {
+              const p = premioVencedorId
+                ? premios.find((x) => x.id === premioVencedorId)
+                : null;
+              return p ? parDoPremio(p) : undefined;
+            })()}
             onFinalizar={() => {
               setJogadorNome(null);
               dispatch({ tipo: 'AUTO_RETORNO' });
