@@ -116,13 +116,15 @@ export function MotorFisicaDados({
     }
   }, [onConcluir]);
 
-  // Revolucoes diferentes por dado para naturalidade visual
+  // Revolucoes diferentes por dado para naturalidade visual.
+  // Mais voltas = mais "spinning" perceptivel durante a queda
+  // (antes era 3-3.5, agora 4-5.5).
   const revolucoesA: [number, number, number] = React.useMemo(
-    () => [3 + Math.random() * 1, 3.5 + Math.random() * 1.5, 2 + Math.random() * 0.8],
+    () => [4 + Math.random() * 1.2, 4.5 + Math.random() * 1.5, 2.5 + Math.random() * 1],
     [lancarTrigger],
   );
   const revolucoesB: [number, number, number] = React.useMemo(
-    () => [3.5 + Math.random() * 1, 3 + Math.random() * 1.5, 2.2 + Math.random() * 0.8],
+    () => [4.5 + Math.random() * 1.2, 4 + Math.random() * 1.5, 2.8 + Math.random() * 1],
     [lancarTrigger],
   );
 

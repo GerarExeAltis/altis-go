@@ -29,9 +29,13 @@ interface Props {
   revolucoes?: [number, number, number];
 }
 
-const DUR_LANCE_S = 1.7;
-const DUR_LANCE_REDUZIDO_S = 0.45;
-const APICE_Y = 1.6;
+const DUR_LANCE_S = 2.1;
+const DUR_LANCE_REDUZIDO_S = 0.55;
+// Altura do arco da trajetoria. Maior = queda mais dramatica e
+// visivel. 2.6 unidades equivale a ~aresta-do-cubo * 5 — o dado
+// se afasta bem da posicao idle antes de descer ate o chao,
+// fazendo a queda ser claramente percebida.
+const APICE_Y = 2.6;
 
 function easeOutCubic(t: number) {
   return 1 - Math.pow(1 - t, 3);

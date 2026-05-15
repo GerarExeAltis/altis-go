@@ -3,6 +3,7 @@ import * as React from 'react';
 import type { PremioDb } from '@/lib/totem/types';
 import { parDoPremio } from '@/lib/jogos/dadosMapeamento';
 import { DieFace } from '@/components/ui/DieFace';
+import { getSupabaseBrowserClient } from '@/lib/supabase/browser';
 
 interface Props {
   premios: PremioDb[];
@@ -10,27 +11,62 @@ interface Props {
   velocidade?: number;
   /** Quantos cards visiveis simultaneamente (default 5). */
   visiveis?: number;
-  /** Altura do card em px (default 110). */
+  /** Altura do card em px (default 140). */
   alturaCard?: number;
+}
+
+function urlPublica(path: string | null): string | null {
+  if (!path) return null;
+  try {
+    const sb = getSupabaseBrowserClient();
+    const { data } = sb.storage.from('premios').getPublicUrl(path);
+    return data.publicUrl;
+  } catch {
+    return null;
+  }
 }
 
 function CardPremio({ premio, alturaCard }: { premio: PremioDb; alturaCard: number }) {
   const par = parDoPremio(premio);
+  const foto = urlPublica(premio.foto_path);
   const semEstoque = premio.e_premio_real && premio.estoque_atual <= 0;
-  const tamanhoFace = Math.max(28, Math.min(46, alturaCard * 0.42));
-  const gap = Math.max(4, tamanhoFace * 0.12);
+  // Dimensoes proporcionais a alturaCard para escalar bem com o
+  // tamanho do container.
+  const tamanhoFace = Math.max(22, Math.min(34, alturaCard * 0.22));
+  const tamanhoFoto = Math.max(36, Math.min(56, alturaCard * 0.38));
 
   return (
     <div
-      className={`flex h-full flex-col items-center justify-center rounded-xl border bg-card px-3 shadow-sm ${
+      className={`flex h-full flex-col items-center justify-between rounded-xl border bg-card px-2 py-2 shadow-sm ${
         semEstoque ? 'opacity-40' : ''
       }`}
       style={{ height: alturaCard }}
-      aria-label={`Para ganhar este prêmio, tire ${par[0]} e ${par[1]}`}
+      aria-label={`Prêmio ${premio.nome} — para ganhar tire ${par[0]} e ${par[1]}`}
     >
-      <div className="flex items-center" style={{ gap }}>
+      <div
+        className="flex w-full items-center justify-center overflow-hidden rounded-md bg-muted/30"
+        style={{ height: tamanhoFoto, width: tamanhoFoto }}
+      >
+        {foto ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={foto}
+            alt=""
+            className="h-full w-full object-contain"
+            loading="lazy"
+          />
+        ) : (
+          <span className="text-2xl">🎁</span>
+        )}
+      </div>
+
+      <p className="line-clamp-1 w-full text-center text-[11px] font-semibold leading-tight">
+        {premio.nome}
+      </p>
+
+      <div className="flex items-center gap-1">
         <DieFace valor={par[0]} tamanho={tamanhoFace} />
-        <span className="text-xs font-bold text-muted-foreground">+</span>
+        <span className="text-[10px] font-bold text-muted-foreground">+</span>
         <DieFace valor={par[1]} tamanho={tamanhoFace} />
       </div>
     </div>
@@ -52,7 +88,7 @@ export function CarrosselPremios({
   premios,
   velocidade = 60,
   visiveis = 5,
-  alturaCard = 110,
+  alturaCard = 140,
 }: Props) {
   const containerRef = React.useRef<HTMLDivElement | null>(null);
   const [larguraContainer, setLarguraContainer] = React.useState(0);

@@ -159,10 +159,17 @@ function TotemDadosFlow() {
       : null;
 
   const onAnimacaoConcluir = React.useCallback(() => {
-    dispatch({ tipo: 'ANIMACAO_TERMINOU' });
-    if (sessaoIdEstado) {
-      concluirAnimacao(accessToken, sessaoIdEstado).catch(() => { /* idempotente */ });
-    }
+    // Aguarda 2.5s apos os dados pousarem antes de abrir o modal
+    // de premio — o jogador precisa de tempo para LER as faces que
+    // cairam e conferir contra o carrossel. Sem essa pausa o modal
+    // dispara imediatamente e cobre os dados mid-fade.
+    const TEMPO_VITRINE_MS = 2500;
+    window.setTimeout(() => {
+      dispatch({ tipo: 'ANIMACAO_TERMINOU' });
+      if (sessaoIdEstado) {
+        concluirAnimacao(accessToken, sessaoIdEstado).catch(() => { /* idempotente */ });
+      }
+    }, TEMPO_VITRINE_MS);
   }, [sessaoIdEstado, accessToken]);
 
   const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
@@ -233,7 +240,7 @@ function TotemDadosFlow() {
             compacto. Comunica ao jogador exatamente que combinacao
             de dados ganha cada premio. */}
         <div className="min-w-0 overflow-hidden pb-2">
-          <CarrosselPremios premios={premios} velocidade={50} alturaCard={96} visiveis={5} />
+          <CarrosselPremios premios={premios} velocidade={50} alturaCard={140} visiveis={5} />
         </div>
         <SwipeAreaDados
           aguardandoToque={aguardandoToque}
