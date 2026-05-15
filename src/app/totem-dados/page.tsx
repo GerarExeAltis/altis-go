@@ -258,35 +258,37 @@ function TotemDadosFlow() {
   ) {
     const aguardandoToque = state.tipo === 'pronta_para_girar';
     conteudo = (
-      <div className="grid min-h-screen w-full min-w-0 grid-rows-[auto_auto_1fr_auto] overflow-hidden bg-background">
-        <h2 className="px-6 pt-6 pb-2 text-center text-4xl font-bold tracking-tight">
-          {jogadorNome ? `Boa sorte, ${jogadorNome}!` : 'Boa sorte!'}
-        </h2>
-        {/* Carrossel de premios — logo abaixo do nome do jogador,
-            compacto. Comunica ao jogador exatamente que combinacao
-            de dados ganha cada premio. */}
-        <div className="min-w-0 overflow-hidden pb-2">
+      <div className="grid h-screen w-full min-w-0 grid-cols-[280px_1fr] gap-3 overflow-hidden bg-background p-3">
+        {/* SIDEBAR ESQUERDA — Carrossel vertical de premios. Sempre
+            visivel durante pronta_para_girar / girando / finalizada,
+            comunicando ao jogador as combinacoes em jogo. */}
+        <aside className="h-full min-h-0">
           <CarrosselPremios
             premios={premios}
             velocidade={50}
-            alturaCard={100}
             visiveis={5}
             // Highlight do vencedor: SO quando os dados ja pousaram.
             // Antes disso, vencedorId=null e o carrossel rola normal.
             vencedorId={dadosPousaram ? premioVencedorId : null}
           />
-        </div>
-        <SwipeAreaDados
-          aguardandoToque={aguardandoToque}
-          iniciando={iniciando}
-          onLancar={dispararDado}
-          iniciarLance={state.tipo === 'girando'}
-          premios={premios}
-          premioVencedorId={premioVencedorId}
-          reduzirMovimento={reduzir}
-          onConcluir={onAnimacaoConcluir}
-        />
-        <div className="flex min-h-[72px] items-center justify-center px-6 pb-6 pt-2">
+        </aside>
+
+        {/* AREA PRINCIPAL — header + dados 3D + rodape (banner). */}
+        <main className="grid min-w-0 grid-rows-[auto_1fr_auto]">
+          <h2 className="px-4 pt-4 pb-2 text-center text-4xl font-bold tracking-tight">
+            {jogadorNome ? `Boa sorte, ${jogadorNome}!` : 'Boa sorte!'}
+          </h2>
+          <SwipeAreaDados
+            aguardandoToque={aguardandoToque}
+            iniciando={iniciando}
+            onLancar={dispararDado}
+            iniciarLance={state.tipo === 'girando'}
+            premios={premios}
+            premioVencedorId={premioVencedorId}
+            reduzirMovimento={reduzir}
+            onConcluir={onAnimacaoConcluir}
+          />
+          <div className="flex min-h-[72px] items-center justify-center px-4 pb-4 pt-2">
           {/* Tres estados visuais no rodape:
               - aguardando toque: "Toque na tela para lancar"
               - rolando (iniciando + nao pousou ainda): "Rolando..."
@@ -310,7 +312,7 @@ function TotemDadosFlow() {
             const par = premioV ? parDoPremio(premioV) : null;
             if (!par) return null;
             return (
-              <div className="flex items-center gap-3 rounded-2xl border-2 border-primary bg-card px-6 py-3 shadow-lg shadow-primary/30">
+              <div className="flex items-center gap-3 rounded-2xl border-2 border-primary bg-card px-6 py-3">
                 <span className="text-xl font-extrabold uppercase tracking-wide text-primary">
                   Você tirou
                 </span>
@@ -320,7 +322,8 @@ function TotemDadosFlow() {
               </div>
             );
           })()}
-        </div>
+          </div>
+        </main>
 
         {state.tipo === 'finalizada' && premioSorteado && (
           <ModalResultadoPremio

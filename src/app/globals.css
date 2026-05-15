@@ -99,29 +99,36 @@
    reseta para 0; como a segunda copia eh identica a primeira, o
    reset eh invisivel. var --carrossel-scroll-dist eh setada inline
    no JSX a partir da largura do container e do numero de premios. */
+/* Scroll horizontal (legado — caso o caller mude o eixo). */
 @keyframes carrossel-scroll {
   from { transform: translate3d(0, 0, 0); }
   to   { transform: translate3d(calc(-1 * var(--carrossel-scroll-dist)), 0, 0); }
 }
 
+/* Scroll vertical infinito — usado quando o carrossel esta em
+   orientacao vertical (esquerda da tela). A faixa duplicada faz
+   o reset invisivel quando completa uma copia. */
+@keyframes carrossel-scroll-vertical {
+  from { transform: translate3d(0, 0, 0); }
+  to   { transform: translate3d(0, calc(-1 * var(--carrossel-scroll-dist)), 0); }
+}
+
 /* Glow pulsante aplicado ao card do premio vencedor — sinaliza
    visualmente "este eh o premio que voce ganhou" apos o lance.
-   Pulsa entre dois estados de box-shadow + scale, infinitamente
-   ate o modal de resultado abrir. */
+   Versao mais sutil: ring primary + glow leve, sem sombras
+   exageradas que poluiam o fundo. */
 @keyframes carrossel-destacar {
   0%, 100% {
     box-shadow:
       0 0 0 2px hsl(var(--primary)),
-      0 0 18px hsl(var(--primary) / 0.45),
-      0 0 36px hsl(var(--primary) / 0.25);
-    transform: scale(1.05);
+      0 0 12px hsl(var(--primary) / 0.35);
+    transform: scale(1.04);
   }
   50% {
     box-shadow:
-      0 0 0 4px hsl(var(--primary)),
-      0 0 28px hsl(var(--primary) / 0.75),
-      0 0 56px hsl(var(--primary) / 0.45);
-    transform: scale(1.10);
+      0 0 0 3px hsl(var(--primary)),
+      0 0 20px hsl(var(--primary) / 0.55);
+    transform: scale(1.07);
   }
 }
 
