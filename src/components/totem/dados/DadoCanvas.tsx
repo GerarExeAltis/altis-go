@@ -6,11 +6,26 @@ import { EffectComposer, Bloom, SMAA } from '@react-three/postprocessing';
 import * as THREE from 'three';
 import { texturaPipsParaFace, PIPS_PLANO_TAMANHO } from './texturasPipsFace';
 
+// Rotacoes Euler (XYZ intrinsic) que poem a face N voltada para
+// CIMA (world +Y). Three.js usa right-handed coords e rotacao Z
+// positiva eh CCW vista de +Z.
+//
+// Face 3 vive em local +X (DadoCanvas FacePips). Para +X subir para
+// +Y precisamos girar CCW no plano XY ⇒ Z=+pi/2.
+// Face 4 vive em local -X. Para -X subir para +Y precisamos girar
+// CW no plano XY ⇒ Z=-pi/2.
+//
+// Bug anterior: os sinais Z estavam INVERTIDOS entre 3 e 4 — quando
+// o codigo pedia face 3 (rotation Z=-pi/2), na verdade face 4
+// terminava no topo, e vice-versa. Carrossel, banner e modal
+// (todos derivados do mesmo `parDoPremio`) mostravam X+Y, mas os
+// dados 3D fisicos mostravam o oposto: 3↔4. Bug visivel sempre
+// que o par envolvia 3 ou 4 (ex: par [3,5] aparecia como [4,5]).
 export const ROTACOES_FACES: Record<number, [number, number, number]> = {
   1: [0, 0, 0],
   2: [-Math.PI / 2, 0, 0],
-  3: [0, 0, -Math.PI / 2],
-  4: [0, 0, Math.PI / 2],
+  3: [0, 0, Math.PI / 2],
+  4: [0, 0, -Math.PI / 2],
   5: [Math.PI / 2, 0, 0],
   6: [Math.PI, 0, 0],
 };

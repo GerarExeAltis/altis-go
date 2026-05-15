@@ -123,14 +123,20 @@ export function MotorFisicaDados({
   }, [onConcluir]);
 
   // Revolucoes diferentes por dado para naturalidade visual.
-  // Mais voltas = mais "spinning" perceptivel durante a queda
-  // (antes era 3-3.5, agora 4-5.5).
+  // IMPORTANTE: precisam ser INTEIROS — N*2pi soma identidade visual
+  // exata. Float (e.g. 4.6) deixaria 0.6*2pi de rotacao residual,
+  // colocando o cubo numa face errada. DadoFisico defende com
+  // Math.round mas geramos inteiros aqui tambem.
+  const rndInt = (min: number, max: number) =>
+    Math.floor(min + Math.random() * (max - min + 1));
   const revolucoesA: [number, number, number] = React.useMemo(
-    () => [4 + Math.random() * 1.2, 4.5 + Math.random() * 1.5, 2.5 + Math.random() * 1],
+    () => [rndInt(4, 5), rndInt(4, 6), rndInt(2, 3)],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [lancarTrigger],
   );
   const revolucoesB: [number, number, number] = React.useMemo(
-    () => [4.5 + Math.random() * 1.2, 4 + Math.random() * 1.5, 2.8 + Math.random() * 1],
+    () => [rndInt(4, 5), rndInt(4, 6), rndInt(2, 3)],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [lancarTrigger],
   );
 

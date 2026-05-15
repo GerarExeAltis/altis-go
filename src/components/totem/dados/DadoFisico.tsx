@@ -160,14 +160,26 @@ export function DadoFisico({
     // Calcular rotacao final com N revolucoes COMPLETAS adicionadas
     // em cada eixo. Como N*2pi eh identidade visual, no fim
     // (rx + N*2pi) ≡ rx (mod 2pi) — a face correta fica para cima.
-    // Sinais aleatorios em revolucoes dao variedade de direcao do
-    // giro (alguns dados giram pra um lado, outros pro outro).
+    //
+    // CRITICO: N PRECISA SER INTEIRO. Se revolucoes for float (e.g.
+    // 4.6), entao rx + 4.6*2π = rx + 9.2π = rx + 1.2π (mod 2π) —
+    // sobra uma rotacao residual que vira a face errada para cima.
+    // Bug visivel: carrossel/banner/modal mostram X+Y mas dados 3D
+    // mostram outra combinacao.
+    // Math.round garante inteiros aqui mesmo, defesa contra
+    // qualquer caller passar float.
+    const revoX = Math.round(revolucoes[0]);
+    const revoY = Math.round(revolucoes[1]);
+    const revoZ = Math.round(revolucoes[2]);
+
+    // Sinais aleatorios = direcao do giro (alguns dados giram
+    // pra um lado, outros pro outro).
     const signX = Math.random() < 0.5 ? -1 : 1;
     const signY = Math.random() < 0.5 ? -1 : 1;
     const signZ = Math.random() < 0.5 ? -1 : 1;
-    const targetX = rx + revolucoes[0] * Math.PI * 2 * signX;
-    const targetY = ry + revolucoes[1] * Math.PI * 2 * signY;
-    const targetZ = rz + revolucoes[2] * Math.PI * 2 * signZ;
+    const targetX = rx + revoX * Math.PI * 2 * signX;
+    const targetY = ry + revoY * Math.PI * 2 * signY;
+    const targetZ = rz + revoZ * Math.PI * 2 * signZ;
 
     endEulerComRevolucoesRef.current.set(targetX, targetY, targetZ);
 
