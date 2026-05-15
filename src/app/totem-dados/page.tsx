@@ -225,7 +225,7 @@ function TotemDadosFlow() {
   ) {
     const aguardandoToque = state.tipo === 'pronta_para_girar';
     conteudo = (
-      <div className="grid min-h-screen grid-rows-[auto_1fr_auto_auto] bg-background">
+      <div className="grid min-h-screen w-full min-w-0 grid-rows-[auto_1fr_auto_auto] overflow-hidden bg-background">
         <h2 className="p-6 text-center text-4xl font-bold tracking-tight">
           {jogadorNome ? `Boa sorte, ${jogadorNome}!` : 'Boa sorte!'}
         </h2>
@@ -250,7 +250,7 @@ function TotemDadosFlow() {
             jogo (pronta_para_girar, girando, finalizada). Comunica
             ao jogador exatamente qual face precisa para cada premio,
             entregando transparencia sobre o mapeamento. */}
-        <div className="pb-4">
+        <div className="min-w-0 overflow-hidden pb-4">
           <CarrosselPremios premios={premios} velocidade={50} />
         </div>
 

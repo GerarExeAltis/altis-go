@@ -113,7 +113,13 @@ export function CarrosselPremios({ premios, velocidade = 60 }: Props) {
   return (
     <div
       ref={containerRef}
-      className="relative w-full overflow-hidden"
+      // min-w-0 eh CRITICO em filhos de grid/flex: o default
+      // min-width:auto faria este container expandir ate caber o
+      // 'width:max-content' da faixa interna, esticando a pagina
+      // toda horizontalmente. min-w-0 + overflow-hidden garante
+      // que a faixa eh CLIPADA na largura do container, nao o
+      // contrario.
+      className="relative w-full min-w-0 overflow-hidden"
       aria-label="Prêmios disponíveis"
     >
       {/* Vinheta lateral leve — bordas do carrossel "desaparecendo"
